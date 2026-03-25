@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PM x10 Agent System — Guia Completa</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0b14;
+    --surface: #12121e;
+    --surface2: #0d0d1a;
+    --border: rgba(255,255,255,0.04);
+    --border2: rgba(255,255,255,0.08);
+    --text: #e0e0e0;
+    --text2: #999;
+    --text3: #666;
+    --text4: #444;
+    --red: #e94560;
+    --orange: #ff9f43;
+    --green: #52734d;
+    --green2: #7cb342;
+    --blue: #45aaf2;
+    --purple: #9b59b6;
+    --cyan: #2b6777;
+    --pink: #e056a0;
+    --yellow: #f1c40f;
+    --white: #bdc3c7;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', system-ui, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.6; }
+
+  .header { padding: 28px 24px 20px; border-bottom: 1px solid var(--border); }
+  .header-label { font: 700 9px/1 var(--mono); text-transform: uppercase; letter-spacing: 3px; color: var(--red); margin-bottom: 6px; }
+  .header h1 { font-size: 22px; font-weight: 700; }
+  .header h1 span { color: var(--text3); font-weight: 500; font-size: 14px; }
+  .header-stats { font: 400 10px var(--mono); color: var(--text3); margin-top: 6px; }
+
+  .tabs { display: flex; gap: 0; padding: 0 24px; border-bottom: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tab { background: none; border: none; border-bottom: 2px solid transparent; color: var(--text3); padding: 11px 14px; font: 600 11px var(--mono); cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+  .tab:hover { color: var(--text2); }
+  .tab.active { color: var(--red); border-bottom-color: var(--red); }
+
+  .content { padding: 20px 24px 40px; max-width: 960px; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .intro { font-size: 12px; color: var(--text2); margin-bottom: 16px; line-height: 1.7; }
+
+  .scenario-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+  .scenario-btn { padding: 8px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); color: var(--text2); font: 600 11px var(--sans); cursor: pointer; transition: all 0.2s; }
+  .scenario-btn:hover { border-color: var(--text3); }
+  .scenario-btn.active { border-color: var(--red); color: var(--red); background: rgba(233,69,96,0.08); }
+
+  .card { background: var(--surface2); border-radius: 8px; padding: 14px 16px; margin-bottom: 8px; }
+  .card-accent { border-left: 4px solid var(--red); }
+
+  .step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .cmd-badge { background: var(--red); color: #fff; font: 700 10px var(--mono); padding: 3px 10px; border-radius: 4px; }
+  .step-title { font-size: 13px; font-weight: 600; color: #ddd; }
+  .step-agents { font: 400 10px var(--mono); color: var(--text3); margin-bottom: 6px; }
+  .step-output { font-size: 11px; color: var(--text2); margin-bottom: 6px; }
+  .step-output b { color: var(--green2); font-weight: 500; }
+  .step-tip { font-size: 11px; color: var(--blue); background: rgba(69,170,242,0.05); padding: 6px 10px; border-radius: 4px; border-left: 2px solid rgba(69,170,242,0.15); margin-top: 4px; }
+  .step-warn { font-size: 11px; color: var(--orange); background: rgba(255,159,67,0.05); padding: 6px 10px; border-radius: 4px; border-left: 2px solid rgba(255,159,67,0.15); margin-top: 4px; }
+
+  .section-title { font-size: 15px; font-weight: 700; margin: 20px 0 10px; }
+  .section-subtitle { font-size: 12px; color: var(--text2); margin-bottom: 12px; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 16px; }
+  @media (max-width: 700px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  .folder-card { background: var(--surface2); border-radius: 6px; padding: 12px 14px; margin-bottom: 6px; border-left: 3px solid var(--text4); }
+  .folder-card.red { border-left-color: var(--red); }
+  .folder-card.orange { border-left-color: var(--orange); }
+  .folder-card.green { border-left-color: var(--green2); }
+  .folder-card.blue { border-left-color: var(--blue); }
+  .folder-card.purple { border-left-color: var(--purple); }
+  .folder-card.cyan { border-left-color: var(--cyan); }
+  .folder-card.pink { border-left-color: var(--pink); }
+  .folder-card.yellow { border-left-color: var(--yellow); }
+  .folder-card.white { border-left-color: var(--white); }
+  .folder-name { font: 700 13px var(--mono); color: #ddd; margin-bottom: 4px; }
+  .folder-desc { font-size: 11px; color: var(--text2); line-height: 1.6; }
+  .folder-files { font: 400 10px var(--mono); color: var(--text3); margin-top: 6px; line-height: 1.8; }
+  .folder-relation { font-size: 10px; color: var(--cyan); margin-top: 6px; background: rgba(43,103,119,0.1); padding: 4px 8px; border-radius: 3px; }
+
+  .agent-row { background: var(--surface2); border-radius: 4px; padding: 8px 12px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px; }
+  .agent-name { font: 600 11px var(--mono); }
+  .agent-meta { font: 400 9px var(--mono); color: var(--text3); }
+  .agent-desc { font-size: 10px; color: var(--text2); width: 100%; margin-top: 2px; }
+
+  .badge { font: 600 9px var(--mono); padding: 2px 8px; border-radius: 3px; display: inline-block; }
+  .badge-red { color: var(--red); background: rgba(233,69,96,0.1); }
+  .badge-orange { color: var(--orange); background: rgba(255,159,67,0.1); }
+  .badge-green { color: var(--green2); background: rgba(124,179,66,0.1); }
+  .badge-blue { color: var(--blue); background: rgba(69,170,242,0.1); }
+  .badge-purple { color: var(--purple); background: rgba(155,89,182,0.1); }
+  .badge-cyan { color: var(--cyan); background: rgba(43,103,119,0.15); }
+  .badge-yellow { color: var(--yellow); background: rgba(241,196,15,0.1); }
+  .badge-white { color: var(--white); background: rgba(189,195,199,0.1); }
+
+  .flow-diagram { background: var(--surface2); border-radius: 8px; padding: 16px; margin: 12px 0; font: 400 11px var(--mono); color: var(--text2); line-height: 2; overflow-x: auto; white-space: pre; }
+  .flow-diagram .highlight { color: var(--red); font-weight: 600; }
+  .flow-diagram .agent { color: var(--blue); }
+  .flow-diagram .file { color: var(--green2); }
+  .flow-diagram .decision { color: var(--orange); }
+
+  .rule-row { background: var(--surface2); border-radius: 4px; padding: 8px 10px; margin-bottom: 4px; }
+  .rule-name { font: 600 11px var(--mono); }
+  .rule-desc { font-size: 10px; color: var(--text2); }
+  .rule-used { font: 400 9px var(--mono); color: var(--text4); margin-top: 2px; }
+
+  .routine-card { background: var(--surface2); border-radius: 6px; padding: 12px 14px; margin-bottom: 8px; }
+  .routine-title { font-size: 14px; font-weight: 600; color: #ddd; margin-bottom: 6px; }
+  .routine-item { font-size: 11px; color: var(--text2); line-height: 1.7; padding-left: 14px; position: relative; }
+  .routine-item::before { content: '>'; position: absolute; left: 0; color: var(--red); font-weight: 700; font-family: var(--mono); }
+
+  .direct-card { background: var(--surface2); border-radius: 6px; padding: 10px 14px; margin-bottom: 6px; }
+  .direct-trigger { font-size: 12px; font-weight: 600; color: #ddd; margin-bottom: 4px; }
+  .direct-how { font: 400 10px var(--mono); color: var(--text2); background: rgba(255,255,255,0.02); padding: 6px 8px; border-radius: 4px; margin-top: 4px; }
+
+  .principle-card { background: var(--surface2); border-radius: 6px; padding: 12px 14px; margin-bottom: 6px; border-left: 3px solid var(--red); }
+  .principle-name { font: 700 12px var(--sans); color: #ddd; margin-bottom: 4px; }
+  .principle-desc { font-size: 11px; color: var(--text2); }
+
+  .scenario-content { display: none; }
+  .scenario-content.active { display: block; }
+
+  .footer { padding: 14px 24px; border-top: 1px solid var(--border); font: 400 9px var(--mono); color: var(--text4); text-align: center; }
+
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 11px; }
+  th { background: var(--surface); color: var(--text2); font: 600 10px var(--mono); text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border2); }
+  td { padding: 6px 10px; border-bottom: 1px solid var(--border); color: var(--text2); }
+  td:first-child { font-family: var(--mono); font-weight: 500; color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-label">Guia Completa de Uso</div>
+  <h1>PM x10 Agent System <span>— Todo lo que necesitas saber</span></h1>
+  <div class="header-stats">14 agentes | 13 commands | 13 workflows | 7 skills | 6 rules | 3 knowledge bases</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="howmuch">Que Usar</button>
+  <button class="tab" data-tab="scenarios">Escenarios</button>
+  <button class="tab" data-tab="architecture">Arquitectura</button>
+  <button class="tab" data-tab="agents">Agentes</button>
+  <button class="tab" data-tab="folders">Carpetas</button>
+  <button class="tab" data-tab="memory">Memoria</button>
+  <button class="tab" data-tab="qa">QA Layer</button>
+  <button class="tab" data-tab="workflows">Workflows</button>
+  <button class="tab" data-tab="direct">Uso Directo</button>
+  <button class="tab" data-tab="tips">Rutina Diaria</button>
+</div>
+
+<div class="content">
+
+<!-- ═══════════════ HOW MUCH ═══════════════ -->
+<div class="tab-content active" id="howmuch">
+  <p class="intro">Lo mas importante: NO siempre necesitas el pipeline completo. Segun el tamano de la tarea, usa mas o menos del sistema. Aqui tienes ejemplos reales.</p>
+
+  <div class="section-title" style="color:var(--red)">Segun el Tamano de la Tarea</div>
+
+  <!-- TRIVIAL -->
+  <div class="folder-card" style="border-left-color:var(--green2);margin-bottom:12px">
+    <div class="folder-name" style="color:var(--green2)">Trivial — menos de 30 segundos</div>
+    <div class="folder-desc">
+      <b>Que usar</b>: Prompt directo a Claude Code. Sin agentes, sin commands.<br>
+      <b>Tokens</b>: Minimo. Claude normal.
+    </div>
+    <div class="folder-files" style="line-height:2.2">
+      <b>Ejemplos:</b><br>
+      "Cambia el color del boton de enviar a azul"<br>
+      "Corrige el typo en la pagina de login"<br>
+      "Anade el campo telefono al formulario de contacto"<br>
+      "Que hace esta funcion?" (pregunta rapida)<br>
+      <br>
+      <b>Flujo:</b> Tu describes → Claude lo hace → listo
+    </div>
+  </div>
+
+  <!-- SMALL -->
+  <div class="folder-card" style="border-left-color:var(--blue);margin-bottom:12px">
+    <div class="folder-name" style="color:var(--blue)">Pequeno — 1 a 4 horas</div>
+    <div class="folder-desc">
+      <b>Que usar</b>: /define directo (sin /analyze) + /build + /review opcional<br>
+      <b>Tokens</b>: Moderado. 2-3 agentes.
+    </div>
+    <div class="folder-files" style="line-height:2.2">
+      <b>Ejemplos:</b><br>
+      "Quiero que los usuarios puedan exportar pedidos a PDF"<br>
+      "Anade busqueda por nombre en la lista de productos"<br>
+      "Muestra el total del carrito en el header"<br>
+      <br>
+      <b>Flujo:</b><br>
+      <span style="color:var(--red)">/define</span> — Le cuentas la idea. Genera stories con scoring.<br>
+      <span style="color:var(--orange)">/build</span> — Implementa.<br>
+      <span style="color:var(--green2)">/save</span> — Commit + push.<br>
+      <span style="color:var(--white)">/review</span> — Solo si quieres QA. Opcional para cosas pequenas.<br>
+      <br>
+      <b>Ejemplo real:</b>
+    </div>
+    <div class="step-output" style="font-family:var(--mono);line-height:2;white-space:pre-wrap;margin-top:8px;font-size:11px">Tu: "Quiero un boton de exportar a PDF en la lista de pedidos.
+     Debe incluir: fecha, items, precio, total."
+
+<span style="color:var(--red);font-weight:600">/define</span>
+  <span style="color:var(--blue)">jtbd-architect</span>: genera JTBD (quien, cuando, por que)
+  <span style="color:var(--blue)">story-writer</span>: genera story con acceptance criteria
+  <span style="color:var(--yellow)">quality-coach</span>: "Score 7.5/10 — lista para sprint"
+
+<span style="color:var(--orange);font-weight:600">/build</span>
+  Claude Code implementa directamente (lee CLAUDE.md)
+  <span style="color:var(--text3)">Si es frontend: /impeccable:polish despues de construir (opcional)</span>
+
+<span style="color:var(--green2);font-weight:600">/save</span>   → commit + push
+<span style="color:var(--white);font-weight:600">/review</span> → test + code review → "Genero docs?" → si/no</div>
+  </div>
+
+  <!-- MEDIUM -->
+  <div class="folder-card" style="border-left-color:var(--orange);margin-bottom:12px">
+    <div class="folder-name" style="color:var(--orange)">Mediano — 1 a 3 dias</div>
+    <div class="folder-desc">
+      <b>Que usar</b>: /analyze + /define + /plan + /build + /review<br>
+      <b>Tokens</b>: Alto. 6-10 agentes en total (pero en contextos separados).
+    </div>
+    <div class="folder-files" style="line-height:2.2">
+      <b>Ejemplos:</b><br>
+      "Sistema de notificaciones push para nuevos pedidos"<br>
+      "Dashboard de metricas de ventas por producto"<br>
+      "Flujo de recuperacion de password completo"<br>
+      <br>
+      <b>Flujo:</b><br>
+      <span style="color:var(--red)">/analyze</span> — Quality Guard evalua + Researcher investiga gaps<br>
+      <span style="color:var(--red)">/define</span> — JTBDs + stories + quality review + split si >3d<br>
+      <span style="color:var(--green2)">/plan</span> — Arquitectura + sprint plan en tasks/todo.md<br>
+      <span style="color:var(--orange)">/build</span> — Implementa story por story, commit por commit<br>
+      <span style="color:var(--green2)">/save</span> — Despues de cada story<br>
+      <span style="color:var(--white)">/review</span> — QA completo + "Genero docs?"<br>
+      <br>
+      <b>Ejemplo real:</b>
+    </div>
+    <div class="step-output" style="font-family:var(--mono);line-height:2;white-space:pre-wrap;margin-top:8px;font-size:11px">Tu: "Quiero un sistema de notificaciones push.
+     Que avise al usuario cuando su pedido cambia de estado."
+
+<span style="color:var(--red);font-weight:600">/analyze</span>
+  <span style="color:var(--blue)">quality-guard</span>: "D1: 5/10 — falta baseline. Cuantos pedidos/dia?"
+  Tu: "~200 pedidos/dia, 30% preguntan por estado via chat"
+  <span style="color:var(--blue)">researcher</span>: investiga gaps, genera brief
+
+<span style="color:var(--red);font-weight:600">/define</span>
+  <span style="color:var(--blue)">jtbd-architect</span>: 2 JTBDs (comprador espera + repartidor notifica)
+  <span style="color:var(--blue)">story-writer</span>: 4 stories con scoring
+  <span style="color:var(--yellow)">quality-coach</span>: "Story 3 tiene Usuario Fantasma, reescritura sugerida"
+  <span style="color:var(--cyan)">story-splitter</span>: Story 2 era 5 dias → la parte en 2
+
+<span style="color:var(--green2);font-weight:600">/plan</span>
+  <span style="color:var(--blue)">tech-architect</span>: WebSockets vs SSE vs polling, ADR generado
+  <span style="color:var(--blue)">sprint-planner</span>: 5 stories priorizadas en tasks/todo.md
+
+<span style="color:var(--orange);font-weight:600">/build</span>  Claude Code implementa directamente
+  <span style="color:var(--text3)">Si frontend: /impeccable:audit antes de review (opcional)</span>
+<span style="color:var(--green2);font-weight:600">/save</span> → <span style="color:var(--white);font-weight:600">/review</span> → "Genero docs?" → Si</div>
+  </div>
+
+  <!-- LARGE -->
+  <div class="folder-card" style="border-left-color:var(--red);margin-bottom:12px">
+    <div class="folder-name" style="color:var(--red)">Grande — 1+ semana (con disenos)</div>
+    <div class="folder-desc">
+      <b>Que usar</b>: /design-to-prd + pipeline completo por feature<br>
+      <b>Tokens</b>: Maximo. Pero repartido en multiples sesiones.
+    </div>
+    <div class="folder-files" style="line-height:2.2">
+      <b>Ejemplos:</b><br>
+      "Modulo de facturacion completo (10 pantallas en Pencil)"<br>
+      "Portal de administracion con roles y permisos"<br>
+      "Plataforma de e-commerce desde cero"<br>
+      <br>
+      <b>Flujo:</b><br>
+      <span style="color:var(--pink)">/design-to-prd</span> — Analiza disenos, genera PRDs por feature<br>
+      Luego <b>por cada feature</b>:<br>
+      <span style="color:var(--red)">/analyze</span> → <span style="color:var(--red)">/define</span> → <span style="color:var(--green2)">/plan</span> → <span style="color:var(--orange)">/build</span> → <span style="color:var(--green2)">/save</span> → <span style="color:var(--white)">/review</span> → docs
+    </div>
+  </div>
+
+  <!-- BUG FIX -->
+  <div class="folder-card" style="border-left-color:var(--yellow);margin-bottom:12px">
+    <div class="folder-name" style="color:var(--yellow)">Bug fix — cualquier tamano</div>
+    <div class="folder-desc">
+      <b>Que usar</b>: /hotfix (pipeline corto) o prompt directo si es trivial<br>
+      <b>Tokens</b>: Bajo-moderado.<br>
+      <b>Nuevo</b>: /hotfix ahora SIEMPRE guarda el aprendizaje (causa raiz, solucion, como prevenir).
+    </div>
+    <div class="folder-files" style="line-height:2.2">
+      <b>Bug trivial</b>: "El boton de login no funciona en Safari" → Prompt directo<br>
+      <b>Bug con impacto</b>: "Los pedidos no se guardan si hay mas de 10 items" → <span style="color:var(--orange)">/hotfix</span>
+    </div>
+  </div>
+
+  <!-- LEARNED -->
+  <div class="folder-card" style="border-left-color:var(--cyan);margin-bottom:12px">
+    <div class="folder-name" style="color:var(--cyan)">Algo dificil resuelto — en cualquier momento</div>
+    <div class="folder-desc">
+      <b>Que usar</b>: /learned — guarda el aprendizaje ahora mismo, no esperes a /review<br>
+      <b>Tokens</b>: Minimo. No usa agentes.
+    </div>
+    <div class="folder-files" style="line-height:2.2">
+      <b>Ejemplos:</b><br>
+      "Me he tirado 2 horas con un bug de timezone — era porque no usaba UTC"<br>
+      "La API de pagos tiene rate limit de 100/min y no esta documentado"<br>
+      "Los tests E2E fallan si no corres el seed primero"<br>
+      "Nunca usar rebase en esta rama porque tiene submodulos"<br>
+      <br>
+      <b>Flujo:</b><br>
+      <span style="color:var(--cyan);font-weight:600">/learned</span> → Te pregunta: que paso, por que, como lo resolviste, que hacer diferente<br>
+      → Clasifica (bug, edge-case, performance, architecture, tooling, process, mistake)<br>
+      → Guarda en <span style="color:var(--green2)">tasks/lessons.md</span> + <span style="color:var(--green2)">memory/MEMORY.md</span><br>
+      → La proxima vez que un agente trabaje, lo vera
+    </div>
+    <div class="folder-relation">Un bug que te costo 2 horas la primera vez deberia costarte 5 minutos la segunda</div>
+  </div>
+
+  <div class="section-title" style="color:var(--blue)">Como Funcionan los Tokens</div>
+
+  <div class="principle-card" style="border-left-color:var(--blue)">
+    <div class="principle-name">Los agentes NO se cargan todos a la vez</div>
+    <div class="principle-desc">Cada agente se ejecuta en su propio contexto separado (via Agent tool). Si /define usa 4 agentes, son 4 contextos independientes — no se acumulan los 4 en tu ventana.</div>
+  </div>
+  <div class="principle-card" style="border-left-color:var(--green2)">
+    <div class="principle-name">Tu solo nombras agentes cuando quieres algo especifico</div>
+    <div class="principle-desc">Si usas /commands (/analyze, /define, /build...), los agentes se invocan SOLOS segun las instrucciones del command. No tienes que nombrarlos. Solo nombras un agente cuando quieres usarlo fuera del pipeline: "Usa el agente quality-coach para revisar estas stories."</div>
+  </div>
+  <div class="principle-card" style="border-left-color:var(--orange)">
+    <div class="principle-name">Mas pasos = mas tokens pero mejor calidad</div>
+    <div class="principle-desc">Para algo trivial, prompt directo. Para algo grande, pipeline completo. Tu decides el trade-off. No hay obligacion de usar todo siempre.</div>
+  </div>
+
+  <div class="section-title" style="color:var(--purple)">Que se Carga Automaticamente (siempre)</div>
+  <table>
+    <tr><th>Que</th><th>Donde</th><th>Tokens</th></tr>
+    <tr><td>Commands (*.md)</td><td>~/.claude/commands/</td><td>Solo se carga el que invocas (~30-50 lineas)</td></tr>
+    <tr><td>Rules (rul-*.md)</td><td>~/.claude/rules/</td><td>Se cargan cuando un agente las referencia</td></tr>
+    <tr><td>CLAUDE.md</td><td>proyecto/.claude/</td><td>Se carga siempre al abrir (~50-100 lineas)</td></tr>
+    <tr><td>Knowledge (kno-*.md)</td><td>~/.claude/knowledge/</td><td>Solo si always_load: true (ninguno lo tiene ahora)</td></tr>
+  </table>
+  <p class="intro" style="margin-top:8px">Los SOUL.md y DUTIES.md de agentes solo se cargan cuando ese agente se invoca. NO ocupan contexto hasta que los usas.</p>
+
+  <div class="section-title" style="color:var(--green2)">Que Documentacion es Automatica y Que No</div>
+
+  <table>
+    <tr><th>Que se documenta</th><th>Cuando</th><th>Automatico?</th><th>Quien lo hace</th></tr>
+    <tr><td>working-docs/[feature]/*.md</td><td>Durante pipeline</td><td style="color:var(--green2)">SI</td><td>Cada command guarda en la carpeta</td></tr>
+    <tr><td>PROJECT_KNOWLEDGE.md</td><td>En /review</td><td style="color:var(--green2)">SI</td><td>ski-doc-updater</td></tr>
+    <tr><td>tasks/lessons.md</td><td>En /review</td><td style="color:var(--green2)">SI</td><td>optimizer</td></tr>
+    <tr><td>memory/MEMORY.md</td><td>En /review</td><td style="color:var(--green2)">SI</td><td>code-reviewer + optimizer</td></tr>
+    <tr><td>qa/qa-report.md</td><td>En /review</td><td style="color:var(--green2)">SI</td><td>auditor + evaluator + optimizer</td></tr>
+    <tr><td style="color:var(--orange)">project-docs/features/[feature].md</td><td>En /review paso 6</td><td style="color:var(--orange)">PREGUNTA</td><td>/review siempre pregunta, tu dices si/no</td></tr>
+  </table>
+  <p class="intro" style="margin-top:8px">
+    <b>Resumen</b>: todo se documenta automaticamente EXCEPTO la doc final para humanos — y esa te la pregunta /review siempre.<br>
+    <b>Ademas</b>: /build te recuerda ejecutar /review al terminar. /save te pregunta si ya hiciste /review antes de crear PR.<br>
+    <b>No puedes olvidarte</b>: el sistema te lo recuerda en cada paso.
+  </p>
+
+  <div class="section-title" style="color:var(--red)">Resumen: La Regla de Oro</div>
+  <div class="principle-card">
+    <div class="principle-name">Usa lo minimo necesario. El sistema no te obliga a pasar por todo.</div>
+    <div class="principle-desc">
+      Typo → prompt directo (0 agentes)<br>
+      Feature pequena → /define + /build (3-4 agentes)<br>
+      Feature media → /analyze + /define + /plan + /build + /review (8-10 agentes, contextos separados)<br>
+      Proyecto grande → /design-to-prd + pipeline completo por feature (maximo, pero repartido en sesiones)
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SCENARIOS ═══════════════ -->
+<div class="tab-content" id="scenarios">
+  <p class="intro">Elige tu situacion y sigue los pasos. Cada escenario te dice exactamente que comando usar, que agentes se activan, y que output esperar.</p>
+
+  <div class="scenario-btns">
+    <button class="scenario-btn active" data-scenario="new-feature">Nueva Feature</button>
+    <button class="scenario-btn" data-scenario="bug-fix">Bug Fix</button>
+    <button class="scenario-btn" data-scenario="code-rev">Code Review</button>
+    <button class="scenario-btn" data-scenario="new-proj">Nuevo Proyecto</button>
+    <button class="scenario-btn" data-scenario="existing">Proyecto Existente</button>
+    <button class="scenario-btn" data-scenario="retomar">Retomar Proyecto</button>
+    <button class="scenario-btn" data-scenario="save">Guardar y Push</button>
+    <button class="scenario-btn" data-scenario="risks">Detectar Riesgos</button>
+    <button class="scenario-btn" data-scenario="designs">Disenos a PRDs</button>
+    <button class="scenario-btn" data-scenario="docs">Documentar Proyecto</button>
+  </div>
+
+  <!-- NEW FEATURE -->
+  <div class="scenario-content active" id="sc-new-feature">
+    <div class="card card-accent">
+      <div class="step-header"><span class="cmd-badge">Paso 1: /analyze</span><span class="step-title">Evalua tu idea o PRD</span></div>
+      <div class="step-agents">quality-guard (opus) evalua en 3 dimensiones -> researcher (opus) investiga gaps</div>
+      <div class="step-output">Output: <b>Problema validado + brief de investigacion</b> -> guardado en docs/working_docs/analysis/</div>
+      <div class="step-tip">Pega tu PRD o describe el problema. El Quality Guard te dira los riesgos sin bloquearte. Tu decides si proceder.</div>
+    </div>
+    <div class="card card-accent">
+      <div class="step-header"><span class="cmd-badge">Paso 2: /define</span><span class="step-title">Crea specs desde el problema</span></div>
+      <div class="step-agents">jtbd-architect -> story-writer -> quality-coach (revisa) -> story-splitter (si >3 dias)</div>
+      <div class="step-output">Output: <b>Stories con scoring >=7, splitteadas y listas</b> -> guardado en docs/working_docs/definition/</div>
+      <div class="step-tip">Revisa los JTBDs que genera. Son la base de todo. Cada story tiene Behavior Change (START/STOP/DIFFERENT) obligatorio.</div>
+    </div>
+    <div class="card card-accent">
+      <div class="step-header"><span class="cmd-badge">Paso 3: /plan</span><span class="step-title">Disena arquitectura + sprints</span></div>
+      <div class="step-agents">tech-architect (opus, lee CLAUDE.md) -> sprint-planner (sonnet)</div>
+      <div class="step-output">Output: <b>ADRs + sprint plan</b> -> escrito en tasks/todo.md</div>
+      <div class="step-tip">Revisa las ADRs (decisiones tecnicas). Ahi esta el "por que" de cada eleccion. El plan va a tasks/todo.md.</div>
+    </div>
+    <div class="card card-accent">
+      <div class="step-header"><span class="cmd-badge">Paso 4: /build</span><span class="step-title">Implementa las stories</span></div>
+      <div class="step-agents">Enruta a: frontend-dev / backend-arch / mobile-builder (pueden ir en paralelo)</div>
+      <div class="step-output">Output: <b>Codigo + tests por story</b> -> actualiza tasks/todo.md</div>
+      <div class="step-tip">Para tareas de menos de 30 segundos, no uses agentes. Prompt directo a Claude Code es mejor.</div>
+      <div class="step-warn">Haz commit despues de cada story completada. No acumules.</div>
+    </div>
+    <div class="card card-accent">
+      <div class="step-header"><span class="cmd-badge">Paso 5: /review</span><span class="step-title">Verifica, testea, documenta</span></div>
+      <div class="step-agents">test-engineer -> code-reviewer (con memoria) -> auditor -> evaluator -> optimizer</div>
+      <div class="step-output">Output: <b>DONE + qa/qa-report.md actualizado + tasks/lessons.md + docs/PROJECT_KNOWLEDGE.md</b></div>
+      <div class="step-tip">El optimizer actualiza tasks/lessons.md y memory/MEMORY.md automaticamente con lo aprendido.</div>
+    </div>
+  </div>
+
+  <!-- BUG FIX -->
+  <div class="scenario-content" id="sc-bug-fix">
+    <div class="card" style="border-left:4px solid var(--orange)">
+      <div class="step-header"><span class="cmd-badge" style="background:var(--orange)">/hotfix</span><span class="step-title">Pipeline corto completo</span></div>
+      <div class="step-agents">quality-guard (ligero) -> developer apropiado -> test-engineer -> auditor</div>
+      <div class="step-output">Output: <b>Bug fix verificado y commiteado</b></div>
+      <div class="step-tip">Describe bien: pasos para reproducir + comportamiento esperado vs actual. No necesitas /analyze ni /define para bugs.</div>
+    </div>
+  </div>
+
+  <!-- CODE REVIEW -->
+  <div class="scenario-content" id="sc-code-rev">
+    <div class="card" style="border-left:4px solid var(--blue)">
+      <div class="step-header"><span class="cmd-badge" style="background:var(--blue)">/code-review</span><span class="step-title">Solo validacion, sin construir nada</span></div>
+      <div class="step-agents">code-reviewer (opus + memoria) -> test-engineer -> auditor -> evaluator</div>
+      <div class="step-output">Output: <b>Quality report con issues, scoring y verdict</b></div>
+      <div class="step-tip">Util antes de merge a main, o para revisar trabajo de otros. El code-reviewer recuerda patrones de sesiones anteriores.</div>
+    </div>
+  </div>
+
+  <!-- NEW PROJECT -->
+  <div class="scenario-content" id="sc-new-proj">
+    <div class="card" style="border-left:4px solid var(--green2)">
+      <div class="step-header"><span class="cmd-badge" style="background:var(--green2)">/new-project</span><span class="step-title">Setup inicial desde cero</span></div>
+      <div class="step-agents">Ningun agente — te entrevista y genera estructura</div>
+      <div class="step-output">Output: <b>.claude/CLAUDE.md + docs/PROJECT_KNOWLEDGE.md + tasks/todo.md + tasks/lessons.md + qa-reports/</b></div>
+      <div class="step-tip">Te pregunta: nombre, descripcion, tech stack, plataforma, contexto de equipo. Genera todo adaptado.</div>
+    </div>
+  </div>
+
+  <!-- EXISTING PROJECT -->
+  <div class="scenario-content" id="sc-existing">
+    <div class="card" style="border-left:4px solid var(--purple)">
+      <div class="step-header"><span class="cmd-badge" style="background:var(--purple)">/new-project</span><span class="step-title">Mismo comando, detecta proyecto existente</span></div>
+      <div class="step-output">Output: <b>Anade CLAUDE.md + docs/ + tasks/ sin tocar tu codigo</b></div>
+      <div class="step-tip">Abre Claude Code en tu proyecto existente y lanza /new-project. Solo anade archivos de gestion, no toca tu codigo.</div>
+    </div>
+  </div>
+
+  <!-- SAVE / GIT PUSH -->
+  <div class="scenario-content" id="sc-save">
+    <div class="card" style="border-left:4px solid var(--green2)">
+      <div class="step-header"><span class="cmd-badge" style="background:var(--green2)">/save</span><span class="step-title">Commit y push seguro a GitHub</span></div>
+      <div class="step-agents">No usa agentes — es un command directo con validaciones automaticas</div>
+      <div class="step-output">Pipeline: <b>Valida rama (no main!) -> Detecta secrets -> Stage -> Commit formateado -> Push</b></div>
+      <div class="step-tip">El tipo de commit se sugiere automaticamente desde el nombre de la rama: feat/* -> feat:, fix/* -> fix:, etc.</div>
+    </div>
+    <div class="card">
+      <div class="step-header"><span class="step-title">Que hace paso a paso</span></div>
+      <div class="step-output">
+        <b>1. Valida rama</b> — Si estas en main, ABORTA. Nunca commits directos a main.<br>
+        <b>2. Muestra cambios</b> — git status + diff stats. Te pregunta si son correctos.<br>
+        <b>3. Detecta secrets</b> — Busca .env, .pem, .key, secrets/. Advierte si encuentra algo.<br>
+        <b>4. Stage</b> — git add .<br>
+        <b>5. Commit</b> — Sugiere tipo (feat/fix/chore) segun rama. Pide descripcion.<br>
+        <b>6. Push</b> — fetch + pull --rebase + push. Maneja ramas nuevas con -u.<br>
+        <b>7. Resumen</b> — Muestra rama, commit, y proximos pasos (crear PR, merge).
+      </div>
+    </div>
+    <div class="card">
+      <div class="step-header"><span class="step-title">Reglas de branching (rul-git-branch-management)</span></div>
+      <div class="step-output">
+        Todos los engineering agents (frontend-dev, backend-arch, mobile-builder, test-engineer) cargan esta regla automaticamente.<br><br>
+        <b>Ramas validas:</b> feat/, fix/, chore/, refactor/, docs/, hotfix/<br>
+        <b>Formato:</b> tipo/descripcion-corta-con-guiones (ej: feat/user-authentication)<br>
+        <b>Flujo:</b> crear rama -> desarrollo -> push -> PR en GitHub -> squash merge -> limpiar<br>
+        <b>Merge:</b> siempre via Pull Request, squash and merge recomendado
+      </div>
+      <div class="step-warn">Despues del merge en GitHub: git checkout main && git pull && git branch -d feat/mi-rama && git fetch --prune</div>
+    </div>
+    <div class="card">
+      <div class="step-header"><span class="step-title">Ejemplo completo de uso real</span></div>
+      <div class="step-output" style="font-family:var(--mono);line-height:2.2;white-space:pre-wrap"><span style="color:var(--text3)"># 1. Creas tu rama de trabajo</span>
+git checkout main && git pull
+git checkout -b feat/user-profile
+
+<span style="color:var(--text3)"># 2. Trabajas normalmente (con /build o directo)</span>
+<span style="color:var(--text3)">#    ... escribes codigo, tests, etc ...</span>
+
+<span style="color:var(--text3)"># 3. Cuando quieres guardar, escribe en Claude Code:</span>
+<span style="color:var(--red);font-weight:600">/save</span>
+
+<span style="color:var(--text3)"># 4. El sistema automaticamente:</span>
+<span style="color:var(--green2)">   Valida rama: feat/user-profile (no es main)</span>
+<span style="color:var(--green2)">   Muestra cambios: 5 archivos, +120 -30 lineas</span>
+<span style="color:var(--green2)">   Detecta secrets: ninguno encontrado</span>
+<span style="color:var(--green2)">   Sugiere tipo: feat: (detectado de feat/*)</span>
+<span style="color:var(--green2)">   Pide descripcion: "add user profile page"</span>
+<span style="color:var(--green2)">   Commit: feat: add user profile page</span>
+<span style="color:var(--green2)">   Push: origin/feat/user-profile</span>
+
+<span style="color:var(--text3)"># 5. Te dice:</span>
+<span style="color:var(--orange)">   "Cambios en GitHub. Crea PR para mergear a main."</span>
+
+<span style="color:var(--text3)"># 6. En GitHub: Create PR -> Squash and merge</span>
+
+<span style="color:var(--text3)"># 7. Limpieza local (despues del merge):</span>
+git checkout main && git pull
+git branch -d feat/user-profile
+git fetch --prune</div>
+    </div>
+  </div>
+
+  <!-- DESIGNS TO PRD -->
+  <div class="scenario-content" id="sc-designs">
+    <div class="card" style="border-left:4px solid var(--pink)">
+      <div class="step-header"><span class="cmd-badge" style="background:var(--pink)">/design-to-prd</span><span class="step-title">De disenos a PRDs completos con logica full-stack</span></div>
+      <div class="step-agents">design-analyst (opus) lee Pencil, analiza 6 capas, genera PRDs por feature</div>
+      <div class="step-output">Output: <b>docs/working-docs/[feature]/ con design-analysis.md + prd.md por cada feature</b></div>
+      <div class="step-tip">No solo ve el diseno visual — extrae DB, APIs, logica de negocio, integraciones, y edge cases.</div>
+    </div>
+    <div class="card">
+      <div class="step-header"><span class="step-title">Las 6 capas que analiza por pantalla</span></div>
+      <div class="step-output">
+        <b>1. UI</b> — Componentes, estados (vacio/cargando/error/exito), interacciones, responsive, accesibilidad<br>
+        <b>2. DB</b> — Tablas, relaciones, indices, volumen estimado, CRUD operations<br>
+        <b>3. API</b> — Endpoints (method, path, auth, request/response), paginacion, filtrado<br>
+        <b>4. Logica</b> — Validaciones, calculos, flujos condicionales, permisos por rol<br>
+        <b>5. Integraciones</b> — Pagos, email, analytics, webhooks, servicios externos<br>
+        <b>6. Edge Cases</b> — Red caida, datos invalidos, concurrencia, servicios caidos
+      </div>
+    </div>
+    <div class="card">
+      <div class="step-header"><span class="step-title">Flujo completo: de disenos a codigo deployado</span></div>
+      <div class="step-output" style="font-family:var(--mono);line-height:2.2;white-space:pre-wrap"><span style="color:var(--pink);font-weight:600">/design-to-prd</span>           <span style="color:var(--text3)"># Analiza disenos, genera PRDs por feature</span>
+                              <span style="color:var(--text3)"># Crea docs/working-docs/[feature]/</span>
+
+<span style="color:var(--text3)"># Para cada feature:</span>
+<span style="color:var(--red);font-weight:600">/analyze</span>                  <span style="color:var(--text3)"># Quality Guard evalua PRD + research gaps</span>
+                              <span style="color:var(--text3)"># Guarda research.md en la carpeta de la feature</span>
+
+<span style="color:var(--purple);font-weight:600">/define</span>                   <span style="color:var(--text3)"># JTBDs + stories + quality review</span>
+                              <span style="color:var(--text3)"># Guarda jtbds.md y stories.md en la carpeta</span>
+
+<span style="color:var(--green2);font-weight:600">/plan</span>                     <span style="color:var(--text3)"># Arquitectura + sprint plan</span>
+
+<span style="color:var(--orange);font-weight:600">/build</span>                    <span style="color:var(--text3)"># Implementar story por story</span>
+<span style="color:var(--green2);font-weight:600">/save</span>                     <span style="color:var(--text3)"># Commit + push</span>
+<span style="color:var(--white);font-weight:600">/review</span>                   <span style="color:var(--text3)"># Test + QA cycle</span>
+
+<span style="color:var(--text3)"># Al final, cada feature tiene:</span>
+<span style="color:var(--text3)">docs/working-docs/user-auth/</span>
+<span style="color:var(--text3)">  design-analysis.md  ← de /design-to-prd</span>
+<span style="color:var(--text3)">  prd.md              ← de /design-to-prd</span>
+<span style="color:var(--text3)">  research.md         ← de /analyze</span>
+<span style="color:var(--text3)">  jtbds.md            ← de /define</span>
+<span style="color:var(--text3)">  stories.md          ← de /define</span>
+<span style="color:var(--text3)">  architecture.md     ← de /plan</span></div>
+    </div>
+  </div>
+
+  <!-- DOCS -->
+  <div class="scenario-content" id="sc-docs">
+    <div class="card" style="border-left:4px solid var(--purple)">
+      <div class="step-header"><span class="cmd-badge" style="background:var(--purple)">/docs</span><span class="step-title">Documentacion completa del proyecto</span></div>
+      <div class="step-agents">Usa ski-project-docs — genera docs/project-docs/ con todo el detalle</div>
+      <div class="step-output">Output: <b>Documentacion para humanos: mision, features, arquitectura, API, guides</b></div>
+      <div class="step-tip">NO es lo mismo que PROJECT_KNOWLEDGE.md. Ese es el memo de Claude (conciso). Esto es la doc completa (detallada, exportable a docs site).</div>
+    </div>
+    <div class="card">
+      <div class="step-header"><span class="step-title">5 Modos de uso</span></div>
+      <div class="step-output">
+        <b>/docs init</b> — Primera vez: te entrevista y crea toda la estructura (mision, vision, audience, stack)<br><br>
+        <b>/docs [feature]</b> — Despues de construir una feature: genera doc detallada (que hace, como funciona, como usar, ejemplos)<br><br>
+        <b>/docs architecture</b> — Despues de /plan: actualiza overview, data model, tech stack, ADRs<br><br>
+        <b>/docs api</b> — Escanea endpoints y genera docs de API con request/response<br><br>
+        <b>/docs refresh</b> — Re-escanea todo el proyecto y actualiza docs desfasadas
+      </div>
+    </div>
+    <div class="card">
+      <div class="step-header"><span class="step-title">Estructura que genera</span></div>
+      <div class="step-output" style="font-family:var(--mono);line-height:2;white-space:pre-wrap">docs/project-docs/
+├── index.md                 <span style="color:var(--text3)"># Home del proyecto</span>
+├── overview/
+│   ├── mission-vision.md    <span style="color:var(--text3)"># Mision, vision, objetivos</span>
+│   ├── target-audience.md   <span style="color:var(--text3)"># Para quien es</span>
+│   └── roadmap.md           <span style="color:var(--text3)"># Que hay hecho, que falta</span>
+├── features/
+│   ├── _index.md            <span style="color:var(--text3)"># Lista de features con estado</span>
+│   └── [feature].md         <span style="color:var(--text3)"># Un archivo por feature</span>
+├── architecture/
+│   ├── overview.md          <span style="color:var(--text3)"># Arquitectura high-level</span>
+│   ├── tech-stack.md        <span style="color:var(--text3)"># Stack y por que</span>
+│   └── data-model.md        <span style="color:var(--text3)"># Schema, relaciones</span>
+├── guides/
+│   ├── getting-started.md   <span style="color:var(--text3)"># Setup y run</span>
+│   └── development.md       <span style="color:var(--text3)"># Convenciones, patrones</span>
+├── api/                     <span style="color:var(--text3)"># Docs de API por grupo</span>
+└── changelog.md             <span style="color:var(--text3)"># Historial de versiones</span></div>
+    </div>
+    <div class="card">
+      <div class="step-header"><span class="step-title">Flujo tipico</span></div>
+      <div class="step-output" style="font-family:var(--mono);line-height:2.2;white-space:pre-wrap"><span style="color:var(--red);font-weight:600">/new-project</span>          <span style="color:var(--text3)"># Inicializar proyecto</span>
+<span style="color:var(--purple);font-weight:600">/docs init</span>             <span style="color:var(--text3)"># Crear estructura de docs</span>
+
+<span style="color:var(--red);font-weight:600">/analyze -> /define -> /plan</span>
+<span style="color:var(--purple);font-weight:600">/docs architecture</span>     <span style="color:var(--text3)"># Documentar la arquitectura</span>
+
+<span style="color:var(--red);font-weight:600">/build -> /review</span>
+<span style="color:var(--purple);font-weight:600">/docs user-auth</span>        <span style="color:var(--text3)"># Documentar la feature</span>
+<span style="color:var(--purple);font-weight:600">/docs payments</span>         <span style="color:var(--text3)"># Documentar la siguiente</span>
+
+<span style="color:var(--text3)"># Meses despues...</span>
+<span style="color:var(--purple);font-weight:600">/docs refresh</span>          <span style="color:var(--text3)"># Actualizar todo</span>
+
+<span style="color:var(--text3)"># Cuando quieras docs site:</span>
+<span style="color:var(--text3)"># Copia docs/project-docs/ a Docusaurus/Nextra/GitBook</span></div>
+    </div>
+  </div>
+
+  <!-- RISK AUDIT -->
+  <div class="scenario-content" id="sc-risks">
+    <div class="card" style="border-left:4px solid var(--red)">
+      <div class="step-header"><span class="cmd-badge">/unknown-unknowns</span><span class="step-title">Detectar riesgos ocultos en cualquier proyecto</span></div>
+      <div class="step-agents">Usa ski-unknown-unknowns con 6 reference domains (security, architecture, legal, costs, product, ai-agents)</div>
+      <div class="step-output">Output: <b>Findings por tier (Critical / Important / Worth Knowing) + Top 5 acciones</b></div>
+      <div class="step-tip">Funciona standalone (en cualquier momento) o integrado en /analyze y /plan automaticamente.</div>
+    </div>
+    <div class="card">
+      <div class="step-header"><span class="step-title">8 Dimensiones de Analisis</span></div>
+      <div class="step-output">
+        <b>1. Security</b> — Auth, API, secrets, dependencies, injection<br>
+        <b>2. Architecture</b> — Scaling, caching, reliability, race conditions, deployment<br>
+        <b>3. Legal / Compliance</b> — GDPR, CCPA, HIPAA, PCI, accessibility, AI Act<br>
+        <b>4. Costs & Operations</b> — Cloud billing, API overages, LLM token explosion, monitoring<br>
+        <b>5. UX & Accessibility</b> — WCAG, responsive, edge cases<br>
+        <b>6. Data & Privacy</b> — PII handling, retention, encryption, multi-tenant<br>
+        <b>7. Product & Business</b> — Competition, distribution, cold start, business model<br>
+        <b>8. AI-Specific</b> — Prompt injection, tool abuse, hallucinations, cost control (auto-enabled si detecta LLMs)
+      </div>
+    </div>
+    <div class="card">
+      <div class="step-header"><span class="step-title">3 formas de usarlo</span></div>
+      <div class="step-output">
+        <b>Standalone</b>: Escribe <span style="color:var(--red);font-family:var(--mono)">/unknown-unknowns</span> en cualquier proyecto, en cualquier momento<br><br>
+        <b>En /analyze</b>: Se ejecuta automaticamente despues del Quality Guard, antes del Researcher. Aporta blind spots al brief de investigacion.<br><br>
+        <b>En /plan</b>: Se ejecuta automaticamente despues del Tech Architect, antes de la aprobacion. El PM ve la arquitectura + los riesgos detectados juntos.
+      </div>
+    </div>
+    <div class="card">
+      <div class="step-header"><span class="step-title">Ejemplo de uso standalone</span></div>
+      <div class="step-output" style="font-family:var(--mono);line-height:2.2;white-space:pre-wrap"><span style="color:var(--text3)"># Abres Claude Code en cualquier proyecto</span>
+
+<span style="color:var(--red);font-weight:600">/unknown-unknowns</span>
+
+<span style="color:var(--text3)"># El sistema:</span>
+<span style="color:var(--green2)">   Detecta modo: Code Exists (Mode A)</span>
+<span style="color:var(--green2)">   Escanea: package.json, configs, auth, APIs, DB schema</span>
+<span style="color:var(--green2)">   Pregunta: stage? business model? scale?</span>
+<span style="color:var(--green2)">   Presenta 8 dimensiones — tu eliges cuales auditar</span>
+
+<span style="color:var(--text3)"># Output:</span>
+<span style="color:var(--red)">   CRITICAL: API endpoints sin rate limiting</span>
+<span style="color:var(--red)">   CRITICAL: .env con secrets en git history</span>
+<span style="color:var(--orange)">   IMPORTANT: Sin backup de DB automatizado</span>
+<span style="color:var(--orange)">   IMPORTANT: GDPR — sin mecanismo de data deletion</span>
+<span style="color:var(--green2)">   WORTH KNOWING: LLM costs escalan x10 con 1000 users</span>
+
+<span style="color:var(--text3)"># Top 5 acciones priorizadas</span></div>
+    </div>
+  </div>
+
+  <!-- RETOMAR PROYECTO -->
+  <div class="scenario-content" id="sc-retomar">
+    <div class="card" style="border-left:4px solid var(--cyan)">
+      <div class="step-header"><span class="cmd-badge" style="background:var(--cyan)">Abrir Claude Code</span><span class="step-title">Retomar tras dias o semanas</span></div>
+      <div class="step-output">Claude lee automaticamente: <b>CLAUDE.md -> docs/PROJECT_KNOWLEDGE.md -> tasks/lessons.md</b></div>
+      <div class="step-tip">No necesitas explicar nada. PROJECT_KNOWLEDGE.md tiene todo: que se hizo, decisiones, como funciona cada parte. tasks/todo.md dice donde quedaste.</div>
+      <div class="step-warn">Si memory/MEMORY.md existe, el Code Reviewer y Optimizer lo leen para recordar patrones de sesiones anteriores.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ ARCHITECTURE ═══════════════ -->
+<div class="tab-content" id="architecture">
+  <p class="intro">El sistema tiene dos niveles: global (instalado una vez, disponible en todos los proyectos) y proyecto (especifico por proyecto). Los agentes se orquestan mediante workflows DAG.</p>
+
+  <div class="section-title" style="color:var(--red)">Principios de Diseno</div>
+
+  <div class="principle-card">
+    <div class="principle-name">Analysis Informs, Never Blocks</div>
+    <div class="principle-desc">Los agentes identifican riesgos y recomiendan. El PM siempre tiene la ultima palabra. Ningun agente puede impedir que sigas adelante.</div>
+  </div>
+  <div class="principle-card">
+    <div class="principle-name">Supervisors Observe, Never Impose</div>
+    <div class="principle-desc">Los agentes age-sup-* (quality-coach, auditor, evaluator, optimizer) son read-only. Leen, puntuan, proponen. Nunca modifican archivos ni codigo.</div>
+  </div>
+  <div class="principle-card">
+    <div class="principle-name">Vertical Value Delivery</div>
+    <div class="principle-desc">Cada incremento entrega valor end-to-end. Nunca se parte por capas tecnicas (frontend/backend/DB). Siempre por valor de usuario.</div>
+  </div>
+  <div class="principle-card">
+    <div class="principle-name">Evidence Over Assumptions</div>
+    <div class="principle-desc">Toda recomendacion cita evidencia. Si no hay evidencia, se marca: "ASSUMPTION: [X]. Confidence: [high/medium/low]".</div>
+  </div>
+  <div class="principle-card">
+    <div class="principle-name">Minimum Viable Complexity</div>
+    <div class="principle-desc">La solucion mas simple que funcione. Tres lineas similares son mejores que una abstraccion prematura.</div>
+  </div>
+
+  <div class="section-title" style="color:var(--blue)">Dos Niveles de Instalacion</div>
+
+  <table>
+    <tr><th>Nivel</th><th>Ubicacion</th><th>Contiene</th><th>Cuando</th></tr>
+    <tr><td>Global</td><td>~/.claude/</td><td>16 agentes, 4 skills, 6 rules, 3 knowledge, 9 commands</td><td>Se instala UNA vez con install.sh</td></tr>
+    <tr><td>Proyecto</td><td>proyecto/.claude/CLAUDE.md</td><td>Config del proyecto: stack, standards, paths</td><td>Se crea por proyecto con /new-project</td></tr>
+  </table>
+
+  <div class="section-title" style="color:var(--green2)">Pipeline Completo</div>
+
+  <div class="flow-diagram"><span class="highlight">/analyze</span>  -->  <span class="highlight">/define</span>  -->  <span class="highlight">/plan</span>  -->  <span class="highlight">/build</span>  -->  <span class="highlight">/review</span>
+    |              |              |              |              |
+    v              v              v              v              v
+<span class="agent">quality-guard</span>  <span class="agent">jtbd-architect</span>  <span class="agent">tech-architect</span>  <span class="agent">frontend-dev</span>   <span class="agent">test-engineer</span>
+<span class="agent">researcher</span>     <span class="agent">story-writer</span>    <span class="agent">sprint-planner</span>  <span class="agent">backend-arch</span>    <span class="agent">code-reviewer</span>
+               <span class="agent">quality-coach</span>                   <span class="agent">mobile-builder</span>  <span class="agent">auditor</span>
+               <span class="agent">story-splitter</span>                                  <span class="agent">evaluator</span>
+    |              |              |              |           <span class="agent">optimizer</span>
+    v              v              v              v              |
+<span class="file">docs/analysis/</span> <span class="file">docs/definition/</span> <span class="file">tasks/todo.md</span>  commits        v
+                                                           <span class="file">qa/qa-report.md</span>
+                                                           <span class="file">tasks/lessons.md</span>
+                                                           <span class="file">memory/MEMORY.md</span></div>
+
+  <div class="section-title" style="color:var(--orange)">Segregacion de Responsabilidades</div>
+  <p class="intro">Definido en DUTIES.md (raiz + por agente). Cada agente tiene un rol claro y no puede hacer el trabajo de otro.</p>
+
+  <table>
+    <tr><th>Rol</th><th>Puede</th><th>No Puede</th><th>Agentes</th></tr>
+    <tr><td>analyst</td><td>Leer, analizar, investigar, puntuar</td><td>Escribir codigo, definir stories</td><td>quality-guard, researcher</td></tr>
+    <tr><td>definer</td><td>Crear JTBDs, stories, splits</td><td>Escribir codigo, revisar su propio trabajo</td><td>jtbd-architect, story-writer, story-splitter</td></tr>
+    <tr><td>architect</td><td>Disenar arquitectura, planificar sprints</td><td>Implementar codigo</td><td>tech-architect, sprint-planner</td></tr>
+    <tr><td>engineer</td><td>Escribir codigo, ejecutar tests, commitear</td><td>Revisar su propio codigo</td><td>frontend-dev, backend-arch, mobile-builder</td></tr>
+    <tr><td>reviewer</td><td>Revisar codigo, aprobar/rechazar, ejecutar tests</td><td>Escribir implementacion</td><td>test-engineer, code-reviewer</td></tr>
+    <tr><td style="color:var(--orange)">supervisor</td><td>Leer, puntuar, proponer mejoras</td><td style="color:var(--red)">NADA mas. Solo lectura.</td><td>quality-coach, auditor, evaluator, optimizer</td></tr>
+  </table>
+
+  <div class="section-title" style="color:var(--purple)">Conflictos de Rol</div>
+  <p class="intro">Estos pares NUNCA pueden coexistir en el mismo agente:</p>
+  <table>
+    <tr><th>Rol A</th><th>Rol B</th><th>Por que</th></tr>
+    <tr><td>engineer</td><td>reviewer</td><td>Quien escribe el codigo no puede revisarlo</td></tr>
+    <tr><td>engineer</td><td>supervisor</td><td>Quien escribe el codigo no puede auditarlo</td></tr>
+    <tr><td>definer</td><td>supervisor</td><td>Quien define stories no puede evaluar su calidad</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════ AGENTS ═══════════════ -->
+<div class="tab-content" id="agents">
+
+  <div class="principle-card" style="border-left-color:var(--blue);margin-bottom:16px">
+    <div class="principle-name">Lo mas importante: casi nunca invocaras agentes directamente</div>
+    <div class="principle-desc">El 90% del tiempo usas <b>/commands</b> (/analyze, /define, /build...) y los agentes trabajan solos detras. Solo invocas agentes individualmente cuando quieres algo especifico fuera del pipeline.</div>
+  </div>
+
+  <div class="section-title" style="color:var(--orange)">Agentes vs Skills — La Diferencia</div>
+  <table>
+    <tr><th></th><th>Agente</th><th>Skill</th></tr>
+    <tr><td>Que es</td><td>Entidad autonoma con identidad y criterio propio</td><td>Procedimiento/metodologia que cualquier agente carga</td></tr>
+    <tr><td>Decide?</td><td>Si — aplica juicio, evalua, crea</td><td>No — sigue pasos predefinidos</td></tr>
+    <tr><td>Ejemplo</td><td>Quality Guard EVALUA un PRD (necesita juicio)</td><td>PRD Builder te da un TEMPLATE (es un procedimiento)</td></tr>
+    <tr><td>Como se usa</td><td>"Usa el agente quality-guard para evaluar esto"</td><td>Los agentes los cargan automaticamente. Tu rara vez los invocas.</td></tr>
+  </table>
+
+  <div class="section-title" style="color:var(--red)">Los 16 Agentes — Que Hace Cada Uno y Cuando Usarlo Solo</div>
+  <p class="intro">Cada agente explicado con: que hace, cuando se activa automaticamente (en pipeline), y cuando invocarlo tu directamente.</p>
+
+  <!-- DESIGN ANALYST -->
+  <div class="folder-card pink" style="margin-bottom:10px">
+    <div class="folder-name">design-analyst <span class="badge badge-purple">opus</span></div>
+    <div class="folder-desc">
+      <b>Que hace</b>: Lee disenos de Pencil (o screenshots/mockups) y extrae la funcionalidad COMPLETA en 6 capas: UI, DB, API, Logica de negocio, Integraciones externas, y Edge Cases. Agrupa pantallas en features. Genera un design-analysis.md (con task list) y un prd.md por cada feature. No se queda en el diseno visual — un boton de "eliminar" implica soft-delete vs hard-delete, confirmacion, permisos, cascading, audit log.<br><br>
+      <b>En pipeline</b>: Se activa con /design-to-prd.<br>
+      <b>Usalo solo cuando</b>: "Tengo disenos y quiero extraer toda la funcionalidad" o "Analiza estas pantallas y dime que necesito construir."
+    </div>
+  </div>
+
+  <!-- QUALITY GUARD -->
+  <div class="folder-card red" style="margin-bottom:10px">
+    <div class="folder-name">quality-guard <span class="badge badge-red">opus</span></div>
+    <div class="folder-desc">
+      <b>Que hace</b>: Guardian de la puerta entre problema y solucion. Evalua PRDs en 3 dimensiones: Completitud del Problema (metricas, Gemba walk), Calidad del Proceso (AS-IS/TO-BE), y Separacion QUE/COMO (detecta contaminacion de solucion con Alternative Tool Test). Score final = MINIMO de las 3. Genera handoff/escalation documents.<br><br>
+      <b>En pipeline</b>: Se activa automaticamente con /analyze (paso 1).<br>
+      <b>Usalo solo cuando</b>: "Tengo un PRD, quiero saber si esta listo antes de empezar" — sin necesidad de correr todo /analyze.
+    </div>
+  </div>
+
+  <!-- RESEARCHER -->
+  <div class="folder-card blue" style="margin-bottom:10px">
+    <div class="folder-name">researcher <span class="badge badge-blue">opus</span></div>
+    <div class="folder-desc">
+      <b>Que hace</b>: Investigador de campo con Mom Test. Detecta 3 tipos de gaps (Proceso Funcional, Inventario Secciones, Contexto Usuario). Genera guias de entrevista por ROL con preguntas que revelan verdad (nunca opinion). Produce JTBDs Reforzados con Wendel Checklist y START/STOP/DIFFERENT. Dos modos: Discover (exploratorio) y Validate (confirmatorio).<br><br>
+      <b>En pipeline</b>: Se activa con /analyze (paso 2, despues del quality-guard).<br>
+      <b>Usalo solo cuando</b>: "Necesito investigar un problema, disenar entrevistas, o hacer analisis competitivo" — incluso sin PRD formal.
+    </div>
+  </div>
+
+  <!-- JTBD ARCHITECT -->
+  <div class="folder-card purple" style="margin-bottom:10px">
+    <div class="folder-name">jtbd-architect <span class="badge badge-purple">opus</span></div>
+    <div class="folder-desc">
+      <b>Que hace</b>: Traductor de research a JTBDs Reforzados. Cada JTBD tiene 8 elementos obligatorios: Job Principal, Struggle (4 capas), Trigger, Outcome, 3 Motivaciones, Anxieties/Barriers, Validacion Job-vs-Solucion (test "multiples formas"), y Rastreo de Fuente. Aplica Wendel Checklist y mapea Behavior Change con 3 rangos (Minimo/Target/Over-top).<br><br>
+      <b>En pipeline</b>: Se activa con /define (paso 1).<br>
+      <b>Usalo solo cuando</b>: "Tengo research/entrevistas y quiero generar JTBDs estructurados" — sin correr todo /define.
+    </div>
+  </div>
+
+  <!-- STORY WRITER -->
+  <div class="folder-card purple" style="margin-bottom:10px">
+    <div class="folder-name">story-writer <span class="badge badge-purple">opus</span></div>
+    <div class="folder-desc">
+      <b>Que hace</b>: Convierte JTBDs en stories deployables. Estructura: Epic > Feature > Story. Cada story tiene: narrativa con job performer especifico, Behavior Change (START/STOP/DIFFERENT cuantificado), Given-When-Then testable, Scoring 6D, y metricas de exito en 3 rangos. Retiene TODA la informacion del research sin colapsar.<br><br>
+      <b>En pipeline</b>: Se activa con /define (paso 2, despues de jtbd-architect).<br>
+      <b>Usalo solo cuando</b>: "Tengo JTBDs y quiero convertirlos en stories listas para sprint."
+    </div>
+  </div>
+
+  <!-- QUALITY COACH -->
+  <div class="folder-card yellow" style="margin-bottom:10px">
+    <div class="folder-name">quality-coach <span class="badge badge-yellow">opus</span> <span class="badge badge-orange">SUPERVISOR</span></div>
+    <div class="folder-desc">
+      <b>Que hace</b>: Entrenador de Calidad. Evalua stories como EXPERIMENTOS sobre cambio de comportamiento, no como checklist. Diagnostica en 6 dimensiones con 2 hard rules (sin Wendel = max 5, sin cuantificar = max 5). Detecta 7 antipatrones. Para cada story debil, propone reescritura en JTBD. Detecta patrones entre stories ("3 de 5 tienen Usuario Fantasma"). NUNCA modifica — solo diagnostica y sugiere.<br><br>
+      <b>En pipeline</b>: Se activa con /define (paso 3, despues del story-writer).<br>
+      <b>Usalo solo cuando</b>: "Tengo stories (mias o de otro) y quiero saber si son buenas" — evalua cualquier story, no solo las generadas por el sistema.
+    </div>
+  </div>
+
+  <!-- STORY SPLITTER -->
+  <div class="folder-card cyan" style="margin-bottom:10px">
+    <div class="folder-name">story-splitter <span class="badge badge-cyan">sonnet</span></div>
+    <div class="folder-desc">
+      <b>Que hace</b>: Descompone stories grandes (>3 dias) en incrementos verticales usando 9 heuristicas de Eduardo Ferro. Cada split: independientemente valioso, deployable, ≤3 dias. SIEMPRE vertical (end-to-end), NUNCA horizontal (por layer). El primer split es el "experimento sobrevivible."<br><br>
+      <b>En pipeline</b>: Se activa con /define (paso 4, solo si hay stories >3 dias).<br>
+      <b>Usalo solo cuando</b>: "Esta story es demasiado grande, necesito partirla."
+    </div>
+  </div>
+
+  <!-- TECH ARCHITECT -->
+  <div class="folder-card green" style="margin-bottom:10px">
+    <div class="folder-name">tech-architect <span class="badge badge-green">opus</span></div>
+    <div class="folder-desc">
+      <b>Que hace</b>: Disena la arquitectura mas simple que cumpla las stories. Lee CLAUDE.md primero (stack non-negotiable). Genera ADRs (Architecture Decision Records) con alternativas consideradas. Identifica componentes, data flow, y riesgos. Tambien ejecuta un scan de unknown-unknowns sobre la arquitectura.<br><br>
+      <b>En pipeline</b>: Se activa con /plan (paso 1).<br>
+      <b>Usalo solo cuando</b>: "Necesito disenar la arquitectura de esta feature" o "Necesito un ADR para esta decision."
+    </div>
+  </div>
+
+  <!-- SPRINT PLANNER -->
+  <div class="folder-card green" style="margin-bottom:10px">
+    <div class="folder-name">sprint-planner <span class="badge badge-green">sonnet</span></div>
+    <div class="folder-desc">
+      <b>Que hace</b>: Prioriza stories por Value/Effort, verifica Definition of Ready, crea sprint plan con dependencias y oportunidades de paralelizacion. Buffer 20%. Primera story = mayor riesgo (fail fast). Escribe el plan a tasks/todo.md.<br><br>
+      <b>En pipeline</b>: Se activa con /plan (paso 2, despues del tech-architect).<br>
+      <b>Usalo solo cuando</b>: "Tengo stories listas y necesito priorizarlas en un sprint."
+    </div>
+  </div>
+
+  <!-- ENGINEERING — no agents -->
+  <div class="folder-card orange" style="margin-bottom:10px">
+    <div class="folder-name">Engineering — Claude Code implementa directamente</div>
+    <div class="folder-desc">
+      <b>No hay agentes de engineering</b>. Claude Code ya sabe programar — lee CLAUDE.md para el stack, sigue patrones existentes, incluye tests. Los agentes de frontend/backend/mobile eran redundantes (repetian lo que CLAUDE.md ya dice) y se eliminaron.<br><br>
+      <b>/build</b>: Lee stories + design-analysis + architecture de working-docs/ e implementa directamente. Sin sub-agentes = menos tokens, mismo resultado.
+    </div>
+  </div>
+  <div class="folder-card" style="border-left-color:var(--text3);margin-bottom:10px">
+    <div class="folder-name">Impeccable — Herramienta EXTERNA (no incluida, se instala aparte)</div>
+    <div class="folder-desc">
+      <b>Que es</b>: Paquete de skills de diseno frontend profesional. Da vocabulario de diseno a la IA. NO es parte de nuestro sistema — es un proyecto independiente.<br>
+      <b>Web</b>: https://impeccable.style/<br>
+      <b>Instalar</b>: <span style="font-family:var(--mono)">npx skills add pbakaus/impeccable</span><br><br>
+      <b>Cuando usarlo</b>: Despues de /build, cuando hayas implementado UI. Opcional pero recomendado.<br><br>
+      <b>Comandos utiles</b>:<br>
+      <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">
+      /impeccable:audit    — evaluar calidad visual (tipografia, color, spacing)<br>
+      /impeccable:polish   — refinamiento general de diseno<br>
+      /impeccable:critique — feedback de UX (jerarquia visual, info architecture)<br>
+      /impeccable:adapt    — responsive multi-device<br>
+      /impeccable:animate  — animaciones con sentido<br>
+      /impeccable:clarify  — mejorar microcopy y mensajes de error<br>
+      /impeccable:harden   — error handling visual y edge cases de UI<br>
+      </span>
+    </div>
+  </div>
+
+  <!-- TEST ENGINEER -->
+  <div class="folder-card green" style="margin-bottom:10px">
+    <div class="folder-name">test-engineer <span class="badge badge-green">sonnet</span></div>
+    <div class="folder-desc">
+      <b>Que hace</b>: Genera Y EJECUTA tests (unit, integration, E2E) derivados de acceptance criteria. No inventa tests — los saca del Given-When-Then de las stories. Incluye "Staff Engineer check" (gut feeling honesto: aprobarla un senior engineer esto?).<br><br>
+      <b>En pipeline</b>: Se activa con /review (paso 1) y /hotfix (paso 3).<br>
+      <b>Usalo solo cuando</b>: "Necesito tests para este codigo" o "Ejecuta los tests y dime que falla."
+    </div>
+  </div>
+
+  <!-- CODE REVIEWER -->
+  <div class="folder-card green" style="margin-bottom:10px">
+    <div class="folder-name">code-reviewer <span class="badge badge-green">opus</span> <span class="badge badge-blue">MEMORIA</span></div>
+    <div class="folder-desc">
+      <b>Que hace</b>: Revisa codigo en 4 categorias: seguridad, performance, calidad, elegancia. Es el UNICO agente con memoria persistente (memory: project) — acumula patrones del proyecto entre sesiones. Detecta issues recurrentes ("3a vez que veo endpoints sin rate limiting").<br><br>
+      <b>En pipeline</b>: Se activa con /review (paso 2) y /code-review (paso 1).<br>
+      <b>Usalo solo cuando</b>: "Revisa estos cambios" o "Que patrones has visto en este proyecto?"
+    </div>
+  </div>
+
+  <!-- AUDITOR -->
+  <div class="folder-card" style="border-left-color:var(--white);margin-bottom:10px">
+    <div class="folder-name">auditor <span class="badge badge-white">haiku</span> <span class="badge badge-orange">SUPERVISOR</span></div>
+    <div class="folder-desc">
+      <b>Que hace</b>: Verificador binario de compliance. Re-lee reglas desde disco cada vez. Cada punto es compliant o non-compliant (sin grises). Distingue critical (bloquea deploy) de minor. Append a qa/qa-report.md.<br><br>
+      <b>En pipeline</b>: Se activa automaticamente en /review (paso 3a) y /code-review.<br>
+      <b>Usalo solo cuando</b>: "Verifica si esta story/feature cumple Definition of Done."
+    </div>
+  </div>
+
+  <!-- EVALUATOR -->
+  <div class="folder-card" style="border-left-color:var(--white);margin-bottom:10px">
+    <div class="folder-name">evaluator <span class="badge badge-white">haiku</span> <span class="badge badge-orange">SUPERVISOR</span></div>
+    <div class="folder-desc">
+      <b>Que hace</b>: Puntua fases en 4 dimensiones ponderadas: Completeness (30%), Quality (30%), Compliance (25%), Efficiency (15%). Compara con ciclos anteriores para detectar tendencias (mejorando/empeorando). Usa el reporte del Auditor para la dimension Compliance.<br><br>
+      <b>En pipeline</b>: Se activa automaticamente en /review (paso 3b, despues del auditor).<br>
+      <b>Usalo solo cuando</b>: Casi nunca solo — forma parte del QA cycle.
+    </div>
+  </div>
+
+  <!-- OPTIMIZER -->
+  <div class="folder-card" style="border-left-color:var(--white);margin-bottom:10px">
+    <div class="folder-name">optimizer <span class="badge badge-white">sonnet</span> <span class="badge badge-orange">SUPERVISOR</span></div>
+    <div class="folder-desc">
+      <b>Que hace</b>: Memoria institucional del proceso. Lee TODO el historial de qa-reports, detecta patrones recurrentes, propone mejoras priorizadas (impacto x frecuencia). Trackea propuestas anteriores. Escribe a: qa/qa-report.md, tasks/lessons.md, y memory/MEMORY.md. NUNCA aplica cambios — solo propone.<br><br>
+      <b>En pipeline</b>: Se activa automaticamente en /review (paso 3c, ultimo del QA cycle).<br>
+      <b>Usalo solo cuando</b>: "Analiza el historial de QA y dime que puedo mejorar" o "Que patrones ves en mis ultimos sprints?"
+    </div>
+  </div>
+
+  <div class="section-title" style="color:var(--purple)">Las 6 Skills — Procedimientos que Cargan los Agentes</div>
+  <p class="intro">Las skills son metodologias/procedimientos. No tienen juicio propio — son instrucciones que los agentes siguen. La mayoria se cargan automaticamente. Algunas las puedes invocar tu.</p>
+
+  <table>
+    <tr><th>Skill</th><th>Que es</th><th>Quien la carga</th><th>La invocas tu?</th></tr>
+    <tr><td style="color:var(--purple)">ski-prd-builder</td><td>Template para crear PRDs que pasen Quality Guard</td><td>Standalone</td><td>Si: "Ayudame a crear un PRD"</td></tr>
+    <tr><td style="color:var(--purple)">ski-competitive-analysis</td><td>Framework de analisis competitivo (5 ejes)</td><td>researcher</td><td>Si: "Analiza la competencia de [sector]"</td></tr>
+    <tr><td style="color:var(--purple)">ski-unknown-unknowns</td><td>Detector de riesgos ocultos en 8 dimensiones</td><td>quality-guard, tech-architect</td><td>Si: /unknown-unknowns</td></tr>
+    <tr><td style="color:var(--purple)">ski-project-docs</td><td>Genera documentacion completa del proyecto</td><td>Standalone</td><td>Si: /docs init, /docs [feature]</td></tr>
+    <tr><td style="color:var(--purple)">ski-impeccable-guide</td><td>Guia de cuando usar cada comando Impeccable (externo) en el pipeline</td><td>/build (frontend)</td><td>Referencia: consultar cuando hacer frontend</td></tr>
+    <tr><td style="color:var(--purple)">ski-plan-mode</td><td>Planificacion estructurada (>3 pasos)</td><td>Todos los agentes</td><td>No — se activa automaticamente</td></tr>
+    <tr><td style="color:var(--purple)">ski-doc-updater</td><td>Actualiza PROJECT_KNOWLEDGE.md y changelog</td><td>optimizer, /review</td><td>Rara vez — se ejecuta en /review</td></tr>
+  </table>
+
+  <div class="section-title" style="color:var(--pink)">Resumen: Que Necesitas Saber en la Practica</div>
+  <div class="principle-card">
+    <div class="principle-name">El 90% del tiempo: usa /commands</div>
+    <div class="principle-desc">/analyze, /define, /plan, /build, /review — los agentes se activan solos. No necesitas saber cual es cual.</div>
+  </div>
+  <div class="principle-card">
+    <div class="principle-name">Uso directo: solo para cosas especificas</div>
+    <div class="principle-desc">"Evalua este PRD" (quality-guard), "Revisa estas stories" (quality-coach), "Revisa este codigo" (code-reviewer), "Que riesgos no veo?" (/unknown-unknowns). Son atajos, no el flujo principal.</div>
+  </div>
+  <div class="principle-card">
+    <div class="principle-name">Skills: casi nunca las invocas directamente</div>
+    <div class="principle-desc">Excepciones: /docs (documentar), /unknown-unknowns (riesgos), ski-prd-builder (crear PRD). El resto las cargan los agentes solos.</div>
+  </div>
+</div>
+
+<!-- ═══════════════ FOLDERS ═══════════════ -->
+<div class="tab-content" id="folders">
+  <p class="intro">Cada carpeta tiene una funcion especifica. Aqui esta que hace cada una, que archivos contiene, y como se relaciona con las demas.</p>
+
+  <div class="section-title" style="color:var(--red)">Archivos Raiz</div>
+
+  <div class="folder-card red">
+    <div class="folder-name">agent.yaml</div>
+    <div class="folder-desc">El manifest del sistema completo. Define los 16 agentes, skills, rules, knowledge, workflows, runtime, y la configuracion del QA Layer. Es la "tabla de contenidos" de todo.</div>
+    <div class="folder-relation">Referencia todo lo que hay en agents/, skills/, rules/, knowledge/, workflows/</div>
+  </div>
+  <div class="folder-card red">
+    <div class="folder-name">SOUL.md</div>
+    <div class="folder-desc">La identidad del sistema. 5 secciones: Core Identity, Communication Style, Values & Principles, Domain Expertise, Collaboration Style. Define QUIEN es el sistema.</div>
+    <div class="folder-relation">Los sub-agentes tienen su propio SOUL.md con su identidad especifica</div>
+  </div>
+  <div class="folder-card red">
+    <div class="folder-name">RULES.md</div>
+    <div class="folder-desc">Constraints globales del sistema. Must Always (10 reglas), Must Never (8 reglas), Output Constraints, Interaction Boundaries, Safety. Define QUE debe y NO debe hacer.</div>
+    <div class="folder-relation">Complementado por rules/ (reglas modulares que cargan agentes especificos)</div>
+  </div>
+  <div class="folder-card red">
+    <div class="folder-name">DUTIES.md</div>
+    <div class="folder-desc">Segregacion de responsabilidades. 6 roles, conflict matrix, handoff workflows entre fases, isolation policy. Define QUIEN puede hacer QUE.</div>
+    <div class="folder-relation">Cada sub-agente tiene su DUTIES.md con su rol, permisos y boundaries</div>
+  </div>
+
+  <div class="section-title" style="color:var(--blue)">Carpetas de Entidades</div>
+
+  <div class="folder-card blue">
+    <div class="folder-name">agents/</div>
+    <div class="folder-desc">12 specialists (directorio: agent.yaml + SOUL.md + DUTIES.md) y 4 supervisors (archivo unico .md con frontmatter). Cada agente sabe: que es (SOUL), que puede hacer (DUTIES), y como configurarse (agent.yaml).</div>
+    <div class="folder-files">agents/age-spe-quality-guard/ (agent.yaml + SOUL.md + DUTIES.md)<br>agents/age-sup-auditor.md (todo en un archivo)</div>
+    <div class="folder-relation">Referenciados por commands/ y workflows/. Cargan skills de skills/ y reglas de rules/.</div>
+  </div>
+  <div class="folder-card green">
+    <div class="folder-name">commands/</div>
+    <div class="folder-desc">8 slash commands que tu lanzas en Claude Code. Son instrucciones en lenguaje natural que dicen paso a paso que agentes invocar. Son la "interfaz de usuario" del sistema.</div>
+    <div class="folder-files">analyze.md, define.md, plan.md, build.md, review.md, hotfix.md, code-review.md, new-project.md, save.md</div>
+    <div class="folder-relation">Cada command tiene su workflow YAML correspondiente en workflows/</div>
+  </div>
+  <div class="folder-card cyan">
+    <div class="folder-name">workflows/</div>
+    <div class="folder-desc">8 workflows en formato DAG (Directed Acyclic Graph). Definen el orden de ejecucion con depends_on, data flow entre pasos (${{ steps.X.outputs.Y }}), y condiciones. Son la version "formal" de lo que commands/ describe en lenguaje natural.</div>
+    <div class="folder-files">wor-analyze.yaml, wor-define.yaml, wor-plan.yaml, wor-build.yaml, wor-review.yaml, wor-hotfix.yaml, wor-code-review.yaml, wor-new-project.yaml, wor-save.yaml</div>
+    <div class="folder-relation">Cada workflow referencia agentes de agents/ y skills de skills/</div>
+  </div>
+  <div class="folder-card purple">
+    <div class="folder-name">skills/</div>
+    <div class="folder-desc">4 capacidades reutilizables que los agentes cargan. Cada skill tiene SKILL.md con frontmatter (name, description, license, allowed-tools, metadata) y contenido.</div>
+    <div class="folder-files">ski-prd-builder/ (SKILL.md + references/good-prd-example.md + bad-prd-example.md)<br>ski-competitive-analysis/ | ski-plan-mode/ | ski-doc-updater/</div>
+    <div class="folder-relation">Referenciados en agent.yaml de cada agente que los usa</div>
+  </div>
+  <div class="folder-card pink">
+    <div class="folder-name">rules/</div>
+    <div class="folder-desc">5 reglas modulares que agentes cargan automaticamente. Diferente de RULES.md (global). Estas son especificas por dominio: calidad de stories, cuando algo esta "done", antipatrones, scoring.</div>
+    <div class="folder-files">rul-antipatterns.md | rul-definition-of-done.md | rul-definition-of-ready.md | rul-scoring-dimensional.md | rul-naming-conventions.md | rul-git-branch-management.md</div>
+    <div class="folder-relation">Cada regla dice en su metadata que agentes la cargan (loaded-by)</div>
+  </div>
+  <div class="folder-card blue">
+    <div class="folder-name">knowledge/</div>
+    <div class="folder-desc">3 bases de conocimiento con metodologias reales. index.yaml controla prioridad y tags para descubrimiento. Los agentes las cargan segun su dominio.</div>
+    <div class="folder-files">index.yaml | kno-jtbd-framework.md (JTBD Reforzado + Wendel) | kno-mom-test.md (Rob Fitzpatrick) | kno-story-splitting.md (Eduardo Ferro, 9 heuristicas)</div>
+    <div class="folder-relation">index.yaml define always_load, priority, y tags para cada documento</div>
+  </div>
+
+  <div class="section-title" style="color:var(--orange)">Carpetas de Estado</div>
+
+  <div class="folder-card orange">
+    <div class="folder-name">memory/</div>
+    <div class="folder-desc">Sistema de memoria persistente. MEMORY.md es la memoria de trabajo (max 200 lineas). memory.yaml configura quien lee/escribe. archive/ guarda historial mensual. README.md explica TODO.</div>
+    <div class="folder-files">README.md (como funciona) | MEMORY.md (memoria activa) | memory.yaml (config) | archive/ (historial)</div>
+    <div class="folder-relation">Code Reviewer y Optimizer escriben aqui. Todos los agentes leen al inicio. Ver tab "Memoria" para detalles.</div>
+  </div>
+  <div class="folder-card white">
+    <div class="folder-name">qa/</div>
+    <div class="folder-desc">QA Layer completo. qa-config.yaml configura tier (none/light/full) y weights. qa-report.md es append-only (nunca se borra). README.md explica el ciclo Audit -> Evaluate -> Optimize.</div>
+    <div class="folder-files">README.md (como funciona) | qa-config.yaml (tier, weights, thresholds) | qa-report.md (historial append-only)</div>
+    <div class="folder-relation">Escrito por: auditor, evaluator, optimizer. Leido por: optimizer (para detectar patrones). Ver tab "QA Layer".</div>
+  </div>
+  <div class="folder-card yellow">
+    <div class="folder-name">examples/</div>
+    <div class="folder-desc">Calibracion del sistema. good-outputs.md y bad-outputs.md muestran exactamente que tipo de output es aceptable y que no. scenarios/ tiene interacciones completas de ejemplo.</div>
+    <div class="folder-files">good-outputs.md (3 ejemplos) | bad-outputs.md (5 antipatrones) | scenarios/analyze-weak-prd.md | scenarios/define-stories-from-jtbd.md</div>
+    <div class="folder-relation">Usados para calibrar el comportamiento de todos los agentes</div>
+  </div>
+
+  <div class="section-title" style="color:var(--text2)">Carpetas de Infraestructura</div>
+
+  <div class="folder-card">
+    <div class="folder-name">hooks/</div>
+    <div class="folder-desc">Lifecycle events. hooks.yaml define 3 hooks (on_session_start, post_workflow, post_review). scripts/ tiene implementaciones .sh. En Claude Code, normalmente se usan via instrucciones en CLAUDE.md.</div>
+    <div class="folder-files">README.md (como conectar con Claude Code) | hooks.yaml | scripts/load-context.sh | scripts/update-memory.sh | scripts/append-qa-report.sh</div>
+  </div>
+  <div class="folder-card">
+    <div class="folder-name">config/</div>
+    <div class="folder-desc">Configuracion por entorno con deep merge. default.yaml siempre se carga, luego el entorno especifico sobreescribe solo lo que cambia.</div>
+    <div class="folder-files">README.md (como funciona) | default.yaml (base) | production.yaml (mas estricto)</div>
+  </div>
+  <div class="folder-card">
+    <div class="folder-name">compliance/</div>
+    <div class="folder-desc">Para proyectos regulados (finanzas, salud, legal). Este sistema PM no es regulado, asi que solo tiene README explicando cuando y como usarlo.</div>
+  </div>
+  <div class="folder-card">
+    <div class="folder-name">templates/</div>
+    <div class="folder-desc">Template de CLAUDE.md que /new-project usa para generar el CLAUDE.md de cada proyecto. Tiene placeholders: {{PROJECT_NAME}}, {{TECH_STACK}}, etc.</div>
+  </div>
+</div>
+
+<!-- ═══════════════ MEMORY ═══════════════ -->
+<div class="tab-content" id="memory">
+  <p class="intro">El sistema de memoria da a los agentes conocimiento persistente entre sesiones. Sin el, cada sesion de Claude Code empieza de cero.</p>
+
+  <div class="section-title" style="color:var(--orange)">Como Funciona (paso a paso)</div>
+
+  <div class="card" style="border-left:4px solid var(--orange)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--orange)">1</span><span class="step-title">Agente inicia sesion</span></div>
+    <div class="step-output">Lee: <b>memory/MEMORY.md</b> + <b>tasks/lessons.md</b> + <b>docs/PROJECT_KNOWLEDGE.md</b></div>
+    <div class="step-tip">Esto le da contexto de sesiones anteriores: patrones, lecciones, estado del proyecto.</div>
+  </div>
+  <div class="card" style="border-left:4px solid var(--orange)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--orange)">2</span><span class="step-title">Agente trabaja</span></div>
+    <div class="step-output">Acumula observaciones: <b>patrones de codigo</b>, <b>tendencias en auditorias</b>, <b>decisiones importantes</b></div>
+  </div>
+  <div class="card" style="border-left:4px solid var(--orange)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--orange)">3</span><span class="step-title">Agente termina sesion</span></div>
+    <div class="step-output">Escribe a: <b>memory/MEMORY.md</b> (Code Reviewer, Optimizer) | <b>tasks/lessons.md</b> (Optimizer) | <b>docs/PROJECT_KNOWLEDGE.md</b> (Doc Updater)</div>
+  </div>
+
+  <div class="section-title" style="color:var(--blue)">Quien Lee y Escribe Que</div>
+  <table>
+    <tr><th>Archivo</th><th>Quien Lee</th><th>Quien Escribe</th><th>Cuando</th></tr>
+    <tr><td>memory/MEMORY.md</td><td>Todos al inicio</td><td>Code Reviewer, Optimizer</td><td>Despues de /review</td></tr>
+    <tr><td>tasks/lessons.md</td><td>Todos al inicio</td><td>Solo Optimizer</td><td>Despues de /review</td></tr>
+    <tr><td>docs/PROJECT_KNOWLEDGE.md</td><td>Todos al inicio</td><td>Doc Updater skill</td><td>Despues de cada feature</td></tr>
+  </table>
+
+  <div class="section-title" style="color:var(--green2)">Memoria Persistente del Code Reviewer</div>
+  <p class="intro">El Code Reviewer es el UNICO agente con <b>memory: project</b> en su agent.yaml. Claude Code gestiona su memoria automaticamente entre sesiones. Acumula:</p>
+  <div class="card">
+    <div class="step-output">Patrones del proyecto (naming, estructura, convenciones)<br>Issues recurrentes ("3a vez que veo X — considerar anadir una regla")<br>Decisiones de review anteriores</div>
+  </div>
+
+  <div class="section-title" style="color:var(--text2)">Sistema de Archive</div>
+  <p class="intro">Cuando MEMORY.md supera 200 lineas, las entradas antiguas se mueven a memory/archive/[YYYY-MM].yaml. Los archives se retienen 1 ano.</p>
+</div>
+
+<!-- ═══════════════ QA LAYER ═══════════════ -->
+<div class="tab-content" id="qa">
+  <p class="intro">El QA Layer es un ciclo de 3 agentes supervisores que corre automaticamente despues de cada /review. Verifica calidad, puntua, y propone mejoras. Ningun otro sistema de agentes tiene esto.</p>
+
+  <div class="section-title" style="color:var(--red)">El Ciclo de 3 Agentes</div>
+
+  <div class="flow-diagram"><span class="highlight">/review</span> triggers:
+
+  1. <span class="agent">test-engineer</span>    Ejecuta tests contra acceptance criteria
+  2. <span class="agent">code-reviewer</span>    Revisa calidad, seguridad, performance (con memoria)
+                       |
+                       v
+  ---- QA CYCLE (supervisors, solo lectura) ----
+                       |
+  3. <span class="agent">auditor</span>          Verifica compliance con rules/ (binario: si/no)
+       |               Escribe a <span class="file">qa/qa-report.md</span>
+       v
+  4. <span class="agent">evaluator</span>        Puntua 4 dimensiones (0-10 cada una)
+       |               Escribe scorecard a <span class="file">qa/qa-report.md</span>
+       v
+  5. <span class="agent">optimizer</span>        Lee TODO el historial, detecta patrones
+                       Escribe a <span class="file">qa/qa-report.md</span>
+                       Escribe a <span class="file">tasks/lessons.md</span>
+                       Escribe a <span class="file">memory/MEMORY.md</span>
+                       |
+                       v
+  ---- FEATURE DOCS (SIEMPRE pregunta) ----
+                       |
+  6. <span class="decision">PM: "Genero docs?"</span>  SIEMPRE pregunta al PM
+       |
+       Si --> <span class="agent">ski-project-docs</span>  Lee working-docs/[feature]/ + codigo
+              Genera <span class="file">docs/project-docs/features/[feature].md</span>
+              Actualiza <span class="file">docs/project-docs/changelog.md</span></div>
+
+  <div class="section-title" style="color:var(--blue)">4 Dimensiones del Evaluator</div>
+  <table>
+    <tr><th>Dimension</th><th>Weight</th><th>Que Mide</th></tr>
+    <tr><td>Completeness</td><td>30%</td><td>Se entrego todo lo planificado?</td></tr>
+    <tr><td>Quality</td><td>30%</td><td>El output esta bien hecho?</td></tr>
+    <tr><td>Compliance</td><td>25%</td><td>Cumple las reglas? (del Auditor)</td></tr>
+    <tr><td>Efficiency</td><td>15%</td><td>Se hizo sin desperdicio?</td></tr>
+  </table>
+
+  <div class="section-title" style="color:var(--green2)">QA Tiers (configurable en qa/qa-config.yaml)</div>
+  <table>
+    <tr><th>Tier</th><th>Que Corre</th><th>Cuando Usar</th></tr>
+    <tr><td>none</td><td>Nada</td><td>Prototipos, codigo desechable</td></tr>
+    <tr><td>light</td><td>Solo Auditor</td><td>Cambios pequenos, hotfixes</td></tr>
+    <tr><td style="color:var(--green2)">full</td><td>Auditor -> Evaluator -> Optimizer</td><td>Sprint reviews, features completas (default)</td></tr>
+  </table>
+
+  <div class="section-title" style="color:var(--orange)">Como Acumulan Conocimiento</div>
+  <p class="intro">qa/qa-report.md es <b>append-only</b>. Cada /review anade una seccion nueva. El Optimizer lee TODAS las entradas anteriores para detectar tendencias:</p>
+  <div class="card">
+    <div class="step-output">"Error handling aparecio en 3 de las ultimas 5 auditorias"<br>"Quality score tendencia: 6.2 -> 7.1 -> 7.8"<br>"Propuesta: anadir rul-api-error-handling"</div>
+    <div class="step-warn">El Optimizer PROPONE. El PM DECIDE. Nunca se aplican cambios automaticamente.</div>
+  </div>
+</div>
+
+<!-- ═══════════════ WORKFLOWS ═══════════════ -->
+<div class="tab-content" id="workflows">
+  <p class="intro">Los workflows definen el orden exacto de ejecucion usando formato DAG (Directed Acyclic Graph). Cada paso puede depender de otros, recibir datos de pasos anteriores, y ejecutarse condicionalmente.</p>
+
+  <div class="section-title" style="color:var(--red)">Formato DAG</div>
+  <div class="card">
+    <div class="step-output">
+      <b>depends_on</b>: [step_id] — este paso espera a que otro termine<br>
+      <b>${{ steps.X.outputs.Y }}</b> — recibe datos del output de otro paso<br>
+      <b>conditions</b>: — solo se ejecuta si la condicion es true<br>
+      <b>agent</b>: / <b>skill</b>: — que agente o skill ejecuta este paso
+    </div>
+  </div>
+
+  <div class="section-title" style="color:var(--blue)">Los 8 Workflows</div>
+
+  <div class="folder-card red">
+    <div class="folder-name">wor-analyze.yaml</div>
+    <div class="folder-desc">gather_context -> quality_guard -> <span style="color:var(--orange)">pm_decision</span> -> research -> deliver</div>
+    <div class="folder-relation">PM decision point: si score <4, el PM decide si proceder con riesgo o corregir primero</div>
+  </div>
+  <div class="folder-card purple">
+    <div class="folder-name">wor-define.yaml</div>
+    <div class="folder-desc">generate_jtbds -> <span style="color:var(--orange)">pm_approve</span> -> write_stories -> quality_review -> split_large (condicional: solo si >3 dias)</div>
+    <div class="folder-relation">Quality Coach revisa stories pero NO modifica. Story Splitter solo se activa condicionalmente.</div>
+  </div>
+  <div class="folder-card green">
+    <div class="folder-name">wor-plan.yaml</div>
+    <div class="folder-desc">design_architecture -> <span style="color:var(--orange)">pm_approve</span> -> sprint_planning -> <span style="color:var(--orange)">pm_approve</span></div>
+    <div class="folder-relation">Dos puntos de aprobacion PM: arquitectura y sprint plan</div>
+  </div>
+  <div class="folder-card orange">
+    <div class="folder-name">wor-build.yaml</div>
+    <div class="folder-desc">read_sprint -> build_frontend | build_backend | build_mobile (EN PARALELO) -> track_progress</div>
+    <div class="folder-relation">Frontend y backend pueden correr simultaneamente si las stories son independientes</div>
+  </div>
+  <div class="folder-card white">
+    <div class="folder-name">wor-review.yaml</div>
+    <div class="folder-desc">test -> code_review -> fix_critical (condicional) -> audit -> evaluate -> optimize -> update_docs -> final_check</div>
+    <div class="folder-relation">El mas complejo. 8 pasos secuenciales. fix_critical solo si hay issues criticos.</div>
+  </div>
+  <div class="folder-card orange">
+    <div class="folder-name">wor-hotfix.yaml</div>
+    <div class="folder-desc">quick_guard -> fix -> test -> quick_audit (4 pasos, rapido)</div>
+  </div>
+  <div class="folder-card blue">
+    <div class="folder-name">wor-code-review.yaml</div>
+    <div class="folder-desc">code_review | test (EN PARALELO) -> audit -> evaluate</div>
+  </div>
+  <div class="folder-card green">
+    <div class="folder-name">wor-new-project.yaml</div>
+    <div class="folder-desc">interview -> create_structure -> confirm (3 pasos, setup)</div>
+  </div>
+  <div class="folder-card green">
+    <div class="folder-name">wor-save.yaml</div>
+    <div class="folder-desc">validate_branch -> check_changes -> detect_secrets -> stage -> create_commit -> sync_remote -> confirm</div>
+    <div class="folder-relation">Valida que NO estas en main. Detecta archivos sensibles. Sugiere tipo de commit segun rama.</div>
+  </div>
+
+  <div class="section-title" style="color:var(--orange)">Relacion Commands vs Workflows</div>
+  <p class="intro">Los <b>commands/</b> (*.md) son la interfaz: instrucciones en lenguaje natural que Claude Code entiende. Los <b>workflows/</b> (*.yaml) son la especificacion formal: DAG con dependencias y data flow. Ambos describen lo mismo de distinta forma.</p>
+  <table>
+    <tr><th>Tu Escribes</th><th>Command (lenguaje natural)</th><th>Workflow (DAG formal)</th></tr>
+    <tr><td>/analyze</td><td>commands/analyze.md</td><td>workflows/wor-analyze.yaml</td></tr>
+    <tr><td>/define</td><td>commands/define.md</td><td>workflows/wor-define.yaml</td></tr>
+    <tr><td>/build</td><td>commands/build.md</td><td>workflows/wor-build.yaml</td></tr>
+    <tr><td>/review</td><td>commands/review.md</td><td>workflows/wor-review.yaml</td></tr>
+    <tr><td>/save</td><td>commands/save.md</td><td>workflows/wor-save.yaml</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════ DIRECT USE ═══════════════ -->
+<div class="tab-content" id="direct">
+  <p class="intro">No siempre necesitas el pipeline completo. Puedes invocar cualquier agente o skill directamente en Claude Code.</p>
+
+  <div class="section-title" style="color:var(--red)">Agentes Sueltos</div>
+
+  <div class="direct-card">
+    <div class="direct-trigger">"Quiero evaluar si mi PRD esta bien"</div>
+    <div class="direct-how">Usa el agente quality-guard para evaluar este PRD: [pega PRD]</div>
+  </div>
+  <div class="direct-card">
+    <div class="direct-trigger">"Necesito investigar a la competencia"</div>
+    <div class="direct-how">Usa el skill ski-competitive-analysis para analizar [sector]</div>
+  </div>
+  <div class="direct-card">
+    <div class="direct-trigger">"Quiero crear un PRD desde cero"</div>
+    <div class="direct-how">Usa el skill ski-prd-builder para crear un PRD sobre [idea]</div>
+  </div>
+  <div class="direct-card">
+    <div class="direct-trigger">"Necesito generar JTBDs"</div>
+    <div class="direct-how">Usa el agente jtbd-architect para generar jobs desde: [research brief]</div>
+  </div>
+  <div class="direct-card">
+    <div class="direct-trigger">"Mis stories son muy grandes"</div>
+    <div class="direct-how">Usa el agente story-splitter para descomponer: [story]</div>
+  </div>
+  <div class="direct-card">
+    <div class="direct-trigger">"Quiero una revision de codigo profunda"</div>
+    <div class="direct-how">Usa el agente code-reviewer para revisar los cambios recientes</div>
+  </div>
+  <div class="direct-card">
+    <div class="direct-trigger">"Quiero ver si cumplo Definition of Done"</div>
+    <div class="direct-how">Usa el agente auditor para verificar si esta story cumple el DoD</div>
+  </div>
+  <div class="direct-card">
+    <div class="direct-trigger">"Que puedo mejorar en mi proceso?"</div>
+    <div class="direct-how">Usa el agente optimizer para analizar qa-reports y proponer mejoras</div>
+  </div>
+  <div class="direct-card">
+    <div class="direct-trigger">"Que riesgos no estoy viendo en este proyecto?"</div>
+    <div class="direct-how">/unknown-unknowns — audita el proyecto en 8 dimensiones y te da findings priorizados</div>
+  </div>
+
+  <div class="section-title" style="color:var(--orange)">Cuando NO usar agentes</div>
+  <div class="card" style="border-left:4px solid var(--orange)">
+    <div class="step-output">Tareas de <b>menos de 30 segundos</b>: prompt directo a Claude Code<br>
+    Cambios <b>triviales</b> (typo, rename, one-liner): no necesitas /analyze -> /define -> /plan<br>
+    <b>Preguntas rapidas</b>: "que hace este archivo?" — no necesita agente<br>
+    Solo usa agentes para <b>trabajo sustancial</b></div>
+  </div>
+</div>
+
+<!-- ═══════════════ TIPS ═══════════════ -->
+<div class="tab-content" id="tips">
+  <p class="intro">Tu rutina diaria con el sistema.</p>
+
+  <div class="routine-card">
+    <div class="routine-title">Al empezar el dia</div>
+    <div class="routine-item">Abre Claude Code en tu proyecto</div>
+    <div class="routine-item">Claude lee CLAUDE.md automaticamente</div>
+    <div class="routine-item">Revisa tasks/todo.md para ver donde quedaste</div>
+    <div class="routine-item">memory/MEMORY.md y tasks/lessons.md se consultan al inicio</div>
+  </div>
+  <div class="routine-card">
+    <div class="routine-title">Al trabajar en una feature</div>
+    <div class="routine-item">/analyze — evalua el problema primero</div>
+    <div class="routine-item">/define — genera stories solo si el analisis salio bien</div>
+    <div class="routine-item">/plan — antes de picar codigo, ten un plan en tasks/todo.md</div>
+    <div class="routine-item">/build — implementa story por story</div>
+    <div class="routine-item">/save — commit y push tras cada story completada</div>
+    <div class="routine-item">/review — verifica ANTES de merge</div>
+  </div>
+  <div class="routine-card">
+    <div class="routine-title">Al arreglar un bug</div>
+    <div class="routine-item">/hotfix — pipeline corto + SIEMPRE guarda el aprendizaje (causa raiz, solucion, prevencion)</div>
+    <div class="routine-item">No necesitas /analyze ni /define para bugs</div>
+    <div class="routine-item">/hotfix ahora guarda en tasks/lessons.md automaticamente</div>
+  </div>
+  <div class="routine-card">
+    <div class="routine-title">Cuando resuelves algo dificil</div>
+    <div class="routine-item">/learned — guarda el aprendizaje EN EL MOMENTO, no esperes a /review</div>
+    <div class="routine-item">Bug de 2 horas, edge case raro, descubrimiento sobre una API, error a evitar</div>
+    <div class="routine-item">Se guarda en tasks/lessons.md + memory/MEMORY.md — los agentes lo veran</div>
+    <div class="routine-item">La proxima vez que pase algo similar, lo tendras documentado</div>
+  </div>
+  <div class="routine-card">
+    <div class="routine-title">Para tareas rapidas (&lt;30 seg)</div>
+    <div class="routine-item">NO uses agentes. Prompt directo a Claude Code</div>
+    <div class="routine-item">El sistema es para trabajo sustancial, no para one-liners</div>
+  </div>
+  <div class="routine-card">
+    <div class="routine-title">Para no perder contexto</div>
+    <div class="routine-item">/compact al 50% de contexto — evita perder calidad</div>
+    <div class="routine-item">Commit despues de cada tarea completada</div>
+    <div class="routine-item">docs/PROJECT_KNOWLEDGE.md se actualiza con cada /review</div>
+    <div class="routine-item">memory/MEMORY.md acumula patrones del Code Reviewer y Optimizer</div>
+  </div>
+  <div class="routine-card">
+    <div class="routine-title">Para guardar trabajo (Git)</div>
+    <div class="routine-item">/save — valida rama, detecta secrets, commit formateado, push</div>
+    <div class="routine-item">Nunca hagas commit directo a main. Siempre ramas: feat/, fix/, chore/</div>
+    <div class="routine-item">Despues de /save: crea PR en GitHub, squash and merge, limpia rama local</div>
+    <div class="routine-item">Si estas en main por error: git checkout -b feat/nombre antes de /save</div>
+  </div>
+  <div class="routine-card">
+    <div class="routine-title">Antes de merge</div>
+    <div class="routine-item">/code-review si quieres solo revision</div>
+    <div class="routine-item">/review si quieres el pipeline completo de QA</div>
+    <div class="routine-item">El auditor verifica Definition of Done automaticamente</div>
+  </div>
+  <div class="routine-card">
+    <div class="routine-title">Cuando vuelves tras dias o semanas</div>
+    <div class="routine-item">Claude lee CLAUDE.md -> docs/PROJECT_KNOWLEDGE.md</div>
+    <div class="routine-item">Ahi esta TODO: que se hizo, decisiones, como funciona cada parte</div>
+    <div class="routine-item">tasks/lessons.md tiene los errores a evitar</div>
+    <div class="routine-item">qa/qa-report.md tiene el historial completo de calidad</div>
+    <div class="routine-item">memory/MEMORY.md tiene patrones y observaciones acumuladas</div>
+  </div>
+  <div class="routine-card">
+    <div class="routine-title">Instalacion inicial (una sola vez)</div>
+    <div class="routine-item">chmod +x install.sh && ./install.sh</div>
+    <div class="routine-item">Instala agentes, skills, rules, knowledge y commands en ~/.claude/</div>
+    <div class="routine-item">Seguro: nunca borra, pregunta antes de sobreescribir</div>
+    <div class="routine-item">Luego en cada proyecto: /new-project para inicializar</div>
+  </div>
+</div>
+
+</div>
+
+<div class="footer">PM x10 Agent System v2.1 — 14 agentes | 13 commands | 13 workflows | 7 skills | 6 rules | 3 knowledge bases | Mercadona Methodology</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  });
+});
+document.querySelectorAll('.scenario-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.scenario-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('sc-' + btn.dataset.scenario).classList.add('active');
+  });
+});
+</script>
+
+</body>
+</html>

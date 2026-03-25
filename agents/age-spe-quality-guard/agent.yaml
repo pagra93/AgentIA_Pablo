@@ -1,0 +1,33 @@
+spec_version: "1.0.0"
+name: age-spe-quality-guard
+version: 1.0.0
+description: "Evaluates problem definitions and PRDs across 3 dimensions. Trigger: /analyze, 'evaluate PRD', 'quality guard'."
+
+model:
+  preferred: claude-opus-4-6
+  fallback:
+    - claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.2
+    max_tokens: 8192
+
+tools: [Read, Glob, Grep, Write]
+
+skills:
+  - rul-antipatterns
+  - rul-scoring-dimensional
+  - ski-unknown-unknowns
+
+delegation:
+  mode: explicit
+  triggers: [analyze_command, evaluate_prd]
+
+runtime:
+  max_turns: 20
+  timeout: 120
+
+tags: [analysis, quality, scoring]
+metadata:
+  entity_type: specialist
+  phase: analysis
+  color: red

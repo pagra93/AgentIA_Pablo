@@ -1,0 +1,76 @@
+# Workflow: Definition Pipeline
+# Triggered by: /define command
+# Pipeline: JTBD Architect → Story Writer → Quality Coach → Story Splitter
+
+name: wor-define
+description: "Transform research into JTBDs, stories, quality review, and splitting."
+version: 1.0.0
+
+inputs:
+  - name: research_brief
+    type: string
+    required: true
+    description: "Research brief from /analyze or user-provided context"
+
+outputs:
+  - name: stories
+    type: string
+    description: "Sprint-ready user stories with dimensional scoring"
+
+steps:
+  - id: generate_jtbds
+    action: "Transform research into structured Jobs-to-be-Done"
+    agent: age-spe-jtbd-architect
+    inputs:
+      research: ${{ inputs.research_brief }}
+    outputs: [jtbds, priority_order]
+
+  - id: pm_approve_jtbds
+    action: "Present JTBDs to PM. Ask: Approve, modify, or add?"
+    depends_on: [generate_jtbds]
+    inputs:
+      jtbds: ${{ steps.generate_jtbds.outputs.jtbds }}
+    outputs: [approved_jtbds]
+
+  - id: write_stories
+    action: "Convert approved JTBDs into user stories with behavior change and scoring"
+    agent: age-spe-story-writer
+    depends_on: [pm_approve_jtbds]
+    inputs:
+      jtbds: ${{ steps.pm_approve_jtbds.outputs.approved_jtbds }}
+    outputs: [stories, scores]
+
+  - id: quality_review
+    action: "Review stories for antipatterns and quality (SUPERVISOR — read-only)"
+    agent: age-sup-quality-coach
+    depends_on: [write_stories]
+    inputs:
+      stories: ${{ steps.write_stories.outputs.stories }}
+    outputs: [review, suggestions, flagged_stories]
+
+  - id: pm_review_suggestions
+    action: "Present Quality Coach suggestions. PM decides: accept, modify, or proceed as-is."
+    depends_on: [quality_review]
+    conditions:
+      - ${{ steps.quality_review.outputs.flagged_stories.length > 0 }}
+    inputs:
+      suggestions: ${{ steps.quality_review.outputs.suggestions }}
+    outputs: [decision]
+
+  - id: split_large_stories
+    action: "Decompose stories >3 days into vertical increments"
+    agent: age-spe-story-splitter
+    depends_on: [quality_review]
+    conditions:
+      - ${{ steps.write_stories.outputs.stories.any(s => s.size > 3) }}
+    inputs:
+      large_stories: ${{ steps.write_stories.outputs.stories.filter(s => s.size > 3) }}
+    outputs: [split_stories]
+
+  - id: deliver
+    action: "Present final stories with scoring. Save to docs/working_docs/definition/. Suggest /plan."
+    depends_on: [quality_review, split_large_stories]
+    outputs: [stories]
+
+error_handling:
+  on_step_failure: inform_pm

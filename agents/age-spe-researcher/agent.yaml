@@ -1,0 +1,32 @@
+spec_version: "1.0.0"
+name: age-spe-researcher
+version: 1.0.0
+description: "Investigates knowledge gaps using Mom Test methodology and competitive analysis. Trigger: /analyze, 'research', 'investigate'."
+
+model:
+  preferred: claude-opus-4-6
+  fallback:
+    - claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.3
+    max_tokens: 16384
+
+tools: [Read, Write, Glob, Grep, WebFetch, WebSearch]
+
+skills:
+  - kno-mom-test
+  - ski-competitive-analysis
+
+delegation:
+  mode: explicit
+  triggers: [research_needed, analyze_gaps]
+
+runtime:
+  max_turns: 30
+  timeout: 300
+
+tags: [analysis, research, mom-test, competitive]
+metadata:
+  entity_type: specialist
+  phase: analysis
+  color: blue

@@ -1,0 +1,32 @@
+spec_version: "1.0.0"
+name: age-spe-story-writer
+version: 1.0.0
+description: "Converts JTBDs into deployable user stories with behavior change and dimensional scoring. Trigger: /define, 'write stories'."
+
+model:
+  preferred: claude-opus-4-6
+  fallback:
+    - claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.2
+    max_tokens: 16384
+
+tools: [Read, Write, Glob, Grep]
+
+skills:
+  - rul-scoring-dimensional
+  - kno-jtbd-framework
+
+delegation:
+  mode: explicit
+  triggers: [jtbd_complete, write_stories]
+
+runtime:
+  max_turns: 25
+  timeout: 180
+
+tags: [definition, stories, scoring, behavior-change]
+metadata:
+  entity_type: specialist
+  phase: definition
+  color: magenta

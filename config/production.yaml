@@ -1,0 +1,19 @@
+# Production Configuration
+# Deep-merged on top of default.yaml when deploying to production.
+#
+# Usage: Set AGENT_ENV=production before running.
+# Only overrides what's different from default.
+
+log_level: warn                   # Less verbose in production
+
+qa:
+  tier: full                      # Always full QA in production
+  auto_activate: true
+
+scoring:
+  conservative: true              # Never relax scoring in production
+  flag_below: 6                   # Stricter threshold in production (5 in default)
+
+agents:
+  supervisor_readonly: true       # Enforce strictly in production
+  require_pm_approval: true       # No autonomous actions in production

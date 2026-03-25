@@ -1,0 +1,41 @@
+# Workflow: Development
+# Triggered by: /build command
+# Claude Code implements directly — no engineering sub-agents.
+# For frontend design quality: use Impeccable (/polish, /audit, /typeset)
+
+name: wor-build
+description: "Implement stories from sprint plan. Direct implementation + Impeccable for frontend."
+version: 2.0.0
+
+inputs:
+  - name: sprint_plan
+    type: file
+    default: tasks/todo.md
+
+steps:
+  - id: read_context
+    action: "Read tasks/todo.md + working-docs/[feature]/ (stories, design-analysis, architecture)"
+    outputs: [stories, design_context, architecture]
+
+  - id: implement
+    action: "For each story: read acceptance criteria, implement following CLAUDE.md, include tests, follow DoD"
+    depends_on: [read_context]
+    inputs:
+      stories: ${{ steps.read_context.outputs.stories }}
+      design: ${{ steps.read_context.outputs.design_context }}
+    outputs: [completed_stories]
+    # No sub-agents. Claude Code implements directly.
+    # For frontend: suggest Impeccable /polish and /audit after UI work.
+
+  - id: track_progress
+    action: "Update tasks/todo.md marking completed. Commit after each story."
+    depends_on: [implement]
+    outputs: [all_done]
+
+  - id: remind_review
+    action: "ALWAYS remind: 'Sprint built. Next: /review for tests, QA, and docs.'"
+    depends_on: [track_progress]
+    outputs: [reminded]
+
+error_handling:
+  on_step_failure: inform_pm

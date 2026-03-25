@@ -1,0 +1,113 @@
+# Workflow: Testing & QA Pipeline
+# Triggered by: /review command
+# Pipeline: Test → Code Review → Audit → Evaluate → Optimize → Document
+
+name: wor-review
+description: "Full QA pipeline: test, code review, audit cycle, and documentation update."
+version: 1.0.0
+
+inputs:
+  - name: scope
+    type: string
+    default: "recent changes"
+    description: "What to review — defaults to recent changes in current sprint"
+
+outputs:
+  - name: qa_report
+    type: string
+    description: "Complete QA report appended to qa/qa-report.md"
+
+steps:
+  - id: test
+    action: "Generate and execute tests against acceptance criteria in tasks/todo.md"
+    agent: age-spe-test-engineer
+    inputs:
+      scope: ${{ inputs.scope }}
+    outputs: [test_results, coverage, passed]
+
+  - id: code_review
+    action: "Review code changes for quality, security, performance, best practices"
+    agent: age-spe-code-reviewer
+    depends_on: [test]
+    inputs:
+      test_results: ${{ steps.test.outputs.test_results }}
+    outputs: [review_verdict, issues, patterns]
+    # Code Reviewer has persistent memory — it remembers patterns across sessions
+
+  - id: fix_critical
+    action: "If critical issues found, fix before continuing QA cycle"
+    depends_on: [code_review]
+    conditions:
+      - ${{ steps.code_review.outputs.issues.any(i => i.severity == 'critical') }}
+    outputs: [fixes_applied]
+
+  # --- QA AUDIT CYCLE (supervisors, all read-only) ---
+
+  - id: audit
+    action: "Verify compliance with Definition of Done and scoring rules"
+    agent: age-sup-auditor
+    depends_on: [code_review]
+    outputs: [compliance_score, non_compliant_items]
+
+  - id: evaluate
+    action: "Score phase on 4 dimensions: Completeness, Quality, Compliance, Efficiency"
+    agent: age-sup-evaluator
+    depends_on: [audit]
+    inputs:
+      audit_report: ${{ steps.audit.outputs.compliance_score }}
+    outputs: [scorecard, weighted_average]
+
+  - id: optimize
+    action: "Read QA history, detect patterns, propose improvements"
+    agent: age-sup-optimizer
+    depends_on: [evaluate]
+    inputs:
+      scorecard: ${{ steps.evaluate.outputs.scorecard }}
+      audit: ${{ steps.audit.outputs.compliance_score }}
+    outputs: [proposals, lessons, trends]
+    # Optimizer writes to: tasks/lessons.md, memory/MEMORY.md
+
+  # --- DOCUMENTATION ---
+
+  - id: update_docs
+    action: "Update PROJECT_KNOWLEDGE.md, changelog, API docs"
+    skill: ski-doc-updater
+    depends_on: [optimize]
+    outputs: [docs_updated]
+
+  - id: final_check
+    action: "Verify Definition of Done: tests pass, review approved, audit passed, docs updated, committed"
+    depends_on: [update_docs]
+    inputs:
+      tests: ${{ steps.test.outputs.passed }}
+      review: ${{ steps.code_review.outputs.review_verdict }}
+      audit: ${{ steps.audit.outputs.compliance_score }}
+      docs: ${{ steps.update_docs.outputs.docs_updated }}
+    outputs: [done]
+
+  # --- FEATURE DOCUMENTATION (ALWAYS ASK) ---
+
+  - id: ask_feature_docs
+    action: "ALWAYS ask PM: 'Feature completada. Genero documentacion completa de esta feature?'"
+    depends_on: [final_check]
+    conditions:
+      - ${{ steps.final_check.outputs.done == true }}
+    outputs: [pm_wants_docs, feature_name]
+
+  - id: generate_feature_docs
+    action: "Read ALL working-docs for this feature + actual implementation. Generate full feature doc."
+    skill: ski-project-docs
+    depends_on: [ask_feature_docs]
+    conditions:
+      - ${{ steps.ask_feature_docs.outputs.pm_wants_docs == true }}
+    inputs:
+      feature: ${{ steps.ask_feature_docs.outputs.feature_name }}
+      working_docs_path: docs/working-docs/${{ steps.ask_feature_docs.outputs.feature_name }}/
+    outputs: [feature_doc_generated]
+    # Reads: design-analysis.md, prd.md, research.md, jtbds.md, stories.md, architecture.md
+    # Writes: docs/project-docs/features/[feature].md
+    # Updates: docs/project-docs/features/_index.md, docs/project-docs/changelog.md
+
+error_handling:
+  on_step_failure: inform_pm
+  message: "Review step failed. See output for details."

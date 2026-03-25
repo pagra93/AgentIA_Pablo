@@ -1,0 +1,58 @@
+# Workflow: Commit & Push to GitHub
+# Triggered by: /save command
+# Pipeline: Validate → Stage → Commit → Push
+
+name: wor-save
+description: "Safe commit and push: validate branch, detect secrets, format commit, sync with GitHub."
+version: 1.0.0
+
+steps:
+  - id: validate_branch
+    action: "Check current branch. If 'main', ABORT immediately with instructions to create a work branch."
+    outputs: [branch_name, is_valid]
+    # CRITICAL: Never commit directly to main
+
+  - id: check_changes
+    action: "Show git status and diff stats. Ask user to confirm these are the correct changes."
+    depends_on: [validate_branch]
+    conditions:
+      - ${{ steps.validate_branch.outputs.is_valid == true }}
+    outputs: [changes_confirmed]
+
+  - id: detect_secrets
+    action: "Scan for .env, .env.local, secrets/, *.pem, *.key in staged files. Warn if found."
+    depends_on: [check_changes]
+    outputs: [secrets_found, user_confirmed]
+
+  - id: stage_changes
+    action: "git add . — stage all changes"
+    depends_on: [detect_secrets]
+    conditions:
+      - ${{ steps.detect_secrets.outputs.secrets_found == false || steps.detect_secrets.outputs.user_confirmed == true }}
+    outputs: [staged]
+
+  - id: create_commit
+    action: "Detect commit type from branch name (feat/* -> feat:, fix/* -> fix:). Ask for description. Create formatted commit."
+    depends_on: [stage_changes]
+    inputs:
+      branch: ${{ steps.validate_branch.outputs.branch_name }}
+    outputs: [commit_hash, commit_message]
+
+  - id: sync_remote
+    action: "git fetch, pull --rebase if needed, push to origin. Handle new branches with -u flag."
+    depends_on: [create_commit]
+    inputs:
+      branch: ${{ steps.validate_branch.outputs.branch_name }}
+    outputs: [push_success, is_new_branch]
+
+  - id: confirm
+    action: "Show summary: branch, commit, remote. Show next steps: create PR, merge, cleanup."
+    depends_on: [sync_remote]
+    inputs:
+      branch: ${{ steps.validate_branch.outputs.branch_name }}
+      commit: ${{ steps.create_commit.outputs.commit_message }}
+    outputs: [confirmed]
+
+error_handling:
+  on_step_failure: abort_with_instructions
+  message: "Save failed. See error details above."

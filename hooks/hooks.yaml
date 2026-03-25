@@ -1,0 +1,27 @@
+# Lifecycle Hooks Configuration
+#
+# HOW THIS WORKS IN CLAUDE CODE:
+# Option 1: Configure in .claude/settings.json (automated)
+# Option 2: Instruct agents in CLAUDE.md to read/write these files (simpler)
+#
+# For most projects, Option 2 (CLAUDE.md instructions) is recommended.
+# The scripts below are reference implementations.
+
+hooks:
+  on_session_start:
+    - script: scripts/load-context.sh
+      description: "Load memory/MEMORY.md, tasks/lessons.md, docs/PROJECT_KNOWLEDGE.md into context"
+      timeout: 5
+      fail_open: true
+
+  post_workflow:
+    - script: scripts/update-memory.sh
+      description: "Update memory/MEMORY.md with session findings"
+      timeout: 10
+      fail_open: true
+
+  post_review:
+    - script: scripts/append-qa-report.sh
+      description: "Append QA cycle results to qa/qa-report.md"
+      timeout: 10
+      fail_open: false

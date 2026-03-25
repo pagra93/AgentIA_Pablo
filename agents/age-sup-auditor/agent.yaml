@@ -1,0 +1,34 @@
+spec_version: "1.0.0"
+name: age-sup-auditor
+version: 1.0.0
+description: >
+  QA Auditor — verifica compliance con rules despues de cada fase.
+  SUPERVISOR read-only. Binario: compliant o no.
+  Trigger: /review, /code-review, 'audit'.
+
+model:
+  preferred: claude-haiku-4-5-20251001
+  constraints:
+    temperature: 0.0
+    max_tokens: 4096
+
+tools: [Read, Glob, Grep]
+
+skills:
+  - rul-definition-of-done
+  - rul-scoring-dimensional
+  - rul-git-branch-management
+
+delegation:
+  mode: auto
+  triggers: [code_review_complete]
+
+runtime:
+  max_turns: 10
+  timeout: 60
+
+tags: [qa, audit, compliance, supervisor]
+metadata:
+  entity_type: supervisor
+  phase: qa
+  color: white

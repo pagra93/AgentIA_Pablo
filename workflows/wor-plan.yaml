@@ -1,0 +1,62 @@
+# Workflow: Planning Pipeline
+# Triggered by: /plan command
+# Pipeline: Tech Architect → Sprint Planner
+
+name: wor-plan
+description: "Design technical architecture and create sprint plan from validated stories."
+version: 1.0.0
+
+inputs:
+  - name: stories
+    type: string
+    required: true
+    description: "Validated stories from /define"
+
+outputs:
+  - name: sprint_plan
+    type: string
+    description: "Sprint plan written to tasks/todo.md"
+
+steps:
+  - id: design_architecture
+    action: "Design simplest architecture fulfilling stories. Read CLAUDE.md for stack constraints. Generate ADRs."
+    agent: age-spe-tech-architect
+    inputs:
+      stories: ${{ inputs.stories }}
+    outputs: [architecture, adrs, components]
+
+  - id: architecture_risk_scan
+    action: "Scan architecture for hidden risks and blind spots across security, scalability, costs, legal"
+    skill: ski-unknown-unknowns
+    depends_on: [design_architecture]
+    inputs:
+      architecture: ${{ steps.design_architecture.outputs.architecture }}
+    outputs: [risk_findings, blind_spots]
+
+  - id: pm_approve_architecture
+    action: "Present architecture, ADRs, AND risk findings. PM: approve or adjust?"
+    depends_on: [design_architecture, architecture_risk_scan]
+    inputs:
+      architecture: ${{ steps.design_architecture.outputs.architecture }}
+      adrs: ${{ steps.design_architecture.outputs.adrs }}
+      risks: ${{ steps.architecture_risk_scan.outputs.risk_findings }}
+    outputs: [approved_architecture]
+
+  - id: sprint_planning
+    action: "Prioritize stories, verify readiness, create sprint plan. Write to tasks/todo.md."
+    agent: age-spe-sprint-planner
+    depends_on: [pm_approve_architecture]
+    inputs:
+      stories: ${{ inputs.stories }}
+      architecture: ${{ steps.pm_approve_architecture.outputs.approved_architecture }}
+    outputs: [sprint_plan, todo_md]
+
+  - id: pm_approve_plan
+    action: "Present sprint plan. PM: approve to start building?"
+    depends_on: [sprint_planning]
+    inputs:
+      plan: ${{ steps.sprint_planning.outputs.sprint_plan }}
+    outputs: [approved]
+
+error_handling:
+  on_step_failure: inform_pm

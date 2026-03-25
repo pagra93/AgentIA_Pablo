@@ -1,0 +1,29 @@
+spec_version: "1.0.0"
+name: age-spe-sprint-planner
+version: 1.0.0
+description: "Prioritizes stories and creates sprint plans with dependencies. Trigger: /plan, 'sprint plan', 'prioritize'."
+
+model:
+  preferred: claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.1
+    max_tokens: 8192
+
+tools: [Read, Write, Glob, Grep]
+
+skills:
+  - rul-definition-of-ready
+
+delegation:
+  mode: explicit
+  triggers: [architecture_ready, plan_sprint]
+
+runtime:
+  max_turns: 15
+  timeout: 120
+
+tags: [planning, prioritization, sprint]
+metadata:
+  entity_type: specialist
+  phase: planning
+  color: green

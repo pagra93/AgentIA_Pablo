@@ -1,0 +1,29 @@
+spec_version: "1.0.0"
+name: age-spe-story-splitter
+version: 1.0.0
+description: "Decomposes large stories (>3 days) into independent vertical increments. Trigger: /define, 'split story', 'too large'."
+
+model:
+  preferred: claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.2
+    max_tokens: 8192
+
+tools: [Read, Write, Glob, Grep]
+
+skills:
+  - kno-story-splitting
+
+delegation:
+  mode: explicit
+  triggers: [story_too_large, split_needed]
+
+runtime:
+  max_turns: 15
+  timeout: 120
+
+tags: [definition, splitting, vertical-slicing]
+metadata:
+  entity_type: specialist
+  phase: definition
+  color: cyan

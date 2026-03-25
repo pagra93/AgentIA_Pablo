@@ -1,0 +1,21 @@
+# Knowledge Index
+# Controls discovery, loading priority, and context budget
+
+documents:
+  - path: kno-jtbd-framework.md
+    tags: [jtbd, definition, methodology]
+    priority: high
+    always_load: false
+    description: "Jobs-to-be-Done Reforzado framework with Wendel Checklist and behavior change"
+
+  - path: kno-mom-test.md
+    tags: [research, interview, validation]
+    priority: high
+    always_load: false
+    description: "Mom Test methodology for revealing truths instead of validating assumptions"
+
+  - path: kno-story-splitting.md
+    tags: [stories, splitting, agile]
+    priority: medium
+    always_load: false
+    description: "Eduardo Ferro's 9 heuristics for vertical story splitting"

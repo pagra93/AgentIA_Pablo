@@ -1,0 +1,36 @@
+spec_version: "1.0.0"
+name: age-spe-code-reviewer
+version: 1.0.0
+description: "Code review specialist with persistent memory. Reviews for quality, security, performance. Trigger: /review, /code-review, 'review code'."
+
+model:
+  preferred: claude-opus-4-6
+  fallback:
+    - claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.2
+    max_tokens: 12288
+
+tools: [Read, Glob, Grep]
+
+skills:
+  - rul-definition-of-done
+
+# PERSISTENT MEMORY — unique among all agents
+# Claude Code automatically loads and saves this agent's memory across sessions.
+# The agent accumulates patterns, conventions, and recurring issues over time.
+memory: project
+
+delegation:
+  mode: explicit
+  triggers: [tests_passed, code_review_needed]
+
+runtime:
+  max_turns: 30
+  timeout: 180
+
+tags: [testing, code-review, security, quality]
+metadata:
+  entity_type: specialist
+  phase: testing
+  color: green

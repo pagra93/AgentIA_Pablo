@@ -1,0 +1,30 @@
+spec_version: "1.0.0"
+name: age-sup-optimizer
+version: 1.0.0
+description: >
+  QA Optimizer — lee todo el historial de auditorias y scorecards, detecta patrones
+  recurrentes, propone mejoras priorizadas. SUPERVISOR — NUNCA aplica cambios.
+  Escribe a tasks/lessons.md y memory/MEMORY.md.
+  Trigger: /review, 'optimize', 'retrospective', 'lessons'.
+
+model:
+  preferred: claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.3
+    max_tokens: 8192
+
+tools: [Read, Glob, Grep, Write]
+
+delegation:
+  mode: auto
+  triggers: [evaluation_complete]
+
+runtime:
+  max_turns: 15
+  timeout: 120
+
+tags: [qa, optimization, patterns, lessons, supervisor]
+metadata:
+  entity_type: supervisor
+  phase: qa
+  color: white

@@ -1,0 +1,189 @@
+spec_version: "1.0.0"
+name: pm-agent-system
+version: 2.1.0
+description: >
+  Sistema operativo de Product Management con IA. Orquesta 14 agentes especializados
+  a traves de 13 workflows DAG para cubrir el ciclo completo: desde disenos en Pencil
+  hasta codigo deployado con QA verificado. Metodologia Mercadona (Quality Guard,
+  Mom Test, JTBD Reforzado, 6D Scoring). Anti-bloat rules. PM valida siempre.
+  Engineering: Claude Code implementa directamente + Impeccable para frontend quality.
+author: pablo
+license: MIT
+
+model:
+  preferred: claude-opus-4-6
+  fallback:
+    - claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.2
+    max_tokens: 16384
+
+# --- Agents (14 total: 10 specialists + 4 supervisors) ---
+# Engineering has no dedicated agents — Claude Code implements directly.
+# Frontend design quality: use Impeccable (https://impeccable.style/)
+agents:
+  # Analysis
+  age-spe-quality-guard:
+    path: agents/age-spe-quality-guard/
+    description: "Evalua calidad de PRDs y definiciones de problema. Trigger: /analyze"
+    delegation:
+      mode: explicit
+      triggers: [analyze_command]
+  age-spe-researcher:
+    path: agents/age-spe-researcher/
+    description: "Investiga gaps de conocimiento con Mom Test. Trigger: /analyze"
+    delegation:
+      mode: explicit
+      triggers: [research_needed]
+  age-spe-design-analyst:
+    path: agents/age-spe-design-analyst/
+    description: "Analiza disenos y extrae funcionalidad completa (6 capas). Trigger: /design-to-prd"
+    delegation:
+      mode: explicit
+      triggers: [design_to_prd, analyze_designs]
+
+  # Definition
+  age-spe-jtbd-architect:
+    path: agents/age-spe-jtbd-architect/
+    description: "Transforma research en Jobs-to-be-Done. Trigger: /define"
+    delegation:
+      mode: explicit
+      triggers: [define_command]
+  age-spe-story-writer:
+    path: agents/age-spe-story-writer/
+    description: "Convierte JTBDs en user stories deployables. Trigger: /define"
+    delegation:
+      mode: explicit
+      triggers: [jtbd_complete]
+  age-sup-quality-coach:
+    path: agents/age-sup-quality-coach/
+    description: "Evalua calidad de stories sin modificar. Supervisor. Trigger: /define"
+    delegation:
+      mode: explicit
+      triggers: [stories_written]
+  age-spe-story-splitter:
+    path: agents/age-spe-story-splitter/
+    description: "Descompone stories >3 dias en incrementos verticales. Trigger: /define"
+    delegation:
+      mode: explicit
+      triggers: [story_too_large]
+
+  # Planning
+  age-spe-tech-architect:
+    path: agents/age-spe-tech-architect/
+    description: "Disena arquitectura tecnica desde stories validadas. Trigger: /plan"
+    delegation:
+      mode: explicit
+      triggers: [plan_command]
+  age-spe-sprint-planner:
+    path: agents/age-spe-sprint-planner/
+    description: "Prioriza stories y crea sprint plan. Trigger: /plan"
+    delegation:
+      mode: explicit
+      triggers: [architecture_ready]
+
+  # Engineering — No dedicated agents. Claude Code implements directly.
+  # For frontend quality: use Impeccable skills (/polish, /audit, /typeset, /arrange)
+  # See: https://impeccable.style/
+
+  # Testing
+  age-spe-test-engineer:
+    path: agents/age-spe-test-engineer/
+    description: "Genera y ejecuta tests (unit, integration, E2E). Trigger: /review"
+    delegation:
+      mode: explicit
+      triggers: [review_command]
+  age-spe-code-reviewer:
+    path: agents/age-spe-code-reviewer/
+    description: "Code review con memoria persistente. Trigger: /review, /code-review"
+    delegation:
+      mode: explicit
+      triggers: [tests_passed]
+
+  # QA
+  age-sup-auditor:
+    path: agents/age-sup-auditor/
+    description: "Verifica compliance con rules. Supervisor read-only. Trigger: /review"
+    delegation:
+      mode: auto
+      triggers: [code_review_complete]
+  age-sup-evaluator:
+    path: agents/age-sup-evaluator/
+    description: "Puntua fases completadas en 4 dimensiones. Supervisor. Trigger: /review"
+    delegation:
+      mode: auto
+      triggers: [audit_complete]
+  age-sup-optimizer:
+    path: agents/age-sup-optimizer/
+    description: "Detecta patrones recurrentes y propone mejoras. Supervisor. Trigger: /review"
+    delegation:
+      mode: auto
+      triggers: [evaluation_complete]
+
+# --- Skills, Rules, Knowledge ---
+skills:
+  - ski-prd-builder
+  - ski-competitive-analysis
+  - ski-plan-mode
+  - ski-doc-updater
+  - ski-unknown-unknowns
+  - ski-project-docs
+  - ski-impeccable-guide
+
+rules:
+  - rul-definition-of-done
+  - rul-definition-of-ready
+  - rul-antipatterns
+  - rul-scoring-dimensional
+  - rul-naming-conventions
+  - rul-git-branch-management
+
+knowledge:
+  - kno-jtbd-framework
+  - kno-mom-test
+  - kno-story-splitting
+
+# --- Workflows (13 commands) ---
+workflows:
+  - wor-analyze
+  - wor-define
+  - wor-plan
+  - wor-build
+  - wor-review
+  - wor-hotfix
+  - wor-code-review
+  - wor-new-project
+  - wor-save
+  - wor-unknown-unknowns
+  - wor-docs
+  - wor-design-to-prd
+  - wor-learned
+
+# --- Runtime ---
+runtime:
+  max_turns: 100
+  timeout: 600
+
+# --- QA Layer (from PM Agent System) ---
+qa:
+  tier: full              # none | light | full
+  scoring:
+    completeness: 0.30
+    quality: 0.30
+    compliance: 0.25
+    efficiency: 0.15
+  auto_activate: true     # Run QA after workflow completion
+  report_path: qa/qa-report.md
+
+# --- Tags & Metadata ---
+tags:
+  - product-management
+  - engineering
+  - qa
+  - jtbd
+  - agile
+
+metadata:
+  entity_type: orchestrator
+  domain: product-management
+  philosophy: "Analysis Informs, Never Blocks"

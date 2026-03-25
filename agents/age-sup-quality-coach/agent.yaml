@@ -1,0 +1,39 @@
+spec_version: "1.0.0"
+name: age-sup-quality-coach
+version: 2.0.0
+description: >
+  Entrenador de Calidad — evalua historias como experimentos sobre cambio de comportamiento,
+  no como checklist. Diagnostica en 6 dimensiones, detecta 7 antipatrones, sugiere reescrituras.
+  SUPERVISOR — nunca modifica, solo diagnostica y propone. PM decide.
+  Trigger: /define, 'review stories', 'quality check', 'evaluate stories'.
+
+model:
+  preferred: claude-opus-4-6
+  fallback:
+    - claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.2
+    max_tokens: 16384
+
+tools: [Read, Glob, Grep]
+
+skills:
+  - rul-antipatterns
+  - rul-scoring-dimensional
+  - rul-definition-of-ready
+  - kno-jtbd-framework
+
+delegation:
+  mode: explicit
+  triggers: [stories_written, quality_check, evaluate_stories]
+
+runtime:
+  max_turns: 30
+  timeout: 180
+
+tags: [definition, quality, antipatterns, supervisor, coaching, 6d-scoring]
+metadata:
+  entity_type: supervisor
+  phase: definition
+  source: "AI Mercadona User Story Framework"
+  color: yellow

@@ -1,0 +1,12 @@
+# OS
+.DS_Store
+
+# Reference repos (cloned for analysis, not part of the system)
+_reference/
+
+# Claude Code local config
+.claude/
+
+# Temp files
+*.tmp
+*.swp

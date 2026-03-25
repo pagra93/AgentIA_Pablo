@@ -1,0 +1,67 @@
+# Workflow: Design to PRD
+# Triggered by: /design-to-prd command
+# Pipeline: Read Designs → Group Features → Analyze 6 Layers → Generate PRDs
+
+name: wor-design-to-prd
+description: "Analyze designs from Pencil, extract full-stack functionality, generate PRDs per feature."
+version: 1.0.0
+
+inputs:
+  - name: design_source
+    type: string
+    default: "current Pencil editor"
+    description: "Path to .pen file or 'current' for active editor"
+
+steps:
+  - id: read_designs
+    action: "Open Pencil, get editor state, screenshot each screen/frame, read component structure"
+    agent: age-spe-design-analyst
+    outputs: [screens, components, layout]
+
+  - id: group_features
+    action: "Group screens into logical features. Each feature = one folder in docs/working-docs/"
+    agent: age-spe-design-analyst
+    depends_on: [read_designs]
+    inputs:
+      screens: ${{ steps.read_designs.outputs.screens }}
+    outputs: [features, screen_to_feature_map]
+
+  - id: analyze_layers
+    action: "For each feature, analyze all screens across 6 layers: UI, DB, API, Logic, Integrations, Edge Cases"
+    agent: age-spe-design-analyst
+    depends_on: [group_features]
+    inputs:
+      features: ${{ steps.group_features.outputs.features }}
+      screens: ${{ steps.read_designs.outputs.screens }}
+      components: ${{ steps.read_designs.outputs.components }}
+    outputs: [design_analyses, task_lists]
+
+  - id: generate_prds
+    action: "For each feature, generate PRD using ski-prd-builder format. Problem-focused, no tech prescriptions."
+    agent: age-spe-design-analyst
+    skill: ski-prd-builder
+    depends_on: [analyze_layers]
+    inputs:
+      analyses: ${{ steps.analyze_layers.outputs.design_analyses }}
+    outputs: [prds]
+
+  - id: save_documents
+    action: "Create docs/working-docs/[feature]/ for each feature. Save design-analysis.md and prd.md."
+    depends_on: [generate_prds]
+    inputs:
+      features: ${{ steps.group_features.outputs.features }}
+      analyses: ${{ steps.analyze_layers.outputs.design_analyses }}
+      prds: ${{ steps.generate_prds.outputs.prds }}
+    outputs: [folders_created]
+
+  - id: present_summary
+    action: "Show PM: features detected, tasks per feature, suggested priority. Recommend next: /analyze per feature."
+    depends_on: [save_documents]
+    inputs:
+      features: ${{ steps.group_features.outputs.features }}
+      task_lists: ${{ steps.analyze_layers.outputs.task_lists }}
+    outputs: [summary]
+
+error_handling:
+  on_step_failure: inform_pm
+  message: "Design analysis failed at step. Check if Pencil is open and designs are loaded."

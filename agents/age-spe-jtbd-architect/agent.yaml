@@ -1,0 +1,31 @@
+spec_version: "1.0.0"
+name: age-spe-jtbd-architect
+version: 1.0.0
+description: "Transforms validated research into structured Jobs-to-be-Done with evidence. Trigger: /define, 'JTBD', 'jobs to be done'."
+
+model:
+  preferred: claude-opus-4-6
+  fallback:
+    - claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.2
+    max_tokens: 12288
+
+tools: [Read, Write, Glob, Grep]
+
+skills:
+  - kno-jtbd-framework
+
+delegation:
+  mode: explicit
+  triggers: [define_command, create_jtbd]
+
+runtime:
+  max_turns: 20
+  timeout: 180
+
+tags: [definition, jtbd, methodology]
+metadata:
+  entity_type: specialist
+  phase: definition
+  color: purple

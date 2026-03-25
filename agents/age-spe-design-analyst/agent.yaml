@@ -1,0 +1,36 @@
+spec_version: "1.0.0"
+name: age-spe-design-analyst
+version: 1.0.0
+description: >
+  Analiza disenos de Pencil (o cualquier fuente visual) y extrae la funcionalidad
+  completa: UI, API, DB, logica de negocio, integraciones, edge cases.
+  Genera PRDs por feature con toda la profundidad, no solo el diseno visual.
+  Trigger: /design-to-prd, 'analyze designs', 'extract features from screens'.
+
+model:
+  preferred: claude-opus-4-6
+  fallback:
+    - claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.2
+    max_tokens: 16384
+
+tools: [Read, Write, Glob, Grep, Bash, mcp__pencil__get_editor_state, mcp__pencil__get_screenshot, mcp__pencil__batch_get, mcp__pencil__snapshot_layout, mcp__pencil__open_document]
+
+skills:
+  - ski-prd-builder
+  - ski-unknown-unknowns
+
+delegation:
+  mode: explicit
+  triggers: [design_to_prd, analyze_designs]
+
+runtime:
+  max_turns: 50
+  timeout: 600
+
+tags: [analysis, design, prd, full-stack, pencil]
+metadata:
+  entity_type: specialist
+  phase: analysis
+  color: pink

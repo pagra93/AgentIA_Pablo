@@ -1,0 +1,31 @@
+spec_version: "1.0.0"
+name: age-spe-tech-architect
+version: 1.0.0
+description: "Designs technical architecture from validated stories. Generates ADRs. Trigger: /plan, 'architecture', 'technical design'."
+
+model:
+  preferred: claude-opus-4-6
+  fallback:
+    - claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.2
+    max_tokens: 16384
+
+tools: [Read, Write, Glob, Grep, Bash]
+
+skills:
+  - ski-unknown-unknowns
+
+delegation:
+  mode: explicit
+  triggers: [plan_command, architecture_needed]
+
+runtime:
+  max_turns: 30
+  timeout: 300
+
+tags: [planning, architecture, adr]
+metadata:
+  entity_type: specialist
+  phase: planning
+  color: green

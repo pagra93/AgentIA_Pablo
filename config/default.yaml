@@ -1,0 +1,36 @@
+# Default Configuration
+# Override per environment with <env>.yaml (deep-merged)
+
+# General
+log_level: info
+language: auto                    # auto = match user's language
+
+# QA Layer
+qa:
+  enabled: true
+  tier: full                      # none | light | full
+  auto_activate: true
+  report_path: qa/qa-report.md
+
+# Memory
+memory:
+  enabled: true
+  working_memory_max_lines: 200
+  archive_rotation: monthly
+  context_ledger: false           # Enable for full session recording
+
+# Scoring
+scoring:
+  conservative: true              # Conservative scoring (7 = ready, 10 = virtually never)
+  flag_below: 5                   # Flag dimensions scoring below this threshold
+
+# Agent behavior
+agents:
+  supervisor_readonly: true       # Enforce read-only for age-sup-* agents
+  require_pm_approval: true       # Require PM approval at handoff points
+
+# Output
+output:
+  artifacts_dir: docs/
+  tasks_dir: tasks/
+  qa_dir: qa-reports/

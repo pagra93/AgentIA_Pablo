@@ -1,0 +1,75 @@
+# Workflow: Problem Analysis Pipeline
+# Triggered by: /analyze command
+# Pipeline: Quality Guard → PM Decision → Researcher
+
+name: wor-analyze
+description: "Evaluate a problem/PRD with Quality Guard, then research gaps if PM approves."
+version: 1.0.0
+
+inputs:
+  - name: problem_or_prd
+    type: string
+    required: true
+    description: "Problem description or PRD content to analyze"
+
+outputs:
+  - name: research_brief
+    type: string
+    description: "Decision-ready research brief"
+
+steps:
+  - id: gather_context
+    action: "Read the problem/PRD. If file path provided, read the file."
+    outputs: [problem_content]
+
+  - id: quality_guard
+    action: "Evaluate problem/PRD across 3 dimensions (Completeness, Process Quality, WHAT/HOW Separation)"
+    agent: age-spe-quality-guard
+    depends_on: [gather_context]
+    inputs:
+      content: ${{ steps.gather_context.outputs.problem_content }}
+    outputs: [score, risks, verdict]
+
+  - id: pm_decision
+    action: "Present Quality Guard results. PM decides: proceed, address gaps, or stop."
+    depends_on: [quality_guard]
+    inputs:
+      score: ${{ steps.quality_guard.outputs.score }}
+      risks: ${{ steps.quality_guard.outputs.risks }}
+    outputs: [decision]
+    # Decision rules:
+    # score >= 7: "Well-defined. Proceed to research?"
+    # score 4-6: "Gaps identified. Proceed with risk or address first?"
+    # score < 4: "Significant gaps. Strongly recommend addressing. Your call."
+
+  - id: risk_scan
+    action: "Run unknown-unknowns scan to surface hidden risks and blind spots across 8 dimensions"
+    skill: ski-unknown-unknowns
+    depends_on: [pm_decision]
+    conditions:
+      - ${{ steps.pm_decision.outputs.decision == 'proceed' }}
+    inputs:
+      context: ${{ steps.gather_context.outputs.problem_content }}
+    outputs: [risk_findings, blind_spots]
+
+  - id: research
+    action: "Investigate knowledge gaps using Mom Test, execute competitive analysis"
+    agent: age-spe-researcher
+    depends_on: [risk_scan]
+    conditions:
+      - ${{ steps.pm_decision.outputs.decision == 'proceed' }}
+    inputs:
+      problem: ${{ steps.gather_context.outputs.problem_content }}
+      quality_report: ${{ steps.quality_guard.outputs.verdict }}
+    outputs: [research_brief, gaps, competitive_analysis]
+
+  - id: deliver
+    action: "Present research brief. Save to docs/working_docs/analysis/. Suggest /define as next step."
+    depends_on: [research]
+    inputs:
+      brief: ${{ steps.research.outputs.research_brief }}
+    outputs: [research_brief]
+
+error_handling:
+  on_step_failure: inform_pm
+  message: "Step failed. PM decides how to proceed."
