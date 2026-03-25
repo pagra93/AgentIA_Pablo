@@ -1,22 +1,83 @@
 ---
-description: "Initialize a new project with CLAUDE.md, docs structure, and task tracking."
+description: "Initialize a new project (or add PM x10 to existing one) with CLAUDE.md, docs, tasks, memory, QA, and working-docs structure."
 ---
 
 # /new-project — Project Initializer
+
+Works for NEW projects and EXISTING ones. Only adds management files — never touches your code.
 
 ## Step 1: Interview
 
 Ask the user:
 1. **Project name**: "What's the project called?"
 2. **Description**: "Describe it in 1-2 sentences"
-3. **Tech stack**: "What technologies? (e.g., React + Node.js + PostgreSQL)"
+3. **Tech stack**: "What technologies? (e.g., Next.js + PostgreSQL + Supabase)"
 4. **Platform**: "Web, mobile, API, or combination?"
 5. **Team context**: "Solo with AI, or is there a team?"
 
 ## Step 2: Create Structure
 
-### .claude/CLAUDE.md
-Generate from templates/CLAUDE-template.md, filling in user answers.
+Create ALL of the following. If a file/folder already exists, SKIP it (don't overwrite).
+
+### .claude/CLAUDE.md (or update existing)
+
+If CLAUDE.md already exists, ADD the PM x10 sections to it (don't replace existing content).
+If it doesn't exist, generate from scratch:
+
+```markdown
+# [Project Name]
+
+## What This Project Does
+[User's description]
+
+## Tech Stack (non-negotiable)
+[User's stack — agents MUST respect this]
+
+## Navigation
+### Global (installed in ~/.claude/)
+- Agents: 14 specialized agents (10 specialists + 4 supervisors)
+- Skills: 7 (PRD builder, competitive analysis, plan mode, doc updater, unknown unknowns, project docs, impeccable guide)
+- Rules: 6 (definition of done/ready, antipatterns, scoring, naming, git branching)
+- Knowledge: 3 (JTBD framework, Mom Test, story splitting)
+- Commands: 13 slash commands
+
+### Project (this project)
+- Project docs: docs/PROJECT_KNOWLEDGE.md — READ THIS FIRST when returning
+- Working docs: docs/working-docs/[feature]/ — artifacts per feature
+- Current tasks: tasks/todo.md — sprint plan and progress
+- Lessons learned: tasks/lessons.md — patterns and mistakes
+- Working memory: memory/MEMORY.md — agent observations across sessions
+- QA reports: qa-reports/ — audit trail
+
+## Orchestration Rules
+1. Start every non-trivial task in plan mode (>3 steps)
+2. Write plans to tasks/todo.md before executing
+3. Commit after each completed story (/save)
+4. /review after completing features (tests + QA + asks about docs)
+5. Consult tasks/lessons.md at start of each session
+6. Read memory/MEMORY.md for patterns from previous sessions
+7. Save artifacts to docs/working-docs/[feature]/ organized by feature
+
+## Available Commands
+/analyze            Evaluate problem/PRD (Quality Guard + Research)
+/define             Create JTBDs + stories (with quality review)
+/plan               Architecture + sprint plan
+/build              Implement stories (Claude Code directly)
+/save               Commit + push to GitHub (validates branch, detects secrets)
+/review             QA pipeline + feature docs (ALWAYS asks about documentation)
+/hotfix             Bug fix with learning (only saves when PM confirms resolved)
+/code-review        Just code review
+/design-to-prd      Pencil designs → PRDs per feature (6-layer analysis)
+/unknown-unknowns   Detect hidden risks (8 dimensions)
+/docs               Generate/update project documentation
+/learned            Save a learning anytime (bug resolved, discovery, mistake)
+
+## Coding Standards
+[Based on stack — generate appropriate for the tech]
+
+## Core Principle
+Analysis Informs, Never Blocks. Agents identify risks. PM always decides.
+```
 
 ### docs/PROJECT_KNOWLEDGE.md
 ```markdown
@@ -27,20 +88,44 @@ Last updated: [today]
 [Description]
 
 ## Architecture Overview
-[After /plan]
+[To be filled after /plan]
 
 ## Features Implemented
 | Feature | Date | Status | Notes |
+|---------|------|--------|-------|
 
 ## Key Decisions
 | Decision | Date | Why |
+|----------|------|-----|
+
+## How Things Work
+[To be filled as features are built]
+
+## Known Issues & Tech Debt
+| Issue | Priority | Notes |
+|-------|----------|-------|
+```
+
+### docs/working-docs/ (empty directory)
+This is where feature artifacts will be organized:
+```
+docs/working-docs/
+└── [feature-name]/          ← created by /design-to-prd, /analyze, /define
+    ├── design-analysis.md   ← from /design-to-prd
+    ├── prd.md               ← from /design-to-prd or /analyze
+    ├── research.md          ← from /analyze
+    ├── jtbds.md             ← from /define
+    ├── stories.md           ← from /define
+    └── architecture.md      ← from /plan
 ```
 
 ### tasks/todo.md
 ```markdown
 # Tasks — [Name]
 Status: INITIALIZED
-[No sprint yet. Use /analyze → /define → /plan]
+
+## Current Sprint
+[No sprint yet. Use /analyze → /define → /plan to create one.]
 ```
 
 ### tasks/lessons.md
@@ -48,23 +133,60 @@ Status: INITIALIZED
 # Lessons Learned — [Name]
 
 ## Patterns to Follow
-[Populated by QA Optimizer]
+[Populated by QA Optimizer and /learned]
 
 ## Mistakes to Avoid
-[Populated after corrections]
+[Populated by /hotfix and /learned after resolving issues]
+```
+
+### memory/MEMORY.md
+```markdown
+# Working Memory — [Name]
+Last updated: [today]
+
+## Project Patterns
+(Populated by Code Reviewer after /review cycles)
+
+## Recurring Issues
+(Populated by Optimizer after detecting patterns in QA reports)
+
+## Recent Decisions
+- [today]: Project initialized with PM x10 Agent System
+
+## Open Questions
+(None yet)
 ```
 
 ### qa-reports/ (empty directory)
 
 ## Step 3: Confirm
 
-"Project initialized. Your PM Agent System is ready.
+Tell the user:
 
-Next steps:
-- /analyze — analyze a problem or PRD
-- /define — create JTBDs and stories
-- /plan — design architecture and sprint plan
-- /build — implement stories
-- /review — verify and document
+"Project initialized with PM x10 Agent System.
 
-All 14 agents, 4 skills, 5 rules, and 3 knowledge-bases are available."
+Created:
+- .claude/CLAUDE.md — Project config with all commands listed
+- docs/PROJECT_KNOWLEDGE.md — Living knowledge (read this when returning)
+- docs/working-docs/ — Feature artifacts (filled by /design-to-prd, /analyze, /define)
+- tasks/todo.md — Sprint plan and progress
+- tasks/lessons.md — Patterns and mistakes
+- memory/MEMORY.md — Agent observations across sessions
+- qa-reports/ — QA audit trail
+
+Available commands:
+- /design-to-prd    Pencil designs → PRDs per feature
+- /analyze          Evaluate a problem or PRD
+- /define           Create JTBDs and user stories
+- /plan             Architecture and sprint plan
+- /build            Implement stories
+- /save             Commit and push to GitHub
+- /review           QA pipeline + feature docs
+- /hotfix           Bug fix with learning
+- /unknown-unknowns Detect hidden risks
+- /docs             Generate project documentation
+- /learned          Save a learning anytime
+
+Tip: For small tasks (<30 sec), just ask directly — no commands needed.
+For features: /analyze → /define → /plan → /build → /save → /review
+If you have designs: start with /design-to-prd"
