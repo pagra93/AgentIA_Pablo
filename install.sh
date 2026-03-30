@@ -238,6 +238,7 @@ echo -e "${CYAN}What Claude Code now has:${NC}"
 echo ""
 echo "  /analyze            Evaluate problem/PRD"
 echo "  /define             Create JTBDs + stories"
+echo "  /story              Build story from idea (autonomous)"
 echo "  /plan               Architecture + sprint plan"
 echo "  /build              Implement stories"
 echo "  /save               Commit + push to GitHub"
@@ -250,11 +251,140 @@ echo "  /unknown-unknowns   Risk detection"
 echo "  /docs               Project documentation"
 echo "  /learned            Save a learning anytime"
 echo ""
+
+# ============================================
+# PHASE 2: UPDATE EXISTING PROJECTS
+# ============================================
+echo ""
+echo -e "${CYAN}Scanning for existing PM x10 projects...${NC}"
+echo ""
+
+# Find CLAUDE.md files that contain PM x10 markers
+found_projects=()
+while IFS= read -r -d '' claude_file; do
+    if grep -q "PM x10\|pm-agent-system\|pm x10" "$claude_file" 2>/dev/null; then
+        project_dir=$(dirname "$claude_file")
+        # Handle both .claude/CLAUDE.md and CLAUDE.md
+        if [ "$(basename "$project_dir")" = ".claude" ]; then
+            project_dir=$(dirname "$project_dir")
+        fi
+        found_projects+=("$claude_file")
+    fi
+done < <(find "$HOME" -maxdepth 5 -name "CLAUDE.md" -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/pm-agent-system/*" -not -path "$SCRIPT_DIR/*" -print0 2>/dev/null)
+
+if [ ${#found_projects[@]} -eq 0 ]; then
+    echo "  No existing PM x10 projects found."
+else
+    echo "  Found ${#found_projects[@]} project(s) with PM x10:"
+    echo ""
+    for pf in "${found_projects[@]}"; do
+        project_dir=$(dirname "$pf")
+        if [ "$(basename "$project_dir")" = ".claude" ]; then
+            project_dir=$(dirname "$project_dir")
+        fi
+        echo "  - $(basename "$project_dir")  ($pf)"
+    done
+    echo ""
+    read -p "  Update all project CLAUDE.md files? (y/N): " update_choice
+    if [ "$update_choice" = "y" ] || [ "$update_choice" = "Y" ]; then
+        echo ""
+        for pf in "${found_projects[@]}"; do
+            project_name=$(dirname "$pf")
+            if [ "$(basename "$project_name")" = ".claude" ]; then
+                project_name=$(dirname "$project_name")
+            fi
+            project_name=$(basename "$project_name")
+
+            updated=false
+
+            # Update agent count: 14 → 15
+            if grep -q "14 specialized agents\|14 specialized (" "$pf" 2>/dev/null; then
+                sed -i '' 's/14 specialized agents (10 specialists/15 specialized agents (11 specialists/g; s/14 specialized (10 specialists/15 specialized (11 specialists/g' "$pf"
+                updated=true
+            fi
+
+            # Update knowledge count: 3 → 4
+            if grep -q "Knowledge: 3 " "$pf" 2>/dev/null; then
+                sed -i '' 's/Knowledge: 3 (JTBD framework, Mom Test, story splitting)/Knowledge: 4 (JTBD framework, Mom Test, story splitting, testing strategy)/g' "$pf"
+                updated=true
+            fi
+
+            # Update commands count: 13 → 14
+            if grep -q "Commands: 13 " "$pf" 2>/dev/null; then
+                sed -i '' 's/Commands: 13 slash commands/Commands: 14 slash commands/g' "$pf"
+                updated=true
+            fi
+
+            # Add /story command if missing
+            if ! grep -q "/story" "$pf" 2>/dev/null; then
+                sed -i '' 's|/build.*Implement stories|/story              Build story from idea (autonomous)\n/build              Implement stories|' "$pf"
+                updated=true
+            fi
+
+            # Add Testing section if missing
+            if ! grep -q "## Testing" "$pf" 2>/dev/null; then
+                # Insert before "## Coding Standards" or "## Core Principle"
+                if grep -q "## Coding Standards" "$pf" 2>/dev/null; then
+                    sed -i '' '/## Coding Standards/i\
+## Testing\
+\
+### Framework\
+[Fill in: e.g., Jest, Vitest, Pytest, Playwright]\
+\
+### Test File Location\
+[Fill in: e.g., __tests__/ co-located, tests/ mirrored, e2e/ at root]\
+\
+### Test Commands\
+- Unit/Integration: [e.g., npm test, pytest]\
+- E2E: [e.g., npx playwright test]\
+- Coverage: [e.g., npm test -- --coverage]\
+\
+### Test Data\
+[Fill in: e.g., factories in tests/factories/, MSW handlers in tests/mocks/]\
+' "$pf"
+                    updated=true
+                elif grep -q "## Core Principle" "$pf" 2>/dev/null; then
+                    sed -i '' '/## Core Principle/i\
+## Testing\
+\
+### Framework\
+[Fill in: e.g., Jest, Vitest, Pytest, Playwright]\
+\
+### Test File Location\
+[Fill in: e.g., __tests__/ co-located, tests/ mirrored, e2e/ at root]\
+\
+### Test Commands\
+- Unit/Integration: [e.g., npm test, pytest]\
+- E2E: [e.g., npx playwright test]\
+- Coverage: [e.g., npm test -- --coverage]\
+\
+### Test Data\
+[Fill in: e.g., factories in tests/factories/, MSW handlers in tests/mocks/]\
+' "$pf"
+                    updated=true
+                fi
+            fi
+
+            if [ "$updated" = true ]; then
+                echo -e "  ${GREEN}[updated]${NC} $project_name"
+            else
+                echo -e "  ${GREEN}[up-to-date]${NC} $project_name"
+            fi
+        done
+        echo ""
+    else
+        echo ""
+        echo "  Skipped. You can update manually with /new-project in each project."
+    fi
+fi
+
+echo ""
+echo "================================"
 echo -e "${CYAN}Next steps:${NC}"
 echo "  1. Open Claude Code in any project"
-echo "  2. Run /new-project to initialize"
+echo "  2. Run /new-project to initialize (or /story to start fast)"
 echo "  3. Or start working: /analyze, /define, /build..."
 echo ""
-echo "  For existing projects: /new-project works too —"
-echo "  it only adds management files, doesn't touch your code."
+echo "  For existing projects: /new-project detects existing CLAUDE.md"
+echo "  and adds missing sections without overwriting your content."
 echo ""
