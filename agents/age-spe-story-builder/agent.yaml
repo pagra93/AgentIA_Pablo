@@ -1,0 +1,32 @@
+spec_version: "1.0.0"
+name: age-spe-story-builder
+version: 1.0.0
+description: "Autonomous story builder — takes PM's idea/problem, works 6 internal phases, produces complete story with 6D scoring. Trigger: /story, 'build story', 'tengo una idea'."
+
+model:
+  preferred: claude-opus-4-6
+  fallback:
+    - claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.3
+    max_tokens: 16384
+
+tools: [Read, Write, Glob, Grep]
+
+skills:
+  - kno-jtbd-framework
+  - rul-scoring-dimensional
+
+delegation:
+  mode: explicit
+  triggers: [story_command, build_story]
+
+runtime:
+  max_turns: 30
+  timeout: 300
+
+tags: [definition, story-builder, autonomous, coaching]
+metadata:
+  entity_type: specialist
+  phase: definition
+  color: green

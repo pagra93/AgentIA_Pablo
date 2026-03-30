@@ -1,0 +1,53 @@
+# Workflow: Story Builder
+# Triggered by: /story command
+# Pipeline: Story Builder (autonomous) → Split if needed → Deliver
+
+name: wor-story
+description: "Build a quality user story from an idea. Agent works autonomously through 7 phases (includes 6-layer design analysis)."
+version: 1.0.0
+
+inputs:
+  - name: pm_input
+    type: string
+    required: true
+    description: "Idea, problem, conversation, or context from PM — no PRD required"
+
+outputs:
+  - name: stories
+    type: string
+    description: "Complete user stories with JTBD, behavior change, and 6D scoring"
+
+steps:
+  - id: build_story
+    action: "Process PM input through 7 internal phases autonomously. Produce complete JTBD + Story + Design Analysis with 6D scoring."
+    agent: age-spe-story-builder
+    inputs:
+      pm_input: ${{ inputs.pm_input }}
+    outputs: [jtbd, story, design_analysis, scoring, razonamiento]
+
+  - id: pm_confirm
+    action: "Present complete story to PM. Ask: Approve, modify, or investigate gaps with /analyze?"
+    depends_on: [build_story]
+    inputs:
+      story: ${{ steps.build_story.outputs.story }}
+      scoring: ${{ steps.build_story.outputs.scoring }}
+      razonamiento: ${{ steps.build_story.outputs.razonamiento }}
+    outputs: [approved_story]
+
+  - id: split_if_needed
+    action: "Decompose story into vertical increments if >3 days"
+    agent: age-spe-story-splitter
+    depends_on: [pm_confirm]
+    conditions:
+      - ${{ steps.build_story.outputs.story.size > 3 }}
+    inputs:
+      large_story: ${{ steps.pm_confirm.outputs.approved_story }}
+    outputs: [split_stories]
+
+  - id: deliver
+    action: "Save stories to docs/working-docs/[feature]/stories.md. Suggest iterative flow: design in Pencil → /design-to-prd → review story → /plan."
+    depends_on: [pm_confirm, split_if_needed]
+    outputs: [stories]
+
+error_handling:
+  on_step_failure: inform_pm

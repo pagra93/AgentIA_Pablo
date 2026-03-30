@@ -19,6 +19,7 @@
 | `age-spe-researcher` | analyst | Analysis |
 | `age-spe-jtbd-architect` | definer | Definition |
 | `age-spe-story-writer` | definer | Definition |
+| `age-spe-story-builder` | definer | Definition |
 | `age-sup-quality-coach` | supervisor | Definition |
 | `age-spe-story-splitter` | definer | Definition |
 | `age-spe-tech-architect` | architect | Planning |
@@ -51,12 +52,24 @@ age-spe-quality-guard (analyst)
   -> age-spe-jtbd-architect (definer)
 ```
 
-### Definition -> Planning
+### Definition -> Planning (via /define)
 ```
 age-spe-story-writer (definer)
   -> age-sup-quality-coach (supervisor, READ-ONLY review)
   -> PM approves stories
   -> age-spe-story-splitter (definer, if stories >3 days)
+  -> age-spe-tech-architect (architect)
+```
+
+### Story Builder -> Design -> Planning (via /story, iterative flow)
+```
+PM (idea/problem, no PRD required)
+  -> age-spe-story-builder (definer, autonomous — 7 internal phases, includes 6-layer design analysis [DERIVADO])
+  -> PM confirms story draft
+  -> PM creates design in Pencil (optional but recommended, based on story draft)
+  -> /design-to-prd (enriches story with real 6-layer analysis from design)
+  -> PM reviews: update story if design revealed new requirements
+  -> age-spe-story-splitter (definer, if story >3 days)
   -> age-spe-tech-architect (architect)
 ```
 
