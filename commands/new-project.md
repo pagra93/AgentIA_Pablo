@@ -14,6 +14,7 @@ Ask the user:
 3. **Tech stack**: "What technologies? (e.g., Next.js + PostgreSQL + Supabase)"
 4. **Platform**: "Web, mobile, API, or combination?"
 5. **Team context**: "Solo with AI, or is there a team?"
+6. **Test setup**: "Do you have a test framework already? (e.g., Jest, Vitest, Pytest, none yet)"
 
 ## Step 2: Create Structure
 
@@ -38,8 +39,8 @@ If it doesn't exist, generate from scratch:
 - Agents: 14 specialized agents (10 specialists + 4 supervisors)
 - Skills: 7 (PRD builder, competitive analysis, plan mode, doc updater, unknown unknowns, project docs, impeccable guide)
 - Rules: 6 (definition of done/ready, antipatterns, scoring, naming, git branching)
-- Knowledge: 3 (JTBD framework, Mom Test, story splitting)
-- Commands: 13 slash commands
+- Knowledge: 4 (JTBD framework, Mom Test, story splitting, testing strategy)
+- Commands: 14 slash commands
 
 ### Project (this project)
 - Project docs: docs/PROJECT_KNOWLEDGE.md — READ THIS FIRST when returning
@@ -62,6 +63,7 @@ If it doesn't exist, generate from scratch:
 /analyze            Evaluate problem/PRD (Quality Guard + Research)
 /define             Create JTBDs + stories (with quality review)
 /plan               Architecture + sprint plan
+/story              Build story from idea (no PRD, autonomous agent)
 /build              Implement stories (Claude Code directly)
 /save               Commit + push to GitHub (validates branch, detects secrets)
 /review             QA pipeline + feature docs (ALWAYS asks about documentation)
@@ -71,6 +73,21 @@ If it doesn't exist, generate from scratch:
 /unknown-unknowns   Detect hidden risks (8 dimensions)
 /docs               Generate/update project documentation
 /learned            Save a learning anytime (bug resolved, discovery, mistake)
+
+## Testing
+### Framework
+[Based on stack — e.g., Vitest for Vite projects, Jest for React/Node, Pytest for Python]
+
+### Test File Location
+[Based on stack — e.g., co-located __tests__/ for React, tests/ for Python]
+
+### Test Commands
+- Unit/Integration: [e.g., npm test, pytest]
+- E2E: [e.g., npx playwright test]
+- Coverage: [e.g., npm test -- --coverage]
+
+### Test Data
+[Based on stack — e.g., factories with faker.js, MSW for API mocking]
 
 ## Coding Standards
 [Based on stack — generate appropriate for the tech]

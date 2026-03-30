@@ -19,3 +19,9 @@ documents:
     priority: medium
     always_load: false
     description: "Eduardo Ferro's 9 heuristics for vertical story splitting"
+
+  - path: kno-testing-strategy.md
+    tags: [testing, qa, coverage, tdd, integration]
+    priority: high
+    always_load: false
+    description: "Testing Trophy strategy, test types, data patterns, coverage, regression, anti-patterns, TDD guidance"

@@ -4,8 +4,16 @@ description: "Launch QA phase — test, code review, audit, evaluate, optimize, 
 
 # /review — Testing & QA Pipeline
 
-## Step 1: Testing
-Invoke **age-spe-test-engineer**: test against acceptance criteria in tasks/todo.md.
+## Step 1: Testing (Validation Loop)
+Invoke **age-spe-test-engineer**: generate tests, execute full suite, verify coverage, iterate (max 3 cycles).
+
+The test-engineer will:
+1. Detect test framework from CLAUDE.md / project config
+2. Generate tests from acceptance criteria (Given-When-Then → unit / integration / E2E)
+3. Execute full test suite (existing + new — not just new tests)
+4. Check branch coverage on business logic (target 80%+)
+5. Iterate if failures are test bugs (max 3 cycles)
+6. Report: results, coverage, regressions, app bugs vs test bugs
 
 ## Step 2: Code Review
 Invoke **age-spe-code-reviewer**: review for quality, security, performance.

@@ -19,7 +19,11 @@ Build directly — no sub-agents needed. Claude Code already knows the stack fro
 1. Read the acceptance criteria (Given-When-Then)
 2. Read the design-analysis if exists (what DB tables, APIs, logic)
 3. Implement following CLAUDE.md conventions
-4. Include tests (unit at minimum)
+4. Write tests alongside implementation:
+   - **TDD for logic**: If the criterion describes pure behavior (calculations, state changes, data transformations), write the test FIRST — Red → Green → Refactor
+   - **Implementation-first for UI**: Build the component, then write integration tests that interact with it as a user would
+   - **Where test files go**: Follow project conventions (check CLAUDE.md, then existing test files). If no convention exists, co-locate with source
+   - **What to test**: Map each Given-When-Then to the appropriate test type. See kno-testing-strategy for the Testing Trophy
 5. Follow rul-definition-of-done checklist
 6. Follow rul-git-branch-management
 

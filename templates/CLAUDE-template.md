@@ -16,8 +16,8 @@
 - Agents: 14 specialized (10 specialists + 4 supervisors)
 - Skills: 7 (PRD builder, competitive analysis, plan mode, doc updater, unknown unknowns, project docs, impeccable guide)
 - Rules: 6 (definition of done/ready, antipatterns, scoring, naming, git branching)
-- Knowledge: 3 (JTBD framework, Mom Test, story splitting)
-- Commands: 13 slash commands
+- Knowledge: 4 (JTBD framework, Mom Test, story splitting, testing strategy)
+- Commands: 14 slash commands
 
 ### Project
 - Project docs: docs/PROJECT_KNOWLEDGE.md — READ THIS FIRST when returning
@@ -45,6 +45,7 @@
 | /analyze | Evaluate problem/PRD (Quality Guard + Research) |
 | /define | Create JTBDs + stories (with quality review) |
 | /plan | Architecture + sprint plan |
+| /story | Build story from idea (no PRD needed, autonomous) |
 | /build | Implement stories |
 | /save | Commit + push to GitHub |
 | /review | QA pipeline + asks about feature docs |
@@ -53,6 +54,22 @@
 | /unknown-unknowns | Detect hidden risks (8 dimensions) |
 | /docs | Generate/update project documentation |
 | /learned | Save a learning anytime |
+
+## Testing
+
+### Framework
+{{TEST_FRAMEWORK}} (e.g., Jest, Vitest, Pytest, Playwright)
+
+### Test File Location
+{{TEST_FILE_LOCATION}} (e.g., `__tests__/` co-located, `tests/` mirrored, `e2e/` at root)
+
+### Test Commands
+- Unit/Integration: {{TEST_COMMAND}} (e.g., `npm test`, `pytest`)
+- E2E: {{E2E_COMMAND}} (e.g., `npx playwright test`)
+- Coverage: {{COVERAGE_COMMAND}} (e.g., `npm test -- --coverage`)
+
+### Test Data
+{{TEST_DATA_STRATEGY}} (e.g., factories in `tests/factories/`, MSW handlers in `tests/mocks/`)
 
 ## Coding Standards
 

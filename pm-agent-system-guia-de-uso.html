@@ -143,7 +143,7 @@
 <div class="header">
   <div class="header-label">Guia Completa de Uso</div>
   <h1>PM x10 Agent System <span>— Todo lo que necesitas saber</span></h1>
-  <div class="header-stats">14 agentes | 13 commands | 13 workflows | 7 skills | 6 rules | 3 knowledge bases</div>
+  <div class="header-stats">15 agentes | 14 commands | 14 workflows | 7 skills | 6 rules | 4 knowledge bases</div>
 </div>
 
 <div class="tabs">
@@ -185,9 +185,44 @@
     </div>
   </div>
 
+  <!-- IDEA RAPIDA -->
+  <div class="folder-card" style="border-left-color:var(--purple);margin-bottom:12px">
+    <div class="folder-name" style="color:var(--purple)">Idea rapida — 1 a 4 horas (sin PRD)</div>
+    <div class="folder-desc">
+      <b>Que usar</b>: /story (agente autonomo) → diseño en Pencil → /design-to-prd → /plan + /build<br>
+      <b>Tokens</b>: Moderado. 1 agente autonomo + design-analyst.
+    </div>
+    <div class="folder-files" style="line-height:2.2">
+      <b>Ejemplos:</b><br>
+      "Quiero que usuarios exporten a PDF"<br>
+      "Los usuarios abandonan el checkout porque es muy largo"<br>
+      "Necesitamos filtros en la pagina de productos"<br>
+      <br>
+      <b>Flujo iterativo (story ↔ diseño):</b>
+    </div>
+    <div class="step-output" style="font-family:var(--mono);line-height:2;white-space:pre-wrap;margin-top:8px;font-size:11px">Tu: "Los usuarios abandonan el checkout porque tarda mucho"
+
+<span style="color:var(--purple);font-weight:600">/story</span>
+  <span style="color:var(--blue)">story-builder</span> (opus, autonomo — 7 fases internas):
+    1. Detecta que es un problema real (no trampa de solucion)
+    2. Deriva JTBD + Wendel + Behavior Change
+    3. Genera story con scoring 6D
+    4. Genera design analysis de 6 capas [DERIVADO]
+    5. Recomienda: "Crea un diseño en Pencil"
+
+<span style="color:var(--text3)"># Creas diseño en Pencil basandote en la story draft</span>
+
+<span style="color:var(--pink);font-weight:600">/design-to-prd</span>
+  <span style="color:var(--blue)">design-analyst</span>: analiza 6 capas reales desde el diseño
+  <span style="color:var(--text3)"># Comparas con la story → actualizas si hay requisitos nuevos</span>
+
+<span style="color:var(--green2);font-weight:600">/plan</span> → <span style="color:var(--orange);font-weight:600">/build</span> → <span style="color:var(--green2);font-weight:600">/save</span> → <span style="color:var(--white);font-weight:600">/review</span></div>
+    <div class="step-tip">Sin diseño (fast track): puedes ir directo a /plan despues de /story. La story es deployable sin diseño, pero con mayor riesgo de retrabajo en UX.</div>
+  </div>
+
   <!-- SMALL -->
   <div class="folder-card" style="border-left-color:var(--blue);margin-bottom:12px">
-    <div class="folder-name" style="color:var(--blue)">Pequeno — 1 a 4 horas</div>
+    <div class="folder-name" style="color:var(--blue)">Pequeno — 1 a 4 horas (con research previo)</div>
     <div class="folder-desc">
       <b>Que usar</b>: /define directo (sin /analyze) + /build + /review opcional<br>
       <b>Tokens</b>: Moderado. 2-3 agentes.
@@ -372,6 +407,7 @@
     <div class="principle-name">Usa lo minimo necesario. El sistema no te obliga a pasar por todo.</div>
     <div class="principle-desc">
       Typo → prompt directo (0 agentes)<br>
+      Idea rapida → /story → Pencil → /design-to-prd → /plan + /build (2-3 agentes)<br>
       Feature pequena → /define + /build (3-4 agentes)<br>
       Feature media → /analyze + /define + /plan + /build + /review (8-10 agentes, contextos separados)<br>
       Proyecto grande → /design-to-prd + pipeline completo por feature (maximo, pero repartido en sesiones)
@@ -385,6 +421,7 @@
 
   <div class="scenario-btns">
     <button class="scenario-btn active" data-scenario="new-feature">Nueva Feature</button>
+    <button class="scenario-btn" data-scenario="idea-rapida">Idea Rapida</button>
     <button class="scenario-btn" data-scenario="bug-fix">Bug Fix</button>
     <button class="scenario-btn" data-scenario="code-rev">Code Review</button>
     <button class="scenario-btn" data-scenario="new-proj">Nuevo Proyecto</button>
@@ -428,6 +465,51 @@
       <div class="step-agents">test-engineer -> code-reviewer (con memoria) -> auditor -> evaluator -> optimizer</div>
       <div class="step-output">Output: <b>DONE + qa/qa-report.md actualizado + tasks/lessons.md + docs/PROJECT_KNOWLEDGE.md</b></div>
       <div class="step-tip">El optimizer actualiza tasks/lessons.md y memory/MEMORY.md automaticamente con lo aprendido.</div>
+    </div>
+  </div>
+
+  <!-- IDEA RAPIDA -->
+  <div class="scenario-content" id="sc-idea-rapida">
+    <div class="card" style="border-left:4px solid var(--purple)">
+      <div class="step-header"><span class="cmd-badge" style="background:var(--purple)">Paso 1: /story</span><span class="step-title">Story Builder autonomo — de idea a story completa</span></div>
+      <div class="step-agents">story-builder (opus) trabaja 7 fases internas: JTBD + Wendel + Behavior Change + 6D scoring + design analysis 6 capas</div>
+      <div class="step-output">Output: <b>JTBD completo + Story con scoring + Design Analysis [DERIVADO] + Razonamiento</b></div>
+      <div class="step-tip">No necesitas PRD ni research previo. Dale tu idea, problema o conversacion. El agente trabaja solo y te presenta el resultado.</div>
+    </div>
+    <div class="card" style="border-left:4px solid var(--pink)">
+      <div class="step-header"><span class="cmd-badge" style="background:var(--pink)">Paso 2: Diseño en Pencil</span><span class="step-title">Crea el diseño basandote en la story draft (opcional)</span></div>
+      <div class="step-output">La story guia el diseño. El diseño enriquece la story. <b>Es un ciclo iterativo.</b></div>
+      <div class="step-tip">El diseño es opcional pero recomendado. Sin diseño puedes ir directo a /plan (fast track).</div>
+    </div>
+    <div class="card" style="border-left:4px solid var(--pink)">
+      <div class="step-header"><span class="cmd-badge" style="background:var(--pink)">Paso 3: /design-to-prd</span><span class="step-title">Analiza el diseño → enriquece la story</span></div>
+      <div class="step-agents">design-analyst (opus) extrae 6 capas REALES del diseño</div>
+      <div class="step-output">Compara con el design analysis [DERIVADO] de la story. <b>Si hay requisitos nuevos → actualiza la story.</b></div>
+    </div>
+    <div class="card card-accent">
+      <div class="step-header"><span class="cmd-badge">Paso 4: /plan → /build → /review</span><span class="step-title">Pipeline normal desde aqui</span></div>
+      <div class="step-output">Arquitectura + sprint plan → implementar → QA completo</div>
+      <div class="step-tip">El output de /story tiene formato IDENTICO al de /define. Todo downstream funciona igual.</div>
+    </div>
+    <div class="card">
+      <div class="step-header"><span class="step-title">Ejemplo completo</span></div>
+      <div class="step-output" style="font-family:var(--mono);line-height:2;white-space:pre-wrap;margin-top:8px;font-size:11px">Tu: "Los usuarios abandonan el checkout porque es muy largo"
+
+<span style="color:var(--purple);font-weight:600">/story</span>
+  <span style="color:var(--blue)">story-builder</span> (autonomo, 7 fases):
+    Job: "Completar su compra sin frustracion por la longitud del proceso"
+    Behavior Change: START simplificar, STOP abandonar, DIFFERENT checkout rapido
+    Story con 6D scoring: 8.2/10
+    Design Analysis [DERIVADO]: UI(checkout wizard), DB(orders), API(POST /checkout)...
+    <span style="color:var(--purple)">Recomendacion</span>: "Crea un diseño en Pencil basandote en esta story"
+
+<span style="color:var(--text3)"># Diseñas en Pencil: checkout en 3 pasos con progress bar</span>
+
+<span style="color:var(--pink);font-weight:600">/design-to-prd</span>
+  <span style="color:var(--blue)">design-analyst</span>: 6 capas reales → descubre: guest checkout, auto-fill, progress bar
+  <span style="color:var(--orange)">Nuevo requisito</span>: guest checkout no estaba en la story → actualizas
+
+<span style="color:var(--green2);font-weight:600">/plan</span> → <span style="color:var(--orange);font-weight:600">/build</span> → <span style="color:var(--green2);font-weight:600">/save</span> → <span style="color:var(--white);font-weight:600">/review</span></div>
     </div>
   </div>
 
@@ -735,25 +817,36 @@ git fetch --prune</div>
 
   <table>
     <tr><th>Nivel</th><th>Ubicacion</th><th>Contiene</th><th>Cuando</th></tr>
-    <tr><td>Global</td><td>~/.claude/</td><td>16 agentes, 4 skills, 6 rules, 3 knowledge, 9 commands</td><td>Se instala UNA vez con install.sh</td></tr>
+    <tr><td>Global</td><td>~/.claude/</td><td>15 agentes, 7 skills, 6 rules, 4 knowledge, 14 commands</td><td>Se instala UNA vez con install.sh</td></tr>
     <tr><td>Proyecto</td><td>proyecto/.claude/CLAUDE.md</td><td>Config del proyecto: stack, standards, paths</td><td>Se crea por proyecto con /new-project</td></tr>
   </table>
 
   <div class="section-title" style="color:var(--green2)">Pipeline Completo</div>
 
-  <div class="flow-diagram"><span class="highlight">/analyze</span>  -->  <span class="highlight">/define</span>  -->  <span class="highlight">/plan</span>  -->  <span class="highlight">/build</span>  -->  <span class="highlight">/review</span>
+  <div class="flow-diagram"><span style="color:var(--text3)">PIPELINE COMPLETO:</span>
+<span class="highlight">/analyze</span>  -->  <span class="highlight">/define</span>  -->  <span class="highlight">/plan</span>  -->  <span class="highlight">/build</span>  -->  <span class="highlight">/review</span>
     |              |              |              |              |
     v              v              v              v              v
-<span class="agent">quality-guard</span>  <span class="agent">jtbd-architect</span>  <span class="agent">tech-architect</span>  <span class="agent">frontend-dev</span>   <span class="agent">test-engineer</span>
-<span class="agent">researcher</span>     <span class="agent">story-writer</span>    <span class="agent">sprint-planner</span>  <span class="agent">backend-arch</span>    <span class="agent">code-reviewer</span>
-               <span class="agent">quality-coach</span>                   <span class="agent">mobile-builder</span>  <span class="agent">auditor</span>
+<span class="agent">quality-guard</span>  <span class="agent">jtbd-architect</span>  <span class="agent">tech-architect</span>  Claude Code    <span class="agent">test-engineer</span>
+<span class="agent">researcher</span>     <span class="agent">story-writer</span>    <span class="agent">sprint-planner</span>  implementa     <span class="agent">code-reviewer</span>
+               <span class="agent">quality-coach</span>                   directamente   <span class="agent">auditor</span>
                <span class="agent">story-splitter</span>                                  <span class="agent">evaluator</span>
     |              |              |              |           <span class="agent">optimizer</span>
     v              v              v              v              |
 <span class="file">docs/analysis/</span> <span class="file">docs/definition/</span> <span class="file">tasks/todo.md</span>  commits        v
                                                            <span class="file">qa/qa-report.md</span>
-                                                           <span class="file">tasks/lessons.md</span>
-                                                           <span class="file">memory/MEMORY.md</span></div>
+
+<span style="color:var(--purple)">CAMINO RAPIDO (idea sin PRD):</span>
+<span class="highlight">/story</span>  -->  <span style="color:var(--pink)">Pencil</span>  -->  <span class="highlight">/design-to-prd</span>  -->  <span class="highlight">/plan</span>  -->  <span class="highlight">/build</span>  -->  <span class="highlight">/review</span>
+    |          (opcional)        |
+    v                            v
+<span class="agent">story-builder</span>            <span class="agent">design-analyst</span>
+(7 fases, autonomo)      (6 capas reales)
+<span class="agent">story-splitter</span>
+(si >3 dias)
+    |
+    v
+<span class="file">docs/working-docs/[feature]/stories.md</span></div>
 
   <div class="section-title" style="color:var(--orange)">Segregacion de Responsabilidades</div>
   <p class="intro">Definido en DUTIES.md (raiz + por agente). Cada agente tiene un rol claro y no puede hacer el trabajo de otro.</p>
@@ -761,7 +854,7 @@ git fetch --prune</div>
   <table>
     <tr><th>Rol</th><th>Puede</th><th>No Puede</th><th>Agentes</th></tr>
     <tr><td>analyst</td><td>Leer, analizar, investigar, puntuar</td><td>Escribir codigo, definir stories</td><td>quality-guard, researcher</td></tr>
-    <tr><td>definer</td><td>Crear JTBDs, stories, splits</td><td>Escribir codigo, revisar su propio trabajo</td><td>jtbd-architect, story-writer, story-splitter</td></tr>
+    <tr><td>definer</td><td>Crear JTBDs, stories, splits, design analysis derivado</td><td>Escribir codigo, revisar su propio trabajo</td><td>jtbd-architect, story-writer, <b>story-builder</b>, story-splitter</td></tr>
     <tr><td>architect</td><td>Disenar arquitectura, planificar sprints</td><td>Implementar codigo</td><td>tech-architect, sprint-planner</td></tr>
     <tr><td>engineer</td><td>Escribir codigo, ejecutar tests, commitear</td><td>Revisar su propio codigo</td><td>frontend-dev, backend-arch, mobile-builder</td></tr>
     <tr><td>reviewer</td><td>Revisar codigo, aprobar/rechazar, ejecutar tests</td><td>Escribir implementacion</td><td>test-engineer, code-reviewer</td></tr>
@@ -795,7 +888,7 @@ git fetch --prune</div>
     <tr><td>Como se usa</td><td>"Usa el agente quality-guard para evaluar esto"</td><td>Los agentes los cargan automaticamente. Tu rara vez los invocas.</td></tr>
   </table>
 
-  <div class="section-title" style="color:var(--red)">Los 16 Agentes — Que Hace Cada Uno y Cuando Usarlo Solo</div>
+  <div class="section-title" style="color:var(--red)">Los 15 Agentes — Que Hace Cada Uno y Cuando Usarlo Solo</div>
   <p class="intro">Cada agente explicado con: que hace, cuando se activa automaticamente (en pipeline), y cuando invocarlo tu directamente.</p>
 
   <!-- DESIGN ANALYST -->
@@ -845,6 +938,17 @@ git fetch --prune</div>
       <b>Que hace</b>: Convierte JTBDs en stories deployables. Estructura: Epic > Feature > Story. Cada story tiene: narrativa con job performer especifico, Behavior Change (START/STOP/DIFFERENT cuantificado), Given-When-Then testable, Scoring 6D, y metricas de exito en 3 rangos. Retiene TODA la informacion del research sin colapsar.<br><br>
       <b>En pipeline</b>: Se activa con /define (paso 2, despues de jtbd-architect).<br>
       <b>Usalo solo cuando</b>: "Tengo JTBDs y quiero convertirlos en stories listas para sprint."
+    </div>
+  </div>
+
+  <!-- STORY BUILDER -->
+  <div class="folder-card purple" style="margin-bottom:10px;border-left-color:var(--green2)">
+    <div class="folder-name">story-builder <span class="badge badge-purple">opus</span> <span class="badge badge-green">NUEVO</span></div>
+    <div class="folder-desc">
+      <b>Que hace</b>: Agente AUTONOMO que toma una idea/problema del PM y produce una user story completa. Trabaja 7 fases internas sin interrogar al PM: (1) detecta trampa de solucion, (2) deriva Job con Tecnica del Por Que, (3) Wendel Checklist, (4) 3 dimensiones del job, (5) Behavior Change con START/STOP/DIFFERENT, (6) compila story con scoring 6D + genera design analysis de 6 capas [DERIVADO], (7) recomienda crear diseño en Pencil (opcional). Explica POR QUE tomo cada decision (efecto formativo). Gaps se marcan como [GAP] o [HIPOTESIS] — nunca bloquea.<br><br>
+      <b>En pipeline</b>: Se activa con /story.<br>
+      <b>Usalo solo cuando</b>: "Tengo una idea y quiero una story de calidad sin tener PRD" o "Convierte esto en una user story."<br><br>
+      <b>Flujo iterativo</b>: /story → story draft → diseña en Pencil → /design-to-prd → enriquece story → /plan → /build
     </div>
   </div>
 
@@ -920,7 +1024,8 @@ git fetch --prune</div>
   <div class="folder-card green" style="margin-bottom:10px">
     <div class="folder-name">test-engineer <span class="badge badge-green">sonnet</span></div>
     <div class="folder-desc">
-      <b>Que hace</b>: Genera Y EJECUTA tests (unit, integration, E2E) derivados de acceptance criteria. No inventa tests — los saca del Given-When-Then de las stories. Incluye "Staff Engineer check" (gut feeling honesto: aprobarla un senior engineer esto?).<br><br>
+      <b>Que hace</b>: <b>Validation loop</b>: genera tests, ejecuta suite COMPLETO, verifica coverage, itera (max 3 ciclos). Sigue la <b>Testing Trophy</b> — mayoria integration tests, unit solo para logica compleja, E2E solo para flujos criticos. Detecta el framework del proyecto desde CLAUDE.md o package.json. Distingue entre app bugs y test bugs. No genera tests vanidosos para inflar coverage.<br><br>
+      <b>Knowledge base</b>: kno-testing-strategy (Testing Trophy, tipos de test, datos, coverage, regresion, anti-patterns, TDD).<br>
       <b>En pipeline</b>: Se activa con /review (paso 1) y /hotfix (paso 3).<br>
       <b>Usalo solo cuando</b>: "Necesito tests para este codigo" o "Ejecuta los tests y dime que falla."
     </div>
@@ -1003,7 +1108,7 @@ git fetch --prune</div>
 
   <div class="folder-card red">
     <div class="folder-name">agent.yaml</div>
-    <div class="folder-desc">El manifest del sistema completo. Define los 16 agentes, skills, rules, knowledge, workflows, runtime, y la configuracion del QA Layer. Es la "tabla de contenidos" de todo.</div>
+    <div class="folder-desc">El manifest del sistema completo. Define los 15 agentes, skills, rules, knowledge, workflows, runtime, y la configuracion del QA Layer. Es la "tabla de contenidos" de todo.</div>
     <div class="folder-relation">Referencia todo lo que hay en agents/, skills/, rules/, knowledge/, workflows/</div>
   </div>
   <div class="folder-card red">
@@ -1026,20 +1131,20 @@ git fetch --prune</div>
 
   <div class="folder-card blue">
     <div class="folder-name">agents/</div>
-    <div class="folder-desc">12 specialists (directorio: agent.yaml + SOUL.md + DUTIES.md) y 4 supervisors (archivo unico .md con frontmatter). Cada agente sabe: que es (SOUL), que puede hacer (DUTIES), y como configurarse (agent.yaml).</div>
+    <div class="folder-desc">11 specialists (directorio: agent.yaml + SOUL.md + DUTIES.md) y 4 supervisors. Cada agente sabe: que es (SOUL), que puede hacer (DUTIES), y como configurarse (agent.yaml).</div>
     <div class="folder-files">agents/age-spe-quality-guard/ (agent.yaml + SOUL.md + DUTIES.md)<br>agents/age-sup-auditor.md (todo en un archivo)</div>
     <div class="folder-relation">Referenciados por commands/ y workflows/. Cargan skills de skills/ y reglas de rules/.</div>
   </div>
   <div class="folder-card green">
     <div class="folder-name">commands/</div>
-    <div class="folder-desc">8 slash commands que tu lanzas en Claude Code. Son instrucciones en lenguaje natural que dicen paso a paso que agentes invocar. Son la "interfaz de usuario" del sistema.</div>
-    <div class="folder-files">analyze.md, define.md, plan.md, build.md, review.md, hotfix.md, code-review.md, new-project.md, save.md</div>
+    <div class="folder-desc">14 slash commands que tu lanzas en Claude Code. Son instrucciones en lenguaje natural que dicen paso a paso que agentes invocar. Son la "interfaz de usuario" del sistema.</div>
+    <div class="folder-files">analyze.md, define.md, story.md, plan.md, build.md, review.md, hotfix.md, code-review.md, new-project.md, save.md, design-to-prd.md, unknown-unknowns.md, docs.md, learned.md</div>
     <div class="folder-relation">Cada command tiene su workflow YAML correspondiente en workflows/</div>
   </div>
   <div class="folder-card cyan">
     <div class="folder-name">workflows/</div>
-    <div class="folder-desc">8 workflows en formato DAG (Directed Acyclic Graph). Definen el orden de ejecucion con depends_on, data flow entre pasos (${{ steps.X.outputs.Y }}), y condiciones. Son la version "formal" de lo que commands/ describe en lenguaje natural.</div>
-    <div class="folder-files">wor-analyze.yaml, wor-define.yaml, wor-plan.yaml, wor-build.yaml, wor-review.yaml, wor-hotfix.yaml, wor-code-review.yaml, wor-new-project.yaml, wor-save.yaml</div>
+    <div class="folder-desc">14 workflows en formato DAG (Directed Acyclic Graph). Definen el orden de ejecucion con depends_on, data flow entre pasos (${{ steps.X.outputs.Y }}), y condiciones. Son la version "formal" de lo que commands/ describe en lenguaje natural.</div>
+    <div class="folder-files">wor-analyze.yaml, wor-define.yaml, wor-story.yaml, wor-plan.yaml, wor-build.yaml, wor-review.yaml, wor-hotfix.yaml, wor-code-review.yaml, wor-new-project.yaml, wor-save.yaml, wor-design-to-prd.yaml, wor-unknown-unknowns.yaml, wor-docs.yaml, wor-learned.yaml</div>
     <div class="folder-relation">Cada workflow referencia agentes de agents/ y skills de skills/</div>
   </div>
   <div class="folder-card purple">
@@ -1056,8 +1161,8 @@ git fetch --prune</div>
   </div>
   <div class="folder-card blue">
     <div class="folder-name">knowledge/</div>
-    <div class="folder-desc">3 bases de conocimiento con metodologias reales. index.yaml controla prioridad y tags para descubrimiento. Los agentes las cargan segun su dominio.</div>
-    <div class="folder-files">index.yaml | kno-jtbd-framework.md (JTBD Reforzado + Wendel) | kno-mom-test.md (Rob Fitzpatrick) | kno-story-splitting.md (Eduardo Ferro, 9 heuristicas)</div>
+    <div class="folder-desc">4 bases de conocimiento con metodologias reales. index.yaml controla prioridad y tags para descubrimiento. Los agentes las cargan segun su dominio.</div>
+    <div class="folder-files">index.yaml | kno-jtbd-framework.md (JTBD Reforzado + Wendel) | kno-mom-test.md (Rob Fitzpatrick) | kno-story-splitting.md (Eduardo Ferro, 9 heuristicas) | kno-testing-strategy.md (Testing Trophy, tipos de test, coverage, regresion, TDD)</div>
     <div class="folder-relation">index.yaml define always_load, priority, y tags para cada documento</div>
   </div>
 
@@ -1150,7 +1255,7 @@ git fetch --prune</div>
 
   <div class="flow-diagram"><span class="highlight">/review</span> triggers:
 
-  1. <span class="agent">test-engineer</span>    Ejecuta tests contra acceptance criteria
+  1. <span class="agent">test-engineer</span>    Validation loop: genera tests, ejecuta suite completo, verifica coverage, itera (max 3 ciclos)
   2. <span class="agent">code-reviewer</span>    Revisa calidad, seguridad, performance (con memoria)
                        |
                        v
@@ -1401,7 +1506,7 @@ git fetch --prune</div>
 
 </div>
 
-<div class="footer">PM x10 Agent System v2.1 — 14 agentes | 13 commands | 13 workflows | 7 skills | 6 rules | 3 knowledge bases | Mercadona Methodology</div>
+<div class="footer">PM x10 Agent System v2.1 — 15 agentes | 14 commands | 14 workflows | 7 skills | 6 rules | 4 knowledge bases | Mercadona Methodology</div>
 
 <script>
 document.querySelectorAll('.tab').forEach(tab => {

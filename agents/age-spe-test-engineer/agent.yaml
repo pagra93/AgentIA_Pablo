@@ -1,7 +1,7 @@
 spec_version: "1.0.0"
 name: age-spe-test-engineer
-version: 1.0.0
-description: "Generates and executes unit, integration, and E2E tests. Verifies against acceptance criteria. Trigger: /review, 'test', 'QA'."
+version: 2.0.0
+description: "Validation loop: generates tests, executes full suite, verifies coverage, iterates (max 3 cycles). Testing Trophy strategy. Uses kno-testing-strategy. Trigger: /review, 'test', 'QA'."
 
 model:
   preferred: claude-sonnet-4-5-20250929
@@ -14,16 +14,17 @@ tools: [Read, Write, Edit, Bash, Glob, Grep]
 skills:
   - rul-definition-of-done
   - rul-git-branch-management
+  - kno-testing-strategy
 
 delegation:
   mode: explicit
   triggers: [review_command, test_needed]
 
 runtime:
-  max_turns: 40
+  max_turns: 50
   timeout: 300
 
-tags: [testing, unit, integration, e2e]
+tags: [testing, unit, integration, e2e, validation-loop]
 metadata:
   entity_type: specialist
   phase: testing

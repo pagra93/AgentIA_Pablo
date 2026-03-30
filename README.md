@@ -1,6 +1,6 @@
 # PM x10 Agent System
 
-Tu sistema operativo de Product Management con IA. Orquesta 14 agentes especializados para cubrir el ciclo completo: desde diseños en Pencil hasta codigo deployado con QA verificado. Engineering: Claude Code implementa directamente + Impeccable para frontend design quality.
+Tu sistema operativo de Product Management con IA. Orquesta 15 agentes especializados para cubrir el ciclo completo: desde diseños en Pencil hasta codigo deployado con QA verificado. Engineering: Claude Code implementa directamente + Impeccable para frontend design quality.
 
 ## Quick Start
 
@@ -14,7 +14,8 @@ Luego en cualquier proyecto con Claude Code:
 /new-project         # Inicializar proyecto
 /design-to-prd       # Analizar diseños → PRDs por feature
 /analyze             # Evaluar problema/PRD + investigar gaps
-/define              # Crear JTBDs y user stories
+/define              # Crear JTBDs y user stories (desde research/PRD)
+/story               # Crear story desde una idea (sin PRD, agente autonomo)
 /plan                # Arquitectura y sprint plan
 /build               # Implementar stories del sprint
 /save                # Commit + push a GitHub
@@ -31,7 +32,8 @@ Luego en cualquier proyecto con Claude Code:
 | Tamano | Que usar | Ejemplo |
 |--------|----------|---------|
 | Trivial (<30 seg) | Prompt directo | "Cambia el color del boton" |
-| Pequeno (1-4h) | /define + /build | "Exportar pedidos a PDF" |
+| Idea rapida (1-4h) | /story → diseño en Pencil → /design-to-prd → /plan + /build | "Quiero que usuarios exporten a PDF" |
+| Pequeno (1-4h) | /define + /build | "Exportar pedidos a PDF" (con research previo) |
 | Mediano (1-3 dias) | /analyze + /define + /plan + /build + /review | "Notificaciones push" |
 | Grande (1+ semana) | /design-to-prd + pipeline completo por feature | "Modulo de facturacion" |
 | Bug fix | /hotfix o prompt directo | "Los pedidos no se guardan" |
@@ -45,8 +47,8 @@ pm-agent-system/
 ├── RULES.md                # Constraints globales + anti-bloat rules
 ├── DUTIES.md               # Segregacion de responsabilidades + conflict matrix
 │
-├── agents/                 # 14 agentes (todos con agent.yaml + SOUL.md + DUTIES.md)
-│   ├── age-spe-*           #   10 Especialistas (generan output)
+├── agents/                 # 15 agentes (todos con agent.yaml + SOUL.md + DUTIES.md)
+│   ├── age-spe-*           #   11 Especialistas (generan output)
 │   └── age-sup-*           #   4 Supervisores (read-only, diagnostican y proponen)
 │
 ├── skills/                 # 6 capacidades reutilizables (ski-*)
@@ -65,13 +67,14 @@ pm-agent-system/
 │   ├── rul-naming-conventions
 │   └── rul-git-branch-management
 │
-├── knowledge/              # 3 bases de conocimiento (kno-*)
+├── knowledge/              # 4 bases de conocimiento (kno-*)
 │   ├── kno-jtbd-framework  #   JTBD Reforzado (8 elementos) + Wendel + Behavior Change
 │   ├── kno-mom-test         #   Mom Test + Gap Detection + Interview Guides
-│   └── kno-story-splitting  #   9 heuristicas Eduardo Ferro
+│   ├── kno-story-splitting  #   9 heuristicas Eduardo Ferro
+│   └── kno-testing-strategy #   Testing Trophy, test types, coverage, regression, anti-patterns, TDD
 │
-├── workflows/              # 13 workflows DAG (wor-*)
-├── commands/               # 13 slash commands para Claude Code
+├── workflows/              # 14 workflows DAG (wor-*)
+├── commands/               # 14 slash commands para Claude Code
 │
 ├── memory/                 # Estado persistente cross-session
 │   ├── MEMORY.md           #   Working memory (max 200 lineas)
@@ -91,9 +94,9 @@ pm-agent-system/
 └── install.sh              # Instalacion safe a ~/.claude/
 ```
 
-## Agents (17)
+## Agents (18)
 
-### Specialists (10) — generan output
+### Specialists (11) — generan output
 | Agent | Model | Phase | What it does |
 |-------|-------|-------|-------------|
 | design-analyst | opus | Analysis | Lee diseños de Pencil, extrae funcionalidad 6 capas (UI/DB/API/Logic/Integrations/Edge Cases) |
@@ -101,10 +104,11 @@ pm-agent-system/
 | researcher | opus | Analysis | Mom Test, Gap Detection (3 categorias), JTBD Reforzado, Wendel Checklist |
 | jtbd-architect | opus | Definition | JTBD Reforzado (8 elementos), Wendel, Behavior Change, 3 rangos |
 | story-writer | opus | Definition | Stories con Given-When-Then, START/STOP/DIFFERENT, scoring 6D |
-| story-splitter | sonnet | Definition | 9 heuristicas Eduardo Ferro, siempre vertical |
+| **story-builder** | **opus** | **Definition** | **Autonomo: idea del PM → story completa (7 fases internas, JTBD+Wendel+BehaviorChange, 6D scoring, design analysis 6 capas, flujo iterativo story↔diseño)** |
+| story-splitter | sonnet | Definition | 9 heuristicas Eduardo Ferro + deteccion linguistica, siempre vertical |
 | tech-architect | opus | Planning | Arquitectura + ADRs + unknown-unknowns scan |
 | sprint-planner | sonnet | Planning | Value/Effort, Definition of Ready, tasks/todo.md |
-| test-engineer | sonnet | Testing | Tests desde acceptance criteria, ejecuta (no solo genera) |
+| test-engineer | sonnet | Testing | Validation loop: genera tests, ejecuta suite completo, verifica coverage, itera (max 3 ciclos). Testing Trophy strategy |
 | code-reviewer | opus | Testing | Memoria persistente, acumula patrones entre sesiones |
 
 ### Engineering — Sin agentes dedicados
