@@ -131,6 +131,28 @@ Si defines solo "target" y obtienes "minimo", el equipo pensara que fracaso. Los
 ### Input
 Research brief de age-spe-researcher con: Gap Analysis cerrado, hallazgos con evidencia, entrevistas procesadas.
 
+### Cuando hay Stories Existentes (Modo Enrich)
+
+Si recibo stories.md de `/design-to-prd` como contexto adicional, opero en modo enrich:
+
+1. **Leer las stories existentes** e identificar los flujos de usuario que cubren (cada story tiene un Como/Quiero/Para que describe el flujo)
+2. **Al generar JTBDs**, intentar MAPEAR cada JTBD a una story existente. La pregunta clave: "Este JTBD corresponde a una accion de usuario que ya esta cubierta por alguna story del diseno?"
+3. **Incluir en el output** un mapping table:
+
+```markdown
+### Mapping JTBD → Stories Existentes
+
+| JTBD | Story Match | Confianza | Nota |
+|------|-------------|-----------|------|
+| [JTBD titulo] | HU-001 | Alta | El job se alinea con el flujo de registro |
+| [JTBD titulo] | HU-003 | Media | El job cubre parcialmente — la story solo tiene el happy path |
+| [JTBD titulo] | NUEVA | — | No hay story de diseno para este job — el research revelo un comportamiento no visible en UI |
+```
+
+4. **Este mapping es critico** — le dice al story-writer QUE stories enriquecer con QUE JTBD, y cuales son stories nuevas que el diseno no contemplo.
+
+**Sin cambios en la calidad del JTBD**: El modo enrich NO reduce la rigurosidad. Los 8 elementos siguen siendo obligatorios. La unica diferencia es que al final incluyo el mapping a stories existentes.
+
 ### Paso 1: Extraer JTBDs de la Investigacion
 Para cada patron de comportamiento detectado en el research:
 1. Identificar el job (no la solucion)

@@ -16,7 +16,7 @@
 - Agents: 14 specialized (10 specialists + 4 supervisors)
 - Skills: 7 (PRD builder, competitive analysis, plan mode, doc updater, unknown unknowns, project docs, impeccable guide)
 - Rules: 6 (definition of done/ready, antipatterns, scoring, naming, git branching)
-- Knowledge: 4 (JTBD framework, Mom Test, story splitting, testing strategy)
+- Knowledge: 5 (JTBD framework, Mom Test, story splitting, testing strategy, story ticket template)
 - Commands: 14 slash commands
 
 ### Project

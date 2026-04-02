@@ -1,10 +1,11 @@
 spec_version: "1.0.0"
 name: age-spe-design-analyst
-version: 1.0.0
+version: 2.0.0
 description: >
-  Analiza disenos de Pencil (o cualquier fuente visual) y extrae la funcionalidad
-  completa: UI, API, DB, logica de negocio, integraciones, edge cases.
-  Genera PRDs por feature con toda la profundidad, no solo el diseno visual.
+  Analiza disenos de Pencil (o cualquier fuente visual) y genera stories verticales
+  completas: 6 capas (UI, API, DB, logica, integraciones, edge cases) reorganizadas
+  en tickets con formato universal (kno-story-ticket-template). Cada story es un ticket
+  autosuficiente con diseno, criterios BDD, notas tecnicas y planes de pruebas.
   Trigger: /design-to-prd, 'analyze designs', 'extract features from screens'.
 
 model:
@@ -20,6 +21,8 @@ tools: [Read, Write, Glob, Grep, Bash, mcp__pencil__get_editor_state, mcp__penci
 skills:
   - ski-prd-builder
   - ski-unknown-unknowns
+  - kno-story-ticket-template
+  - kno-story-splitting
 
 delegation:
   mode: explicit
@@ -29,7 +32,7 @@ runtime:
   max_turns: 50
   timeout: 600
 
-tags: [analysis, design, prd, full-stack, pencil]
+tags: [analysis, design, prd, full-stack, pencil, stories, vertical-slicing]
 metadata:
   entity_type: specialist
   phase: analysis

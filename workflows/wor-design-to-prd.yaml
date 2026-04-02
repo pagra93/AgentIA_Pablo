@@ -1,10 +1,10 @@
 # Workflow: Design to PRD
 # Triggered by: /design-to-prd command
-# Pipeline: Read Designs → Group Features → Analyze 6 Layers → Generate PRDs
+# Pipeline: Read Designs → Group Features → Analyze 6 Layers → Slice Vertical → Generate Story Tickets → Generate PRDs
 
 name: wor-design-to-prd
-description: "Analyze designs from Pencil, extract full-stack functionality, generate PRDs per feature."
-version: 1.0.0
+description: "Analyze designs from Pencil, extract full-stack functionality, generate vertical story tickets + PRDs per feature."
+version: 2.0.0
 
 inputs:
   - name: design_source
@@ -27,14 +27,32 @@ steps:
     outputs: [features, screen_to_feature_map]
 
   - id: analyze_layers
-    action: "For each feature, analyze all screens across 6 layers: UI, DB, API, Logic, Integrations, Edge Cases"
+    action: "For each feature, analyze all screens across 6 layers: UI, DB, API, Logic, Integrations, Edge Cases. INTERNAL working step — data redistributed into stories."
     agent: age-spe-design-analyst
     depends_on: [group_features]
     inputs:
       features: ${{ steps.group_features.outputs.features }}
       screens: ${{ steps.read_designs.outputs.screens }}
       components: ${{ steps.read_designs.outputs.components }}
-    outputs: [design_analyses, task_lists]
+    outputs: [design_analyses, layer_data_per_screen]
+
+  - id: slice_vertical_stories
+    action: "Identify user flows across screens. Apply vertical slicing heuristics. Group 6-layer data into story-sized increments. Each story independently valuable, deployable, <=3 days, end-to-end. First story = survivable experiment."
+    agent: age-spe-design-analyst
+    depends_on: [analyze_layers]
+    inputs:
+      analyses: ${{ steps.analyze_layers.outputs.design_analyses }}
+      features: ${{ steps.group_features.outputs.features }}
+    outputs: [story_candidates, story_to_layer_map]
+
+  - id: generate_story_tickets
+    action: "For each story candidate, generate complete story ticket using kno-story-ticket-template. Fill Design section fully. Fill Notas tecnicas from Layers 2-6. Split Layer 4+6 between Criterios and Notas tecnicas. Mark JTBD sections [DERIVADO]. Generate DEV/QA test plans."
+    agent: age-spe-design-analyst
+    depends_on: [slice_vertical_stories]
+    inputs:
+      story_candidates: ${{ steps.slice_vertical_stories.outputs.story_candidates }}
+      layer_map: ${{ steps.slice_vertical_stories.outputs.story_to_layer_map }}
+    outputs: [stories]
 
   - id: generate_prds
     action: "For each feature, generate PRD using ski-prd-builder format. Problem-focused, no tech prescriptions."
@@ -46,20 +64,21 @@ steps:
     outputs: [prds]
 
   - id: save_documents
-    action: "Create docs/working-docs/[feature]/ for each feature. Save design-analysis.md and prd.md."
-    depends_on: [generate_prds]
+    action: "Create docs/working-docs/[feature]/ for each feature. Save stories.md (main output), design-reference.md (optional raw analysis), and prd.md."
+    depends_on: [generate_story_tickets, generate_prds]
     inputs:
       features: ${{ steps.group_features.outputs.features }}
+      stories: ${{ steps.generate_story_tickets.outputs.stories }}
       analyses: ${{ steps.analyze_layers.outputs.design_analyses }}
       prds: ${{ steps.generate_prds.outputs.prds }}
     outputs: [folders_created]
 
   - id: present_summary
-    action: "Show PM: features detected, tasks per feature, suggested priority. Recommend next: /analyze per feature."
+    action: "Show PM: features detected, stories per feature, suggested priority. Present two paths: Fast Track (/plan) or Full Pipeline (/analyze + /define)."
     depends_on: [save_documents]
     inputs:
       features: ${{ steps.group_features.outputs.features }}
-      task_lists: ${{ steps.analyze_layers.outputs.task_lists }}
+      stories: ${{ steps.generate_story_tickets.outputs.stories }}
     outputs: [summary]
 
 error_handling:

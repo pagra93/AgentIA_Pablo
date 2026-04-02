@@ -12,9 +12,9 @@ chmod +x install.sh
 Luego en cualquier proyecto con Claude Code:
 ```
 /new-project         # Inicializar proyecto
-/design-to-prd       # Analizar diseños → PRDs por feature
+/design-to-prd       # Analizar diseños → stories verticales + PRDs por feature
 /analyze             # Evaluar problema/PRD + investigar gaps
-/define              # Crear JTBDs y user stories (desde research/PRD)
+/define              # Crear o enriquecer stories con JTBDs (detecta stories existentes)
 /story               # Crear story desde una idea (sin PRD, agente autonomo)
 /plan                # Arquitectura y sprint plan
 /build               # Implementar stories del sprint
@@ -35,7 +35,7 @@ Luego en cualquier proyecto con Claude Code:
 | Idea rapida (1-4h) | /story → diseño en Pencil → /design-to-prd → /plan + /build | "Quiero que usuarios exporten a PDF" |
 | Pequeno (1-4h) | /define + /build | "Exportar pedidos a PDF" (con research previo) |
 | Mediano (1-3 dias) | /analyze + /define + /plan + /build + /review | "Notificaciones push" |
-| Grande (1+ semana) | /design-to-prd + pipeline completo por feature | "Modulo de facturacion" |
+| Grande (1+ semana) | /design-to-prd → [opcional: /analyze + /define enriquece] → /plan + /build por feature | "Modulo de facturacion" |
 | Bug fix | /hotfix o prompt directo | "Los pedidos no se guardan" |
 
 ## Architecture
@@ -67,11 +67,12 @@ pm-agent-system/
 │   ├── rul-naming-conventions
 │   └── rul-git-branch-management
 │
-├── knowledge/              # 4 bases de conocimiento (kno-*)
-│   ├── kno-jtbd-framework  #   JTBD Reforzado (8 elementos) + Wendel + Behavior Change
-│   ├── kno-mom-test         #   Mom Test + Gap Detection + Interview Guides
-│   ├── kno-story-splitting  #   9 heuristicas Eduardo Ferro
-│   └── kno-testing-strategy #   Testing Trophy, test types, coverage, regression, anti-patterns, TDD
+├── knowledge/              # 5 bases de conocimiento (kno-*)
+│   ├── kno-jtbd-framework       #   JTBD Reforzado (8 elementos) + Wendel + Behavior Change
+│   ├── kno-mom-test              #   Mom Test + Gap Detection + Interview Guides
+│   ├── kno-story-splitting       #   9 heuristicas Eduardo Ferro
+│   ├── kno-testing-strategy      #   Testing Trophy, test types, coverage, regression, anti-patterns, TDD
+│   └── kno-story-ticket-template #   Formato universal de story ticket (design-analyst, story-writer, story-builder)
 │
 ├── workflows/              # 14 workflows DAG (wor-*)
 ├── commands/               # 14 slash commands para Claude Code
@@ -99,11 +100,11 @@ pm-agent-system/
 ### Specialists (11) — generan output
 | Agent | Model | Phase | What it does |
 |-------|-------|-------|-------------|
-| design-analyst | opus | Analysis | Lee diseños de Pencil, extrae funcionalidad 6 capas (UI/DB/API/Logic/Integrations/Edge Cases) |
+| design-analyst | opus | Analysis | Lee diseños de Pencil, genera stories verticales (6 capas → formato ticket universal con diseno, criterios BDD, notas tecnicas, planes pruebas) |
 | quality-guard | opus | Analysis | Evalua PRDs en 3 dimensiones (Mercadona). Score = MINIMO. PASS/CONDITIONAL/FAIL |
 | researcher | opus | Analysis | Mom Test, Gap Detection (3 categorias), JTBD Reforzado, Wendel Checklist |
 | jtbd-architect | opus | Definition | JTBD Reforzado (8 elementos), Wendel, Behavior Change, 3 rangos |
-| story-writer | opus | Definition | Stories con Given-When-Then, START/STOP/DIFFERENT, scoring 6D |
+| story-writer | opus | Definition | Stories con Given-When-Then, START/STOP/DIFFERENT, scoring 6D. Modo Enrich: detecta stories de /design-to-prd y las enriquece con JTBD evidence |
 | **story-builder** | **opus** | **Definition** | **Autonomo: idea del PM → story completa (7 fases internas, JTBD+Wendel+BehaviorChange, 6D scoring, design analysis 6 capas, flujo iterativo story↔diseño)** |
 | story-splitter | sonnet | Definition | 9 heuristicas Eduardo Ferro + deteccion linguistica, siempre vertical |
 | tech-architect | opus | Planning | Arquitectura + ADRs + unknown-unknowns scan |

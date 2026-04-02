@@ -37,7 +37,7 @@ agents:
       triggers: [research_needed]
   age-spe-design-analyst:
     path: agents/age-spe-design-analyst/
-    description: "Analiza disenos y extrae funcionalidad completa (6 capas). Trigger: /design-to-prd"
+    description: "Analiza disenos y genera stories verticales completas (6 capas → formato ticket universal). Trigger: /design-to-prd"
     delegation:
       mode: explicit
       triggers: [design_to_prd, analyze_designs]
@@ -149,6 +149,7 @@ knowledge:
   - kno-mom-test
   - kno-story-splitting
   - kno-testing-strategy
+  - kno-story-ticket-template
 
 # --- Workflows (14 commands) ---
 workflows:

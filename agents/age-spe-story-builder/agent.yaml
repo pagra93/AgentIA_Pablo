@@ -1,7 +1,7 @@
 spec_version: "1.0.0"
 name: age-spe-story-builder
-version: 1.0.0
-description: "Autonomous story builder — takes PM's idea/problem, works 6 internal phases, produces complete story with 6D scoring. Trigger: /story, 'build story', 'tengo una idea'."
+version: 2.0.0
+description: "Autonomous story builder — takes PM's idea/problem, works 7 internal phases, produces complete story ticket (kno-story-ticket-template) with 6D scoring. Trigger: /story, 'build story', 'tengo una idea'."
 
 model:
   preferred: claude-opus-4-6
@@ -16,6 +16,7 @@ tools: [Read, Write, Glob, Grep]
 skills:
   - kno-jtbd-framework
   - rul-scoring-dimensional
+  - kno-story-ticket-template
 
 delegation:
   mode: explicit

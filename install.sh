@@ -303,9 +303,9 @@ else
                 updated=true
             fi
 
-            # Update knowledge count: 3 → 4
-            if grep -q "Knowledge: 3 " "$pf" 2>/dev/null; then
-                sed -i '' 's/Knowledge: 3 (JTBD framework, Mom Test, story splitting)/Knowledge: 4 (JTBD framework, Mom Test, story splitting, testing strategy)/g' "$pf"
+            # Update knowledge count: 3/4 → 5
+            if grep -q "Knowledge: 3 \|Knowledge: 4 " "$pf" 2>/dev/null; then
+                sed -i '' 's/Knowledge: 3 .*/Knowledge: 5 (JTBD framework, Mom Test, story splitting, testing strategy, story ticket template)/g; s/Knowledge: 4 .*/Knowledge: 5 (JTBD framework, Mom Test, story splitting, testing strategy, story ticket template)/g' "$pf"
                 updated=true
             fi
 

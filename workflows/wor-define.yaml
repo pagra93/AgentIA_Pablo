@@ -1,10 +1,10 @@
 # Workflow: Definition Pipeline
 # Triggered by: /define command
-# Pipeline: JTBD Architect → Story Writer → Quality Coach → Story Splitter
+# Pipeline: Detect Existing → JTBD Architect → Story Writer (enrich or create) → Quality Coach → Story Splitter
 
 name: wor-define
-description: "Transform research into JTBDs, stories, quality review, and splitting."
-version: 1.0.0
+description: "Transform research into JTBDs, stories, quality review, and splitting. Detects existing stories from /design-to-prd and enriches them."
+version: 2.0.0
 
 inputs:
   - name: research_brief
@@ -15,29 +15,40 @@ inputs:
 outputs:
   - name: stories
     type: string
-    description: "Sprint-ready user stories with dimensional scoring"
+    description: "Sprint-ready user stories with dimensional scoring (new or enriched)"
 
 steps:
+  - id: detect_existing_stories
+    action: "Search docs/working-docs/[feature]/ for existing stories.md from /design-to-prd. Determine mode: enrich (stories exist) or create (no stories)."
+    outputs: [existing_stories, mode, feature_folders]
+
   - id: generate_jtbds
-    action: "Transform research into structured Jobs-to-be-Done"
+    action: "Transform research into structured Jobs-to-be-Done. In enrich mode, also receive existing stories to map JTBDs to identified user flows."
     agent: age-spe-jtbd-architect
+    depends_on: [detect_existing_stories]
     inputs:
       research: ${{ inputs.research_brief }}
-    outputs: [jtbds, priority_order]
+      existing_stories: ${{ steps.detect_existing_stories.outputs.existing_stories }}
+      mode: ${{ steps.detect_existing_stories.outputs.mode }}
+    outputs: [jtbds, priority_order, jtbd_story_mapping]
 
   - id: pm_approve_jtbds
-    action: "Present JTBDs to PM. Ask: Approve, modify, or add?"
+    action: "Present JTBDs to PM (with mapping to existing stories if enrich mode). Ask: Approve, modify, or add?"
     depends_on: [generate_jtbds]
     inputs:
       jtbds: ${{ steps.generate_jtbds.outputs.jtbds }}
+      mapping: ${{ steps.generate_jtbds.outputs.jtbd_story_mapping }}
     outputs: [approved_jtbds]
 
   - id: write_stories
-    action: "Convert approved JTBDs into user stories with behavior change and scoring"
+    action: "In CREATE mode: generate new stories from JTBDs. In ENRICH mode: upgrade [DERIVADO] sections with JTBD evidence, preserve Design and Notas tecnicas from design-analyst, merge Criterios."
     agent: age-spe-story-writer
-    depends_on: [pm_approve_jtbds]
+    depends_on: [pm_approve_jtbds, detect_existing_stories]
     inputs:
       jtbds: ${{ steps.pm_approve_jtbds.outputs.approved_jtbds }}
+      existing_stories: ${{ steps.detect_existing_stories.outputs.existing_stories }}
+      mode: ${{ steps.detect_existing_stories.outputs.mode }}
+      mapping: ${{ steps.generate_jtbds.outputs.jtbd_story_mapping }}
     outputs: [stories, scores]
 
   - id: quality_review
@@ -68,8 +79,11 @@ steps:
     outputs: [split_stories]
 
   - id: deliver
-    action: "Present final stories with scoring. Save to docs/working_docs/definition/. Suggest /plan."
+    action: "Save stories and JTBDs to docs/working-docs/[feature-name]/. In enrich mode, show which sections were upgraded. Suggest /plan."
     depends_on: [quality_review, split_large_stories]
+    inputs:
+      feature_folders: ${{ steps.detect_existing_stories.outputs.feature_folders }}
+      mode: ${{ steps.detect_existing_stories.outputs.mode }}
     outputs: [stories]
 
 error_handling:

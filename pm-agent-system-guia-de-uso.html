@@ -143,7 +143,7 @@
 <div class="header">
   <div class="header-label">Guia Completa de Uso</div>
   <h1>PM x10 Agent System <span>— Todo lo que necesitas saber</span></h1>
-  <div class="header-stats">15 agentes | 14 commands | 14 workflows | 7 skills | 6 rules | 4 knowledge bases</div>
+  <div class="header-stats">15 agentes | 14 commands | 14 workflows | 7 skills | 6 rules | 5 knowledge bases</div>
 </div>
 
 <div class="tabs">
@@ -272,7 +272,7 @@
       <br>
       <b>Flujo:</b><br>
       <span style="color:var(--red)">/analyze</span> — Quality Guard evalua + Researcher investiga gaps<br>
-      <span style="color:var(--red)">/define</span> — JTBDs + stories + quality review + split si >3d<br>
+      <span style="color:var(--red)">/define</span> — JTBDs + stories (crea o enriquece) + quality review + split si >3d<br>
       <span style="color:var(--green2)">/plan</span> — Arquitectura + sprint plan en tasks/todo.md<br>
       <span style="color:var(--orange)">/build</span> — Implementa story por story, commit por commit<br>
       <span style="color:var(--green2)">/save</span> — Despues de cada story<br>
@@ -307,7 +307,7 @@
   <div class="folder-card" style="border-left-color:var(--red);margin-bottom:12px">
     <div class="folder-name" style="color:var(--red)">Grande — 1+ semana (con disenos)</div>
     <div class="folder-desc">
-      <b>Que usar</b>: /design-to-prd + pipeline completo por feature<br>
+      <b>Que usar</b>: /design-to-prd → [opcional: /analyze + /define enriquece] → /plan + /build por feature<br>
       <b>Tokens</b>: Maximo. Pero repartido en multiples sesiones.
     </div>
     <div class="folder-files" style="line-height:2.2">
@@ -316,10 +316,11 @@
       "Portal de administracion con roles y permisos"<br>
       "Plataforma de e-commerce desde cero"<br>
       <br>
-      <b>Flujo:</b><br>
-      <span style="color:var(--pink)">/design-to-prd</span> — Analiza disenos, genera PRDs por feature<br>
-      Luego <b>por cada feature</b>:<br>
-      <span style="color:var(--red)">/analyze</span> → <span style="color:var(--red)">/define</span> → <span style="color:var(--green2)">/plan</span> → <span style="color:var(--orange)">/build</span> → <span style="color:var(--green2)">/save</span> → <span style="color:var(--white)">/review</span> → docs
+      <b>Fast Track</b> (diseno detallado, dominio conocido):<br>
+      <span style="color:var(--pink)">/design-to-prd</span> → <span style="color:var(--green2)">/plan</span> → <span style="color:var(--orange)">/build</span> → <span style="color:var(--green2)">/save</span> → <span style="color:var(--white)">/review</span><br>
+      <br>
+      <b>Full Pipeline</b> (incertidumbre, dominio nuevo):<br>
+      <span style="color:var(--pink)">/design-to-prd</span> → <span style="color:var(--red)">/analyze</span> → <span style="color:var(--red)">/define</span> <span style="color:var(--text3)">(enriquece stories, no duplica)</span> → <span style="color:var(--green2)">/plan</span> → <span style="color:var(--orange)">/build</span> → <span style="color:var(--green2)">/save</span> → <span style="color:var(--white)">/review</span>
     </div>
   </div>
 
@@ -410,7 +411,7 @@
       Idea rapida → /story → Pencil → /design-to-prd → /plan + /build (2-3 agentes)<br>
       Feature pequena → /define + /build (3-4 agentes)<br>
       Feature media → /analyze + /define + /plan + /build + /review (8-10 agentes, contextos separados)<br>
-      Proyecto grande → /design-to-prd + pipeline completo por feature (maximo, pero repartido en sesiones)
+      Proyecto grande → /design-to-prd + [opcional: /analyze + /define enriquece] + /plan + /build por feature
     </div>
   </div>
 </div>
@@ -442,10 +443,10 @@
       <div class="step-tip">Pega tu PRD o describe el problema. El Quality Guard te dira los riesgos sin bloquearte. Tu decides si proceder.</div>
     </div>
     <div class="card card-accent">
-      <div class="step-header"><span class="cmd-badge">Paso 2: /define</span><span class="step-title">Crea specs desde el problema</span></div>
-      <div class="step-agents">jtbd-architect -> story-writer -> quality-coach (revisa) -> story-splitter (si >3 dias)</div>
-      <div class="step-output">Output: <b>Stories con scoring >=7, splitteadas y listas</b> -> guardado en docs/working_docs/definition/</div>
-      <div class="step-tip">Revisa los JTBDs que genera. Son la base de todo. Cada story tiene Behavior Change (START/STOP/DIFFERENT) obligatorio.</div>
+      <div class="step-header"><span class="cmd-badge">Paso 2: /define</span><span class="step-title">Crea o enriquece stories con JTBDs</span></div>
+      <div class="step-agents">detect_existing → jtbd-architect → story-writer (enrich o create) → quality-coach (revisa) → story-splitter (si >3 dias)</div>
+      <div class="step-output">Output: <b>Stories con scoring >=7, splitteadas y listas</b> -> guardado en docs/working-docs/[feature]/</div>
+      <div class="step-tip">Si hay stories de /design-to-prd, /define las ENRIQUECE (upgrade JTBD, preserva Diseno+Notas tecnicas). Si no, crea desde cero. Cada story tiene Behavior Change (START/STOP/DIFFERENT) obligatorio.</div>
     </div>
     <div class="card card-accent">
       <div class="step-header"><span class="cmd-badge">Paso 3: /plan</span><span class="step-title">Disena arquitectura + sprints</span></div>
@@ -482,8 +483,8 @@
       <div class="step-tip">El diseño es opcional pero recomendado. Sin diseño puedes ir directo a /plan (fast track).</div>
     </div>
     <div class="card" style="border-left:4px solid var(--pink)">
-      <div class="step-header"><span class="cmd-badge" style="background:var(--pink)">Paso 3: /design-to-prd</span><span class="step-title">Analiza el diseño → enriquece la story</span></div>
-      <div class="step-agents">design-analyst (opus) extrae 6 capas REALES del diseño</div>
+      <div class="step-header"><span class="cmd-badge" style="background:var(--pink)">Paso 3: /design-to-prd</span><span class="step-title">Analiza el diseño → genera stories verticales con diseno real</span></div>
+      <div class="step-agents">design-analyst (opus) extrae 6 capas REALES, genera stories completas con diseno, criterios BDD, notas tecnicas, planes pruebas</div>
       <div class="step-output">Compara con el design analysis [DERIVADO] de la story. <b>Si hay requisitos nuevos → actualiza la story.</b></div>
     </div>
     <div class="card card-accent">
@@ -619,10 +620,10 @@ git fetch --prune</div>
   <!-- DESIGNS TO PRD -->
   <div class="scenario-content" id="sc-designs">
     <div class="card" style="border-left:4px solid var(--pink)">
-      <div class="step-header"><span class="cmd-badge" style="background:var(--pink)">/design-to-prd</span><span class="step-title">De disenos a PRDs completos con logica full-stack</span></div>
-      <div class="step-agents">design-analyst (opus) lee Pencil, analiza 6 capas, genera PRDs por feature</div>
-      <div class="step-output">Output: <b>docs/working-docs/[feature]/ con design-analysis.md + prd.md por cada feature</b></div>
-      <div class="step-tip">No solo ve el diseno visual — extrae DB, APIs, logica de negocio, integraciones, y edge cases.</div>
+      <div class="step-header"><span class="cmd-badge" style="background:var(--pink)">/design-to-prd</span><span class="step-title">De disenos a stories verticales + PRDs</span></div>
+      <div class="step-agents">design-analyst (opus) lee Pencil, analiza 6 capas, genera stories verticales completas + PRDs por feature</div>
+      <div class="step-output">Output: <b>docs/working-docs/[feature]/ con stories.md (tickets verticales) + prd.md por cada feature</b></div>
+      <div class="step-tip">Cada story es un ticket completo: diseno, criterios BDD, notas tecnicas (DB/API/logica), planes de pruebas DEV/QA. Un dev coge UNA story y tiene TODO.</div>
     </div>
     <div class="card">
       <div class="step-header"><span class="step-title">Las 6 capas que analiza por pantalla</span></div>
@@ -636,31 +637,29 @@ git fetch --prune</div>
       </div>
     </div>
     <div class="card">
-      <div class="step-header"><span class="step-title">Flujo completo: de disenos a codigo deployado</span></div>
-      <div class="step-output" style="font-family:var(--mono);line-height:2.2;white-space:pre-wrap"><span style="color:var(--pink);font-weight:600">/design-to-prd</span>           <span style="color:var(--text3)"># Analiza disenos, genera PRDs por feature</span>
+      <div class="step-header"><span class="step-title">Dos paths: Fast Track o Full Pipeline</span></div>
+      <div class="step-output" style="font-family:var(--mono);line-height:2.2;white-space:pre-wrap"><span style="color:var(--pink);font-weight:600">/design-to-prd</span>           <span style="color:var(--text3)"># Genera stories verticales + PRDs por feature</span>
                               <span style="color:var(--text3)"># Crea docs/working-docs/[feature]/</span>
 
-<span style="color:var(--text3)"># Para cada feature:</span>
-<span style="color:var(--red);font-weight:600">/analyze</span>                  <span style="color:var(--text3)"># Quality Guard evalua PRD + research gaps</span>
-                              <span style="color:var(--text3)"># Guarda research.md en la carpeta de la feature</span>
-
-<span style="color:var(--purple);font-weight:600">/define</span>                   <span style="color:var(--text3)"># JTBDs + stories + quality review</span>
-                              <span style="color:var(--text3)"># Guarda jtbds.md y stories.md en la carpeta</span>
-
-<span style="color:var(--green2);font-weight:600">/plan</span>                     <span style="color:var(--text3)"># Arquitectura + sprint plan</span>
-
+<span style="color:var(--text3)"># FAST TRACK (diseno detallado, dominio conocido):</span>
+<span style="color:var(--green2);font-weight:600">/plan</span>                     <span style="color:var(--text3)"># Arquitectura + sprint plan (directo)</span>
 <span style="color:var(--orange);font-weight:600">/build</span>                    <span style="color:var(--text3)"># Implementar story por story</span>
-<span style="color:var(--green2);font-weight:600">/save</span>                     <span style="color:var(--text3)"># Commit + push</span>
+
+<span style="color:var(--text3)"># FULL PIPELINE (incertidumbre, dominio nuevo):</span>
+<span style="color:var(--red);font-weight:600">/analyze</span>                  <span style="color:var(--text3)"># Quality Guard evalua PRD + research gaps</span>
+<span style="color:var(--purple);font-weight:600">/define</span>                   <span style="color:var(--text3)"># Enriquece secciones [DERIVADO] con JTBDs + evidence (preserva Diseno+Notas)</span>
+<span style="color:var(--green2);font-weight:600">/plan</span>                     <span style="color:var(--text3)"># Arquitectura + sprint plan</span>
+<span style="color:var(--orange);font-weight:600">/build</span>                    <span style="color:var(--text3)"># Implementar</span>
 <span style="color:var(--white);font-weight:600">/review</span>                   <span style="color:var(--text3)"># Test + QA cycle</span>
 
 <span style="color:var(--text3)"># Al final, cada feature tiene:</span>
 <span style="color:var(--text3)">docs/working-docs/user-auth/</span>
-<span style="color:var(--text3)">  design-analysis.md  ← de /design-to-prd</span>
-<span style="color:var(--text3)">  prd.md              ← de /design-to-prd</span>
-<span style="color:var(--text3)">  research.md         ← de /analyze</span>
-<span style="color:var(--text3)">  jtbds.md            ← de /define</span>
-<span style="color:var(--text3)">  stories.md          ← de /define</span>
-<span style="color:var(--text3)">  architecture.md     ← de /plan</span></div>
+<span style="color:var(--text3)">  stories.md            ← de /design-to-prd (o enriquecido por /define)</span>
+<span style="color:var(--text3)">  design-reference.md   ← de /design-to-prd (6 capas raw, referencia)</span>
+<span style="color:var(--text3)">  prd.md                ← de /design-to-prd</span>
+<span style="color:var(--text3)">  research.md           ← de /analyze (si Full Pipeline)</span>
+<span style="color:var(--text3)">  jtbds.md              ← de /define (si Full Pipeline)</span>
+<span style="color:var(--text3)">  architecture.md       ← de /plan</span></div>
     </div>
   </div>
 
@@ -817,7 +816,7 @@ git fetch --prune</div>
 
   <table>
     <tr><th>Nivel</th><th>Ubicacion</th><th>Contiene</th><th>Cuando</th></tr>
-    <tr><td>Global</td><td>~/.claude/</td><td>15 agentes, 7 skills, 6 rules, 4 knowledge, 14 commands</td><td>Se instala UNA vez con install.sh</td></tr>
+    <tr><td>Global</td><td>~/.claude/</td><td>15 agentes, 7 skills, 6 rules, 5 knowledge, 14 commands</td><td>Se instala UNA vez con install.sh</td></tr>
     <tr><td>Proyecto</td><td>proyecto/.claude/CLAUDE.md</td><td>Config del proyecto: stack, standards, paths</td><td>Se crea por proyecto con /new-project</td></tr>
   </table>
 
@@ -833,7 +832,7 @@ git fetch --prune</div>
                <span class="agent">story-splitter</span>                                  <span class="agent">evaluator</span>
     |              |              |              |           <span class="agent">optimizer</span>
     v              v              v              v              |
-<span class="file">docs/analysis/</span> <span class="file">docs/definition/</span> <span class="file">tasks/todo.md</span>  commits        v
+<span class="file">docs/analysis/</span> <span class="file">docs/working-docs/</span> <span class="file">tasks/todo.md</span>  commits        v
                                                            <span class="file">qa/qa-report.md</span>
 
 <span style="color:var(--purple)">CAMINO RAPIDO (idea sin PRD):</span>
@@ -895,9 +894,10 @@ git fetch --prune</div>
   <div class="folder-card pink" style="margin-bottom:10px">
     <div class="folder-name">design-analyst <span class="badge badge-purple">opus</span></div>
     <div class="folder-desc">
-      <b>Que hace</b>: Lee disenos de Pencil (o screenshots/mockups) y extrae la funcionalidad COMPLETA en 6 capas: UI, DB, API, Logica de negocio, Integraciones externas, y Edge Cases. Agrupa pantallas en features. Genera un design-analysis.md (con task list) y un prd.md por cada feature. No se queda en el diseno visual — un boton de "eliminar" implica soft-delete vs hard-delete, confirmacion, permisos, cascading, audit log.<br><br>
+      <b>Que hace</b>: Lee disenos de Pencil (o screenshots/mockups), analiza 6 capas (UI, DB, API, Logica, Integraciones, Edge Cases) y las reorganiza en <b>stories verticales completas</b> — cada story es un ticket con: diseno (anatomia, navegacion, interaccion), criterios BDD (Given-When-Then + Scenario Outlines), notas tecnicas (DB, API, logica, integraciones, edge cases), y planes de pruebas DEV/QA. Usa formato universal kno-story-ticket-template. Aplica slicing vertical (heuristicas de Eduardo Ferro) para que cada story sea independiente, deployable, y <=3 dias.<br><br>
       <b>En pipeline</b>: Se activa con /design-to-prd.<br>
-      <b>Usalo solo cuando</b>: "Tengo disenos y quiero extraer toda la funcionalidad" o "Analiza estas pantallas y dime que necesito construir."
+      <b>Output</b>: stories.md (tickets verticales) + prd.md por feature. Dos paths: Fast Track (/plan directo) o Full Pipeline (/analyze + /define).<br>
+      <b>Usalo solo cuando</b>: "Tengo disenos y quiero stories listas para desarrollar" o "Analiza estas pantallas y genera tickets completos."
     </div>
   </div>
 
@@ -926,6 +926,7 @@ git fetch --prune</div>
     <div class="folder-name">jtbd-architect <span class="badge badge-purple">opus</span></div>
     <div class="folder-desc">
       <b>Que hace</b>: Traductor de research a JTBDs Reforzados. Cada JTBD tiene 8 elementos obligatorios: Job Principal, Struggle (4 capas), Trigger, Outcome, 3 Motivaciones, Anxieties/Barriers, Validacion Job-vs-Solucion (test "multiples formas"), y Rastreo de Fuente. Aplica Wendel Checklist y mapea Behavior Change con 3 rangos (Minimo/Target/Over-top).<br><br>
+      <b>Modo Enrich</b>: Si recibe stories de /design-to-prd, mapea cada JTBD a una story existente (mapping table JTBD → Story ID) para que el story-writer sepa QUE enriquecer con QUE.<br><br>
       <b>En pipeline</b>: Se activa con /define (paso 1).<br>
       <b>Usalo solo cuando</b>: "Tengo research/entrevistas y quiero generar JTBDs estructurados" — sin correr todo /define.
     </div>
@@ -936,6 +937,7 @@ git fetch --prune</div>
     <div class="folder-name">story-writer <span class="badge badge-purple">opus</span></div>
     <div class="folder-desc">
       <b>Que hace</b>: Convierte JTBDs en stories deployables. Estructura: Epic > Feature > Story. Cada story tiene: narrativa con job performer especifico, Behavior Change (START/STOP/DIFFERENT cuantificado), Given-When-Then testable, Scoring 6D, y metricas de exito en 3 rangos. Retiene TODA la informacion del research sin colapsar.<br><br>
+      <b>Modo Enrich</b>: Si hay stories de /design-to-prd, las enriquece en vez de crear nuevas — upgrade Historia+Definicion de [DERIVADO] a JTBD real, preserva Diseno+Notas tecnicas, merge Criterios, recalcula Scoring 6D.<br><br>
       <b>En pipeline</b>: Se activa con /define (paso 2, despues de jtbd-architect).<br>
       <b>Usalo solo cuando</b>: "Tengo JTBDs y quiero convertirlos en stories listas para sprint."
     </div>
@@ -945,10 +947,10 @@ git fetch --prune</div>
   <div class="folder-card purple" style="margin-bottom:10px;border-left-color:var(--green2)">
     <div class="folder-name">story-builder <span class="badge badge-purple">opus</span> <span class="badge badge-green">NUEVO</span></div>
     <div class="folder-desc">
-      <b>Que hace</b>: Agente AUTONOMO que toma una idea/problema del PM y produce una user story completa. Trabaja 7 fases internas sin interrogar al PM: (1) detecta trampa de solucion, (2) deriva Job con Tecnica del Por Que, (3) Wendel Checklist, (4) 3 dimensiones del job, (5) Behavior Change con START/STOP/DIFFERENT, (6) compila story con scoring 6D + genera design analysis de 6 capas [DERIVADO], (7) recomienda crear diseño en Pencil (opcional). Explica POR QUE tomo cada decision (efecto formativo). Gaps se marcan como [GAP] o [HIPOTESIS] — nunca bloquea.<br><br>
+      <b>Que hace</b>: Agente AUTONOMO que toma una idea/problema del PM y produce un <b>story ticket completo</b> en formato universal (kno-story-ticket-template). Trabaja 7 fases internas sin interrogar al PM: (1) detecta trampa de solucion, (2) deriva Job con Tecnica del Por Que, (3) Wendel Checklist, (4) 3 dimensiones del job, (5) Behavior Change con START/STOP/DIFFERENT, (6) compila ticket completo (diseno [DERIVADO], criterios BDD, notas tecnicas [DERIVADO], planes pruebas, scoring 6D), (7) recomienda crear diseno en Pencil (opcional). Explica POR QUE tomo cada decision (efecto formativo). Gaps se marcan como [GAP] o [HIPOTESIS] — nunca bloquea.<br><br>
       <b>En pipeline</b>: Se activa con /story.<br>
-      <b>Usalo solo cuando</b>: "Tengo una idea y quiero una story de calidad sin tener PRD" o "Convierte esto en una user story."<br><br>
-      <b>Flujo iterativo</b>: /story → story draft → diseña en Pencil → /design-to-prd → enriquece story → /plan → /build
+      <b>Usalo solo cuando</b>: "Tengo una idea y quiero un ticket completo" o "Convierte esto en una user story."<br><br>
+      <b>Flujo iterativo</b>: /story → story ticket → disena en Pencil → /design-to-prd → stories con diseno real → /plan → /build
     </div>
   </div>
 
@@ -1161,8 +1163,8 @@ git fetch --prune</div>
   </div>
   <div class="folder-card blue">
     <div class="folder-name">knowledge/</div>
-    <div class="folder-desc">4 bases de conocimiento con metodologias reales. index.yaml controla prioridad y tags para descubrimiento. Los agentes las cargan segun su dominio.</div>
-    <div class="folder-files">index.yaml | kno-jtbd-framework.md (JTBD Reforzado + Wendel) | kno-mom-test.md (Rob Fitzpatrick) | kno-story-splitting.md (Eduardo Ferro, 9 heuristicas) | kno-testing-strategy.md (Testing Trophy, tipos de test, coverage, regresion, TDD)</div>
+    <div class="folder-desc">5 bases de conocimiento con metodologias reales. index.yaml controla prioridad y tags para descubrimiento. Los agentes las cargan segun su dominio.</div>
+    <div class="folder-files">index.yaml | kno-jtbd-framework.md (JTBD Reforzado + Wendel) | kno-mom-test.md (Rob Fitzpatrick) | kno-story-splitting.md (Eduardo Ferro, 9 heuristicas) | kno-testing-strategy.md (Testing Trophy, tipos de test, coverage, regresion, TDD) | kno-story-ticket-template.md (formato universal de story ticket — design-analyst, story-writer, story-builder)</div>
     <div class="folder-relation">index.yaml define always_load, priority, y tags para cada documento</div>
   </div>
 
@@ -1328,9 +1330,9 @@ git fetch --prune</div>
     <div class="folder-relation">PM decision point: si score <4, el PM decide si proceder con riesgo o corregir primero</div>
   </div>
   <div class="folder-card purple">
-    <div class="folder-name">wor-define.yaml</div>
-    <div class="folder-desc">generate_jtbds -> <span style="color:var(--orange)">pm_approve</span> -> write_stories -> quality_review -> split_large (condicional: solo si >3 dias)</div>
-    <div class="folder-relation">Quality Coach revisa stories pero NO modifica. Story Splitter solo se activa condicionalmente.</div>
+    <div class="folder-name">wor-define.yaml <span class="badge badge-green">v2.0</span></div>
+    <div class="folder-desc">detect_existing_stories -> generate_jtbds -> <span style="color:var(--orange)">pm_approve</span> -> write_stories <span style="color:var(--text3)">(enrich o create)</span> -> quality_review -> split_large (condicional)</div>
+    <div class="folder-relation">Detecta stories de /design-to-prd. Si existen: modo Enrich (preserva Diseno+Notas, upgrade JTBD). Si no: modo Create (desde cero).</div>
   </div>
   <div class="folder-card green">
     <div class="folder-name">wor-plan.yaml</div>
@@ -1506,7 +1508,7 @@ git fetch --prune</div>
 
 </div>
 
-<div class="footer">PM x10 Agent System v2.1 — 15 agentes | 14 commands | 14 workflows | 7 skills | 6 rules | 4 knowledge bases | Mercadona Methodology</div>
+<div class="footer">PM x10 Agent System v2.1 — 15 agentes | 14 commands | 14 workflows | 7 skills | 6 rules | 5 knowledge bases | Mercadona Methodology</div>
 
 <script>
 document.querySelectorAll('.tab').forEach(tab => {

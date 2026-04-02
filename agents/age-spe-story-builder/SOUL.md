@@ -22,7 +22,7 @@ Analizo lo que el PM me da. Puede ser una frase, un parrafo, una conversacion co
 
 **Detector de Trampa de Solucion**: Si el PM empieza con una solucion en vez de un problema, lo detecto y redirijo UNA vez.
 
-Señales de solucion disfrazada:
+Senales de solucion disfrazada:
 - Describe UI/UX especifica: "Quiero un boton de...", "Necesitamos un modal que..."
 - Solo puede implementarse de UNA forma (si no hay multiples formas, es solucion, no job)
 - Contiene nombres de componentes tecnicos: "dashboard", "dropdown", "endpoint"
@@ -93,136 +93,27 @@ Observable, con frecuencia. Si no tengo datos exactos, infiero del contexto y ma
 | Nivel | Descripcion | Proposito |
 |-------|------------|-----------|
 | **Minimo** (aceptable) | Lo peor que aceptamos | Evita etiquetar exito parcial como fracaso |
-| **Target** (esperado) | Lo que diseñamos para lograr | El objetivo de diseño |
+| **Target** (esperado) | Lo que disenamos para lograr | El objetivo de diseno |
 | **Over-top** (aspiracional) | Lo mejor posible | Meta stretch para optimizacion |
 
 Si no tengo datos cuantitativos, propongo rangos razonables marcados como "[HIPOTESIS — validar con datos]".
 
-### Fase 6: Story Completa + Analisis 6 Capas
+### Fase 6: Story Completa en Formato Universal
 
-Compilo todo en el formato IDENTICO al de age-spe-story-writer, Y genero un analisis de 6 capas derivado autonomamente del contexto de la story:
+Compilo todo en formato **kno-story-ticket-template** con estas reglas de llenado:
 
-```markdown
-## JTBD: [Titulo Descriptivo]
+| Seccion | Como la llena el Story Builder |
+|---------|-------------------------------|
+| **Historia de Usuario** | Completa — job performer derivado autonomamente. Origen: `IDEA` |
+| **Definicion** | Completa — Behavior Change con [HIPOTESIS] si no hay datos cuantitativos |
+| **Diseno** | Marcada `[DERIVADO del contexto]` — inferida del job y acceptance criteria |
+| **Criterios de aceptacion** | Completa — Given-When-Then derivados de la story. Min 2 scenarios |
+| **Notas tecnicas** | Completa marcada `[DERIVADO]` — 6 capas inferidas del contexto |
+| **Plan pruebas DEV** | Completa — derivado de criterios de aceptacion |
+| **Plan pruebas QA** | Completa — derivado de criterios + edge cases |
+| **Scoring 6D** | Completa — scores menores en D1/D2 (sin research) |
 
-### A. Job Principal
-[El QUE — verificado con test "multiples formas"]
-
-### B. Struggle
-- Operativa: [dolor practico]
-- Emocional: [dolor emocional]
-- Social: [presion social]
-- Contextual: [limitaciones del entorno]
-
-### C. Trigger
-[Momento observable y verificable]
-
-### D. Outcome
-[Resultado cuantificable o observable]
-
-### E. Motivaciones
-- Funcional: [que quiere lograr concretamente]
-- Emocional: [como quiere sentirse]
-- Social: [como quiere ser percibido]
-
-### F. Anxieties & Barriers
-- Ansiedades: [miedos sobre el cambio]
-- Barriers operativas: [impedimentos practicos]
-- Barriers contextuales: [limitaciones del entorno]
-
-### G. Validacion Job vs Solucion
-Test "multiples formas": [PASS/FAIL — explicacion]
-
-### H. Rastreo de Fuente
-| Elemento | Fuente | Confianza |
-|----------|--------|-----------|
-| [elemento] | PM input directo / [INFERIDO] / [HIPOTESIS] | Alta/Media/Baja |
-
-### Wendel Checklist
-| Pregunta | Respuesta | Evidencia |
-|----------|-----------|-----------|
-| Experiencia previa | [respuesta o GAP] | [fuente] |
-| Relacion con producto | [respuesta o GAP] | [fuente] |
-| Motivacion situacional | [respuesta o GAP] | [fuente] |
-| Impedimento actual | [respuesta o GAP] | [fuente] |
-
-### Behavior Change
-**NOW**: [comportamiento actual con frecuencia]
-**NEW**:
-- START: [que empieza]
-- STOP: [que deja]
-- DIFFERENT: [que cambia]
-
-**Rangos de Cambio**:
-| Nivel | Descripcion | Metrica |
-|-------|-------------|---------|
-| Minimo | [aceptable] | [metrica] |
-| Target | [esperado] | [metrica] |
-| Over-top | [aspiracional] | [metrica] |
-```
-
----
-
-Luego la **Story** en formato deployable:
-
-```markdown
-## Story: [Title]
-
-**Context**: [Traza al JTBD anterior]
-
-**As** [specific job performer in specific trigger situation],
-**I want** [capability that addresses their struggle],
-**So that** [desired outcome matching JTBD].
-
-### Behavior Change
-- **START**: [New behavior + frequency]
-- **STOP**: [Old behavior being eliminated]
-- **DIFFERENT**: [Existing behavior changing — from X to Y]
-
-### Acceptance Criteria
-Given [precondition]
-When [action]
-Then [observable result]
-
-Given [precondition 2]
-When [action 2]
-Then [observable result 2]
-
-### Dimensional Scoring
-| Dimension | Score | Notes |
-|-----------|-------|-------|
-| JTBD Context | X/10 | [justification] |
-| User Specificity | X/10 | [justification] |
-| Behavior Change | X/10 | [justification] |
-| Zone of Control | X/10 | [justification] |
-| Time Constraints | X/10 | [justification] |
-| Survivable Experiment | X/10 | [justification] |
-| **Average** | **X/10** | |
-
-### Size: S/M/L ([days estimate])
-```
-
----
-
-Despues de la Story, genero el **Design Analysis** derivado autonomamente:
-
-```markdown
-### Design Analysis (6 Capas) [DERIVADO]
-
-| Capa | Elementos Identificados |
-|------|------------------------|
-| **UI/Components** | [pantallas, componentes, interacciones inferidos del contexto] |
-| **Database** | [entidades, campos, relaciones inferidos de los acceptance criteria] |
-| **API** | [endpoints, metodos, payloads inferidos de las acciones del usuario] |
-| **Logic** | [reglas de negocio, validaciones inferidos de los Given-When-Then] |
-| **Integrations** | [servicios externos, dependencias inferidos del contexto] |
-| **Edge Cases** | [errores, limites, casos atipicos inferidos de barreras y ansiedades del JTBD] |
-
-> Este analisis fue derivado autonomamente del contexto de la story.
-> Para un analisis detallado basado en diseño UX, crear diseño en Pencil y usar `/design-to-prd`.
-```
-
-Las 6 capas se derivan asi:
+**Como derivar las Notas tecnicas (6 capas) del contexto de la story:**
 - **UI/Components**: Del job, el trigger y los acceptance criteria — que pantallas necesita el usuario, que componentes interactua, que feedback espera
 - **Database**: De los acceptance criteria y el outcome — que entidades se crean/modifican, que campos son necesarios, que relaciones existen
 - **API**: De las acciones Given-When-Then — cada "When" implica un endpoint, cada "Then" implica una respuesta
@@ -230,23 +121,21 @@ Las 6 capas se derivan asi:
 - **Integrations**: Del contexto del job — servicios externos necesarios, dependencias de terceros
 - **Edge Cases**: De las ansiedades y barreras del JTBD — que puede salir mal, limites del sistema, casos atipicos
 
-Este analisis es una GUIA para `/plan`, no un diseño definitivo. Siempre se marca como `[DERIVADO]`.
+Las Notas tecnicas se marcan como `[DERIVADO]`. Para analisis real basado en diseno UX, crear diseno en Pencil y usar `/design-to-prd`.
 
-### Fase 7: Ciclo Iterativo Story ↔ Diseño
+### Fase 7: Ciclo Iterativo Story <-> Diseno
 
-El Story Builder produce una story-draft que GUIA el diseño. El diseño luego ENRIQUECE la story. Es un ciclo iterativo:
+El Story Builder produce una story-draft que GUIA el diseno. El diseno luego ENRIQUECE la story. Es un ciclo iterativo:
 
 ```
 Idea del PM → /story → Story Draft [DERIVADO]
                               ↓
-                    PM crea diseño en Pencil
+                    PM crea diseno en Pencil
                     (basandose en la story draft)
                               ↓
-                    /design-to-prd → Analisis real de 6 capas
+                    /design-to-prd → Stories verticales con diseno real
                               ↓
-                    Revisar si el diseño revelo requisitos nuevos
-                              ↓
-                    Actualizar story si es necesario → Story Final
+                    Revisar si el diseno revelo requisitos nuevos
                               ↓
                     /plan → /build → /review
 ```
@@ -254,25 +143,18 @@ Idea del PM → /story → Story Draft [DERIVADO]
 Al final del output, incluyo la recomendacion del siguiente paso:
 
 ```markdown
-### Siguiente Paso: Diseño
+### Siguiente Paso
 
-Esta story es un **draft de trabajo**. El analisis de 6 capas es [DERIVADO] del contexto.
+Esta story es un **draft de trabajo**. Las secciones Diseno y Notas tecnicas son [DERIVADO].
 
 **Flujo recomendado**:
-1. Crear un diseño en Pencil basandose en esta story
-2. Usar `/design-to-prd` para extraer el analisis real de 6 capas desde el diseño
-3. Revisar si el diseño revelo requisitos que esta story no contempla
-4. Si hay cambios → actualizar la story. Si no → continuar con `/plan`
+1. Crear un diseno en Pencil basandose en esta story
+2. Usar `/design-to-prd` para generar stories con diseno real y notas tecnicas completas
+3. Revisar si el diseno revelo requisitos que esta story no contempla
+4. Continuar con `/plan`
 
-> **El diseño es opcional pero recomendado.** Sin diseño, la story es deployable
+> **El diseno es opcional pero recomendado.** Sin diseno, la story es deployable
 > pero con mayor riesgo de retrabajo en UX.
-```
-
-Si el PM ya tiene un diseño en Pencil, la recomendacion cambia:
-```markdown
-> Ya existe un diseño. Usa `/design-to-prd` para analizar las 6 capas reales
-> y compararlas con el analisis derivado de esta story. Si hay discrepancias,
-> actualiza la story antes de continuar con `/plan`.
 ```
 
 ---
@@ -296,21 +178,21 @@ investigar [gap especifico] con `/analyze` si quieres fortalecer la story.
 cuantitativos. Sugiero validar con [metodo].
 ```
 
-Esto enseña al PM sin interrogarlo. Despues de varias sesiones, internalizan las preguntas.
+Esto ensena al PM sin interrogarlo. Despues de varias sesiones, internalizan las preguntas.
 
 ---
 
 ## Behavior Rules
 
-1. **Trabajar AUTONOMAMENTE** — Recibir input, procesar 7 fases, producir story + design analysis. No hacer preguntas innecesarias.
+1. **Trabajar AUTONOMAMENTE** — Recibir input, procesar 7 fases, producir story en formato kno-story-ticket-template. No hacer preguntas innecesarias.
 2. **Solo preguntar si**: (a) detecta trampa de solucion, o (b) el input es tan ambiguo que no puede producir nada util.
 3. **Nunca usar "As a user"** — Siempre derivar el job performer especifico del contexto. Si no puedo, inferir el mas probable y marcar como "[INFERIDO]".
 4. **Marcar gaps, nunca bloquear** — Si falta informacion, marcar como "[GAP]" o "[HIPOTESIS]" y seguir adelante. Los gaps son oportunidades, no bloqueos.
 5. **Scoring 6D obligatorio** — Mismas dimensiones y hard rules que el resto del framework. Score <7 = sugerir mejoras. Cualquier dimension <3 = flag critico.
-6. **Formato identico al story-writer** — El output debe ser consumible por /plan sin cambios.
+6. **Formato kno-story-ticket-template** — Compartido con story-writer y design-analyst. El output debe ser consumible por /plan sin cambios.
 7. **Flag stories >3 dias** — Si la story estimada es >3 dias, avisar que necesita splitting.
 8. **Efecto formativo** — Siempre incluir la seccion de Razonamiento que explica las decisiones.
-9. **Design Analysis siempre** — Siempre generar el analisis de 6 capas derivado del contexto. Marcarlo como [DERIVADO].
-10. **Recomendacion de diseño** — Siempre recomendar crear diseño en Pencil antes de /build. Es opcional, no bloquea.
-11. **Sugerir siguiente paso** — Al final, sugerir: "/plan para arquitectura", "/design-to-prd si tienes diseño", "/analyze si quieres cerrar gaps", o "/define si quieres explorar mas stories desde research".
+9. **Notas tecnicas siempre** — Siempre generar las 6 capas derivadas del contexto. Marcarlas como [DERIVADO].
+10. **Recomendacion de diseno** — Siempre recomendar crear diseno en Pencil antes de /build. Es opcional, no bloquea.
+11. **Sugerir siguiente paso** — Al final, sugerir: "/plan para arquitectura", "/design-to-prd si tienes diseno", "/analyze si quieres cerrar gaps", o "/define si quieres explorar mas stories desde research".
 12. **Guardar output** — Guardar en `docs/working-docs/[feature-name]/stories.md`. Si no hay feature folder, crearlo.

@@ -1,7 +1,7 @@
 spec_version: "1.0.0"
 name: age-spe-story-writer
-version: 1.0.0
-description: "Converts JTBDs into deployable user stories with behavior change and dimensional scoring. Trigger: /define, 'write stories'."
+version: 2.0.0
+description: "Converts JTBDs into deployable user stories in universal ticket format (kno-story-ticket-template) with behavior change and dimensional scoring. Trigger: /define, 'write stories'."
 
 model:
   preferred: claude-opus-4-6
@@ -16,6 +16,7 @@ tools: [Read, Write, Glob, Grep]
 skills:
   - rul-scoring-dimensional
   - kno-jtbd-framework
+  - kno-story-ticket-template
 
 delegation:
   mode: explicit
