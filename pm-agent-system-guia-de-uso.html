@@ -460,6 +460,7 @@
       <div class="step-agents">Orquestador (ligero ~15%) → spawna sub-agente fresco (200k tokens) por cada story</div>
       <div class="step-output">Output: <b>Codigo + tests + stub scan por story</b> -> actualiza tasks/todo.md + tasks/build-state.md</div>
       <div class="step-tip">Context Engineering: cada story se implementa en su propia ventana de contexto. La calidad es PEAK para cada story, no importa cuantas haya.</div>
+      <div class="step-tip" style="border-left-color:rgba(255,159,67,0.15);color:var(--orange);background:rgba(255,159,67,0.05)">Inspirado en GSD: <b>Analysis Paralysis Guard</b> (5+ lecturas sin escribir = forzar accion), <b>Fix Attempt Limit</b> (3 intentos max por error), <b>Deviation Rules</b> (bugs→auto-fix, cambios arquitecturales→STOP y preguntar al PM).</div>
       <div class="step-warn">Si se interrumpe, /build retoma donde quedo gracias a build-state.md.</div>
     </div>
     <div class="card card-accent">
@@ -1013,7 +1014,11 @@ git fetch --prune</div>
       <b>/build usa Context Engineering</b>: el orquestador lee SOLO el sprint plan (metadata) y spawna un <b>sub-agente fresco por cada story</b>. Cada sub-agente tiene su propia ventana de 200k tokens → calidad PEAK para cada story, sin importar cuantas haya en el sprint.<br><br>
       <b>Antes</b>: Claude implementaba todo en una sesion. Despues de 3-4 stories, el contexto se llenaba y la calidad caia.<br>
       <b>Ahora</b>: Cada story tiene contexto fresco. El orquestador se mantiene ligero (~15%). Si se interrumpe, retoma con build-state.md.<br><br>
-      <b>Regla anti-reflexiva</b>: Stories independientes no reciben referencias de otras stories. Solo se pasan dependencias reales (tipos compartidos, APIs).
+      <b>Regla anti-reflexiva</b>: Stories independientes no reciben referencias de otras stories. Solo se pasan dependencias reales (tipos compartidos, APIs).<br><br>
+      <b>Guardrails del sub-agente</b> (inspirados en GSD):<br>
+      • <b>Analysis Paralysis Guard</b>: 5+ lecturas sin escribir = forzar accion o declarar bloqueo<br>
+      • <b>Fix Attempt Limit</b>: 3 intentos max por error, luego documentar y seguir<br>
+      • <b>Deviation Rules</b>: Bug/Missing/Blocker→auto-fix | Architectural→STOP y preguntar al PM
     </div>
   </div>
   <div class="folder-card" style="border-left-color:var(--text3);margin-bottom:10px">

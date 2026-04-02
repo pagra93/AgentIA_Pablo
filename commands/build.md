@@ -97,6 +97,30 @@ IMPLEMENT:
 - Follow rul-definition-of-done checklist
 - Follow rul-git-branch-management
 
+ANALYSIS PARALYSIS GUARD:
+If you make 5+ consecutive Read/Grep/Glob calls without any Edit/Write/Bash action:
+STOP. State in one sentence why you haven't written anything yet. Then either:
+1. Write code (you have enough context), or
+2. Report 'blocked' with the specific missing information.
+Do NOT continue reading. Analysis without action is a stuck signal.
+
+FIX ATTEMPT LIMIT:
+Track fix attempts per failing test or error. After 3 attempts on the same issue:
+- STOP fixing
+- Document the issue in your report under 'Deferred Issues'
+- Continue to the next task
+- Do NOT restart the build or keep retrying
+
+DEVIATION RULES (unexpected work during implementation):
+| Rule | Trigger | Action |
+|------|---------|--------|
+| 1: Bug | Broken behavior, test failures from your changes | Fix automatically, verify |
+| 2: Missing Critical | Missing error handling, auth, validation | Add it, test, verify |
+| 3: Blocking | Missing dependency, wrong types, broken import | Fix the blocker, verify |
+| 4: Architectural | New DB table, schema change, new service | STOP — report to PM, do NOT proceed |
+Priority: Rule 4 (STOP) > Rules 1-3 (auto-fix) > Unsure → treat as Rule 4.
+Scope: Only auto-fix issues DIRECTLY caused by the current story's changes.
+
 STUB CHECK:
 Before declaring done, scan all files you created/modified for:
 - Empty arrays/objects (=[], ={}) that flow to rendering
@@ -115,7 +139,8 @@ When done, report back:
 - Tests written and results (pass/fail)
 - Commit hash
 - Any stubs remaining (with file:line)
-- Any issues or deviations from the story spec
+- Any deferred issues (from fix attempt limit)
+- Any deviations from the story spec (with Rule number)
 "
 ```
 

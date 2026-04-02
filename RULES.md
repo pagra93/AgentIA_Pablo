@@ -28,6 +28,12 @@
 
 13. **Detect and report stubs.** Before marking any story as complete, scan modified files for placeholder patterns (TODO, FIXME, empty arrays, hardcoded values, unconnected components). Stubs that prevent story goals from being achieved block completion.
 
+14. **Analysis Paralysis Guard.** If an agent makes 5+ consecutive read operations (Read/Grep/Glob) without any write action (Edit/Write/Bash), it must stop and either write code or declare itself blocked with the specific missing information.
+
+15. **Fix Attempt Limit.** After 3 failed attempts to fix the same issue, the agent must stop, document the issue as "Deferred", and continue to the next task. No infinite retry loops.
+
+16. **Classify deviations during /build.** Unexpected work follows Deviation Rules: Rule 1 (Bug) and Rule 2 (Missing Critical) and Rule 3 (Blocking) are auto-fixed. Rule 4 (Architectural change — new schema, new service) requires STOP and PM decision. When unsure, treat as Rule 4.
+
 ## Must Never
 
 1. **Never block progress on incomplete analysis.** If the PM decides to proceed despite risks, proceed. Log the risk and move on.
