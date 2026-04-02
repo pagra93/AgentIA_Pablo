@@ -235,7 +235,7 @@
       <br>
       <b>Flujo:</b><br>
       <span style="color:var(--red)">/define</span> — Le cuentas la idea. Genera stories con scoring.<br>
-      <span style="color:var(--orange)">/build</span> — Implementa.<br>
+      <span style="color:var(--orange)">/build</span> — Implementa (contexto fresco por story).<br>
       <span style="color:var(--green2)">/save</span> — Commit + push.<br>
       <span style="color:var(--white)">/review</span> — Solo si quieres QA. Opcional para cosas pequenas.<br>
       <br>
@@ -250,7 +250,8 @@
   <span style="color:var(--yellow)">quality-coach</span>: "Score 7.5/10 — lista para sprint"
 
 <span style="color:var(--orange);font-weight:600">/build</span>
-  Claude Code implementa directamente (lee CLAUDE.md)
+  Orquesta sub-agentes con <span style="color:var(--orange)">contexto fresco</span> por story
+  Cada story se implementa en su propia ventana de 200k tokens
   <span style="color:var(--text3)">Si es frontend: /impeccable:polish despues de construir (opcional)</span>
 
 <span style="color:var(--green2);font-weight:600">/save</span>   → commit + push
@@ -274,7 +275,7 @@
       <span style="color:var(--red)">/analyze</span> — Quality Guard evalua + Researcher investiga gaps<br>
       <span style="color:var(--red)">/define</span> — JTBDs + stories (crea o enriquece) + quality review + split si >3d<br>
       <span style="color:var(--green2)">/plan</span> — Arquitectura + sprint plan en tasks/todo.md<br>
-      <span style="color:var(--orange)">/build</span> — Implementa story por story, commit por commit<br>
+      <span style="color:var(--orange)">/build</span> — Sub-agente fresco por story, commit por commit<br>
       <span style="color:var(--green2)">/save</span> — Despues de cada story<br>
       <span style="color:var(--white)">/review</span> — QA completo + "Genero docs?"<br>
       <br>
@@ -298,7 +299,7 @@
   <span style="color:var(--blue)">tech-architect</span>: WebSockets vs SSE vs polling, ADR generado
   <span style="color:var(--blue)">sprint-planner</span>: 5 stories priorizadas en tasks/todo.md
 
-<span style="color:var(--orange);font-weight:600">/build</span>  Claude Code implementa directamente
+<span style="color:var(--orange);font-weight:600">/build</span>  Sub-agente fresco por story (context engineering)
   <span style="color:var(--text3)">Si frontend: /impeccable:audit antes de review (opcional)</span>
 <span style="color:var(--green2);font-weight:600">/save</span> → <span style="color:var(--white);font-weight:600">/review</span> → "Genero docs?" → Si</div>
   </div>
@@ -364,8 +365,8 @@
   <div class="section-title" style="color:var(--blue)">Como Funcionan los Tokens</div>
 
   <div class="principle-card" style="border-left-color:var(--blue)">
-    <div class="principle-name">Los agentes NO se cargan todos a la vez</div>
-    <div class="principle-desc">Cada agente se ejecuta en su propio contexto separado (via Agent tool). Si /define usa 4 agentes, son 4 contextos independientes — no se acumulan los 4 en tu ventana.</div>
+    <div class="principle-name">Los agentes NO se cargan todos a la vez (Context Engineering)</div>
+    <div class="principle-desc">Cada agente se ejecuta en su propio contexto separado. Si /define usa 4 agentes, son 4 contextos independientes. Y /build va mas alla: spawna un sub-agente fresco (200k tokens) por cada story — la calidad es PEAK para todas, sin importar cuantas haya.</div>
   </div>
   <div class="principle-card" style="border-left-color:var(--green2)">
     <div class="principle-name">Tu solo nombras agentes cuando quieres algo especifico</div>
@@ -455,17 +456,17 @@
       <div class="step-tip">Revisa las ADRs (decisiones tecnicas). Ahi esta el "por que" de cada eleccion. El plan va a tasks/todo.md.</div>
     </div>
     <div class="card card-accent">
-      <div class="step-header"><span class="cmd-badge">Paso 4: /build</span><span class="step-title">Implementa las stories</span></div>
-      <div class="step-agents">Enruta a: frontend-dev / backend-arch / mobile-builder (pueden ir en paralelo)</div>
-      <div class="step-output">Output: <b>Codigo + tests por story</b> -> actualiza tasks/todo.md</div>
-      <div class="step-tip">Para tareas de menos de 30 segundos, no uses agentes. Prompt directo a Claude Code es mejor.</div>
-      <div class="step-warn">Haz commit despues de cada story completada. No acumules.</div>
+      <div class="step-header"><span class="cmd-badge">Paso 4: /build</span><span class="step-title">Implementa con contexto fresco por story</span></div>
+      <div class="step-agents">Orquestador (ligero ~15%) → spawna sub-agente fresco (200k tokens) por cada story</div>
+      <div class="step-output">Output: <b>Codigo + tests + stub scan por story</b> -> actualiza tasks/todo.md + tasks/build-state.md</div>
+      <div class="step-tip">Context Engineering: cada story se implementa en su propia ventana de contexto. La calidad es PEAK para cada story, no importa cuantas haya.</div>
+      <div class="step-warn">Si se interrumpe, /build retoma donde quedo gracias a build-state.md.</div>
     </div>
     <div class="card card-accent">
       <div class="step-header"><span class="cmd-badge">Paso 5: /review</span><span class="step-title">Verifica, testea, documenta</span></div>
-      <div class="step-agents">test-engineer -> code-reviewer (con memoria) -> auditor -> evaluator -> optimizer</div>
+      <div class="step-agents">test-engineer -> code-reviewer -> <b>stub scan + verificacion estructural</b> -> auditor -> evaluator -> optimizer</div>
       <div class="step-output">Output: <b>DONE + qa/qa-report.md actualizado + tasks/lessons.md + docs/PROJECT_KNOWLEDGE.md</b></div>
-      <div class="step-tip">El optimizer actualiza tasks/lessons.md y memory/MEMORY.md automaticamente con lo aprendido.</div>
+      <div class="step-tip">Nuevo: detecta stubs (TODO, FIXME, arrays vacios) y verifica Verdades/Artefactos/Conexiones de cada story antes de pasar a audit.</div>
     </div>
   </div>
 
@@ -643,13 +644,13 @@ git fetch --prune</div>
 
 <span style="color:var(--text3)"># FAST TRACK (diseno detallado, dominio conocido):</span>
 <span style="color:var(--green2);font-weight:600">/plan</span>                     <span style="color:var(--text3)"># Arquitectura + sprint plan (directo)</span>
-<span style="color:var(--orange);font-weight:600">/build</span>                    <span style="color:var(--text3)"># Implementar story por story</span>
+<span style="color:var(--orange);font-weight:600">/build</span>                    <span style="color:var(--text3)"># Sub-agente fresco por story (context engineering)</span>
 
 <span style="color:var(--text3)"># FULL PIPELINE (incertidumbre, dominio nuevo):</span>
 <span style="color:var(--red);font-weight:600">/analyze</span>                  <span style="color:var(--text3)"># Quality Guard evalua PRD + research gaps</span>
 <span style="color:var(--purple);font-weight:600">/define</span>                   <span style="color:var(--text3)"># Enriquece secciones [DERIVADO] con JTBDs + evidence (preserva Diseno+Notas)</span>
 <span style="color:var(--green2);font-weight:600">/plan</span>                     <span style="color:var(--text3)"># Arquitectura + sprint plan</span>
-<span style="color:var(--orange);font-weight:600">/build</span>                    <span style="color:var(--text3)"># Implementar</span>
+<span style="color:var(--orange);font-weight:600">/build</span>                    <span style="color:var(--text3)"># Implementar (contexto fresco/story)</span>
 <span style="color:var(--white);font-weight:600">/review</span>                   <span style="color:var(--text3)"># Test + QA cycle</span>
 
 <span style="color:var(--text3)"># Al final, cada feature tiene:</span>
@@ -811,6 +812,14 @@ git fetch --prune</div>
     <div class="principle-name">Minimum Viable Complexity</div>
     <div class="principle-desc">La solucion mas simple que funcione. Tres lineas similares son mejores que una abstraccion prematura.</div>
   </div>
+  <div class="principle-card" style="border-left-color:var(--orange)">
+    <div class="principle-name">Context Engineering (Fresh Context Per Story)</div>
+    <div class="principle-desc">La calidad de un LLM se degrada al llenar su ventana de contexto. /build spawna un sub-agente fresco por cada story — 200k tokens dedicados. El orquestador se mantiene ligero (~15%), pasando RUTAS de archivos, no contenido. Regla anti-reflexiva: stories independientes no reciben referencias cruzadas.</div>
+  </div>
+  <div class="principle-card" style="border-left-color:var(--green2)">
+    <div class="principle-name">Structural Verification (Must-Haves)</div>
+    <div class="principle-desc">Cada story define Verdades (que debe ser cierto), Artefactos (que archivos deben existir con contenido real), y Conexiones (que debe estar cableado). /review verifica esto automaticamente y detecta stubs (TODO, FIXME, arrays vacios) antes de pasar a QA audit.</div>
+  </div>
 
   <div class="section-title" style="color:var(--blue)">Dos Niveles de Instalacion</div>
 
@@ -826,13 +835,15 @@ git fetch --prune</div>
 <span class="highlight">/analyze</span>  -->  <span class="highlight">/define</span>  -->  <span class="highlight">/plan</span>  -->  <span class="highlight">/build</span>  -->  <span class="highlight">/review</span>
     |              |              |              |              |
     v              v              v              v              v
-<span class="agent">quality-guard</span>  <span class="agent">jtbd-architect</span>  <span class="agent">tech-architect</span>  Claude Code    <span class="agent">test-engineer</span>
-<span class="agent">researcher</span>     <span class="agent">story-writer</span>    <span class="agent">sprint-planner</span>  implementa     <span class="agent">code-reviewer</span>
-               <span class="agent">quality-coach</span>                   directamente   <span class="agent">auditor</span>
-               <span class="agent">story-splitter</span>                                  <span class="agent">evaluator</span>
-    |              |              |              |           <span class="agent">optimizer</span>
-    v              v              v              v              |
-<span class="file">docs/analysis/</span> <span class="file">docs/working-docs/</span> <span class="file">tasks/todo.md</span>  commits        v
+<span class="agent">quality-guard</span>  <span class="agent">jtbd-architect</span>  <span class="agent">tech-architect</span>  <span class="decision">Orquestador</span>    <span class="agent">test-engineer</span>
+<span class="agent">researcher</span>     <span class="agent">story-writer</span>    <span class="agent">sprint-planner</span>  (ligero ~15%)  <span class="agent">code-reviewer</span>
+               <span class="agent">quality-coach</span>                   ↓ sub-agente   <span class="decision">stub scan</span>
+               <span class="agent">story-splitter</span>                  fresco/story   <span class="decision">verify must-haves</span>
+    |              |              |              |           <span class="agent">auditor</span>
+    v              v              v              v           <span class="agent">evaluator</span>
+<span class="file">docs/analysis/</span> <span class="file">docs/working-docs/</span> <span class="file">tasks/todo.md</span>  commits     <span class="agent">optimizer</span>
+                                              <span class="file">build-state.md</span>     |
+                                                               v
                                                            <span class="file">qa/qa-report.md</span>
 
 <span style="color:var(--purple)">CAMINO RAPIDO (idea sin PRD):</span>
@@ -855,7 +866,7 @@ git fetch --prune</div>
     <tr><td>analyst</td><td>Leer, analizar, investigar, puntuar</td><td>Escribir codigo, definir stories</td><td>quality-guard, researcher</td></tr>
     <tr><td>definer</td><td>Crear JTBDs, stories, splits, design analysis derivado</td><td>Escribir codigo, revisar su propio trabajo</td><td>jtbd-architect, story-writer, <b>story-builder</b>, story-splitter</td></tr>
     <tr><td>architect</td><td>Disenar arquitectura, planificar sprints</td><td>Implementar codigo</td><td>tech-architect, sprint-planner</td></tr>
-    <tr><td>engineer</td><td>Escribir codigo, ejecutar tests, commitear</td><td>Revisar su propio codigo</td><td>frontend-dev, backend-arch, mobile-builder</td></tr>
+    <tr><td>engineer</td><td>Escribir codigo, ejecutar tests, commitear</td><td>Revisar su propio codigo</td><td>sub-agentes /build (contexto fresco por story)</td></tr>
     <tr><td>reviewer</td><td>Revisar codigo, aprobar/rechazar, ejecutar tests</td><td>Escribir implementacion</td><td>test-engineer, code-reviewer</td></tr>
     <tr><td style="color:var(--orange)">supervisor</td><td>Leer, puntuar, proponer mejoras</td><td style="color:var(--red)">NADA mas. Solo lectura.</td><td>quality-coach, auditor, evaluator, optimizer</td></tr>
   </table>
@@ -950,7 +961,7 @@ git fetch --prune</div>
       <b>Que hace</b>: Agente AUTONOMO que toma una idea/problema del PM y produce un <b>story ticket completo</b> en formato universal (kno-story-ticket-template). Trabaja 7 fases internas sin interrogar al PM: (1) detecta trampa de solucion, (2) deriva Job con Tecnica del Por Que, (3) Wendel Checklist, (4) 3 dimensiones del job, (5) Behavior Change con START/STOP/DIFFERENT, (6) compila ticket completo (diseno [DERIVADO], criterios BDD, notas tecnicas [DERIVADO], planes pruebas, scoring 6D), (7) recomienda crear diseno en Pencil (opcional). Explica POR QUE tomo cada decision (efecto formativo). Gaps se marcan como [GAP] o [HIPOTESIS] — nunca bloquea.<br><br>
       <b>En pipeline</b>: Se activa con /story.<br>
       <b>Usalo solo cuando</b>: "Tengo una idea y quiero un ticket completo" o "Convierte esto en una user story."<br><br>
-      <b>Flujo iterativo</b>: /story → story ticket → disena en Pencil → /design-to-prd → stories con diseno real → /plan → /build
+      <b>Flujo iterativo</b>: /story → story ticket → disena en Pencil → /design-to-prd → stories con diseno real → /plan → /build (contexto fresco/story)
     </div>
   </div>
 
@@ -994,12 +1005,15 @@ git fetch --prune</div>
     </div>
   </div>
 
-  <!-- ENGINEERING — no agents -->
+  <!-- ENGINEERING — context-engineered sub-agents -->
   <div class="folder-card orange" style="margin-bottom:10px">
-    <div class="folder-name">Engineering — Claude Code implementa directamente</div>
+    <div class="folder-name">Engineering — Context Engineering <span class="badge badge-orange">v3.0</span></div>
     <div class="folder-desc">
-      <b>No hay agentes de engineering</b>. Claude Code ya sabe programar — lee CLAUDE.md para el stack, sigue patrones existentes, incluye tests. Los agentes de frontend/backend/mobile eran redundantes (repetian lo que CLAUDE.md ya dice) y se eliminaron.<br><br>
-      <b>/build</b>: Lee stories + design-analysis + architecture de working-docs/ e implementa directamente. Sin sub-agentes = menos tokens, mismo resultado.
+      <b>No hay agentes de engineering especializados</b>. Claude Code ya sabe programar — lee CLAUDE.md para el stack. Los agentes de frontend/backend/mobile eran redundantes y se eliminaron.<br><br>
+      <b>/build usa Context Engineering</b>: el orquestador lee SOLO el sprint plan (metadata) y spawna un <b>sub-agente fresco por cada story</b>. Cada sub-agente tiene su propia ventana de 200k tokens → calidad PEAK para cada story, sin importar cuantas haya en el sprint.<br><br>
+      <b>Antes</b>: Claude implementaba todo en una sesion. Despues de 3-4 stories, el contexto se llenaba y la calidad caia.<br>
+      <b>Ahora</b>: Cada story tiene contexto fresco. El orquestador se mantiene ligero (~15%). Si se interrumpe, retoma con build-state.md.<br><br>
+      <b>Regla anti-reflexiva</b>: Stories independientes no reciben referencias de otras stories. Solo se pasan dependencias reales (tipos compartidos, APIs).
     </div>
   </div>
   <div class="folder-card" style="border-left-color:var(--text3);margin-bottom:10px">
@@ -1340,14 +1354,14 @@ git fetch --prune</div>
     <div class="folder-relation">Dos puntos de aprobacion PM: arquitectura y sprint plan</div>
   </div>
   <div class="folder-card orange">
-    <div class="folder-name">wor-build.yaml</div>
-    <div class="folder-desc">read_sprint -> build_frontend | build_backend | build_mobile (EN PARALELO) -> track_progress</div>
-    <div class="folder-relation">Frontend y backend pueden correr simultaneamente si las stories son independientes</div>
+    <div class="folder-name">wor-build.yaml <span class="badge badge-orange">v3.0</span></div>
+    <div class="folder-desc">recover_state -> read_sprint (SOLO metadata) -> build_stories (<b>sub-agente fresco por story</b>) -> update_state -> frontend_quality -> remind_review</div>
+    <div class="folder-relation">Context Engineering: cada story se implementa en un sub-agente con 200k tokens. El orquestador se mantiene ligero (~15%). build-state.md permite retomar si se interrumpe.</div>
   </div>
   <div class="folder-card white">
-    <div class="folder-name">wor-review.yaml</div>
-    <div class="folder-desc">test -> code_review -> fix_critical (condicional) -> audit -> evaluate -> optimize -> update_docs -> final_check</div>
-    <div class="folder-relation">El mas complejo. 8 pasos secuenciales. fix_critical solo si hay issues criticos.</div>
+    <div class="folder-name">wor-review.yaml <span class="badge badge-green">v2.0</span></div>
+    <div class="folder-desc">test -> code_review -> fix_critical -> <b>scan_stubs</b> -> <b>verify_must_haves</b> -> audit -> evaluate -> optimize -> update_docs -> final_check</div>
+    <div class="folder-relation">10 pasos. Nuevo: scan_stubs detecta placeholders (TODO, FIXME, arrays vacios). verify_must_haves verifica Verdades/Artefactos/Conexiones de cada story.</div>
   </div>
   <div class="folder-card orange">
     <div class="folder-name">wor-hotfix.yaml</div>
@@ -1447,7 +1461,7 @@ git fetch --prune</div>
     <div class="routine-item">/analyze — evalua el problema primero</div>
     <div class="routine-item">/define — genera stories solo si el analisis salio bien</div>
     <div class="routine-item">/plan — antes de picar codigo, ten un plan en tasks/todo.md</div>
-    <div class="routine-item">/build — implementa story por story</div>
+    <div class="routine-item">/build — sub-agente fresco por story (context engineering)</div>
     <div class="routine-item">/save — commit y push tras cada story completada</div>
     <div class="routine-item">/review — verifica ANTES de merge</div>
   </div>
@@ -1470,8 +1484,10 @@ git fetch --prune</div>
     <div class="routine-item">El sistema es para trabajo sustancial, no para one-liners</div>
   </div>
   <div class="routine-card">
-    <div class="routine-title">Para no perder contexto</div>
-    <div class="routine-item">/compact al 50% de contexto — evita perder calidad</div>
+    <div class="routine-title">Para no perder contexto (Context Engineering)</div>
+    <div class="routine-item">/build usa sub-agentes frescos por story — la calidad es PEAK para todas</div>
+    <div class="routine-item">Si /build se interrumpe, retoma automaticamente con build-state.md</div>
+    <div class="routine-item">/compact al 50% de contexto en sesiones manuales — evita perder calidad</div>
     <div class="routine-item">Commit despues de cada tarea completada</div>
     <div class="routine-item">docs/PROJECT_KNOWLEDGE.md se actualiza con cada /review</div>
     <div class="routine-item">memory/MEMORY.md acumula patrones del Code Reviewer y Optimizer</div>
