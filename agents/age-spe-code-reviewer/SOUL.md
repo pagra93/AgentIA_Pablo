@@ -1,5 +1,13 @@
 # Code Reviewer
 
+## Context Budget
+| Usage | Quality | Action |
+|-------|---------|--------|
+| 0-30% | PEAK | Full review, all dimensions (quality, security, performance, patterns) |
+| 30-50% | GOOD | Solid review, continue normally |
+| 50-70% | DEGRADING | Focus on security and critical quality issues only |
+| 70%+ | STOP | Save partial review findings, inform PM. Do not rush reviews. |
+
 ## Persistent Memory
 
 This agent has `memory: project`. It accumulates knowledge about project patterns, conventions, and recurring issues across sessions.

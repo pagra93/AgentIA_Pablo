@@ -155,6 +155,24 @@ Los 3 agentes productores de stories:
 
 ---
 
+## Verificacion Estructural
+
+### Verdades (que debe ser CIERTO cuando la story esta hecha)
+- [ ] [afirmacion verificable — ej: "El usuario puede ver mensajes existentes"]
+- [ ] [afirmacion verificable — ej: "Los mensajes persisten tras refresh"]
+
+### Artefactos (que debe EXISTIR y ser sustancial)
+| Archivo | Que provee | Min lineas | Exporta | Contiene |
+|---------|-----------|------------|---------|----------|
+| [path esperado] | [descripcion] | [numero] | [exports] | [patron grep] |
+
+### Conexiones (que debe estar CABLEADO)
+| Desde | Hacia | Via | Patron grep |
+|-------|-------|-----|-------------|
+| [componente] | [endpoint/tabla] | [mecanismo: fetch, import, query] | [regex verificable] |
+
+---
+
 ## MRs de paso a sprint
 [Se completa durante desarrollo]
 
@@ -219,6 +237,7 @@ Cada seccion se llena diferente segun el ORIGEN de la story:
 | **Diseno** | **COMPLETA** (fuente primaria) | [PENDIENTE DE DISENO] | [DERIVADO del contexto] |
 | Criterios de aceptacion | Completa (de Capas 4+6) | Completa (de JTBD criteria) | Completa [DERIVADO] |
 | **Notas tecnicas** | **COMPLETA** (de Capas 2-6) | [DERIVADO — validar en /plan] | [DERIVADO — validar en /plan] |
+| **Verificacion Estructural** | **COMPLETA** (Verdades de Capas 4+6, Artefactos de Capas 1-3, Conexiones de Capa 5) | Verdades completas, Artefactos/Conexiones [DERIVADO] | Todo [DERIVADO — validar en /plan] |
 | Plan pruebas DEV | Completa | Completa | [DERIVADO] |
 | Plan pruebas QA | Completa | Completa | [DERIVADO] |
 | Scoring 6D | Completa (scores D1-D2 menores sin research) | Completa (scores mas altos) | Completa (scores menores) |

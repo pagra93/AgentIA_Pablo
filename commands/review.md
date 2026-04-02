@@ -19,6 +19,41 @@ The test-engineer will:
 Invoke **age-spe-code-reviewer**: review for quality, security, performance.
 If critical issues → fix before continuing.
 
+## Step 2.5: Structural Verification (Context Engineering Gates)
+
+### Stub Scan
+Scan all modified files for placeholder patterns:
+- Empty arrays/objects: `= []`, `= {}`, `= null` that flow to rendering
+- Placeholder text: `TODO`, `FIXME`, `placeholder`, `coming soon`, `not available`
+- Components with no data source wired (props always receiving empty/mock data)
+- Functions returning hardcoded values instead of real logic
+
+Report stubs with file:line references. If critical stubs found, fix before continuing.
+
+### Verify Must-Haves
+For each completed story, read its **Verificacion Estructural** section (in the story ticket):
+
+1. **Verdades**: For each truth, verify it's actually true by reading the code.
+   Example: "El usuario puede ver mensajes existentes" → verify the component renders messages from a real data source.
+
+2. **Artefactos**: For each artifact, verify:
+   - File exists at the expected path
+   - File has substantive content (meets min_lines — not a stub)
+   - Expected exports exist (grep for `export`)
+   - Expected patterns are present (grep for the `contains` pattern)
+
+3. **Conexiones**: For each connection, verify:
+   - Source file references the target (grep for the pattern)
+   - The connection mechanism exists (fetch, import, SQL query, etc.)
+
+**Report:**
+| Story | Verdades | Artefactos | Conexiones | Status |
+|-------|----------|-----------|------------|--------|
+| HU-01 | 3/3 | 2/2 | 1/1 | PASS |
+| HU-02 | 2/3 | 1/2 | 0/1 | FAIL — dashboard not wired to API |
+
+If any story FAILS: report gaps to PM. PM decides whether to fix before continuing QA audit or proceed.
+
 ## Step 3: QA Audit Cycle (sequential)
 
 ### 3a: Audit

@@ -1,11 +1,11 @@
-# Workflow: Development
+# Workflow: Development (Context-Engineered)
 # Triggered by: /build command
-# Claude Code implements directly — no engineering sub-agents.
-# For frontend design quality: use Impeccable (/polish, /audit, /typeset)
+# Each story runs in a fresh sub-agent context for consistent PEAK quality.
+# Orchestrator stays lean (~15% context) — coordinates, never implements.
 
 name: wor-build
-description: "Implement stories from sprint plan. Direct implementation + Impeccable for frontend."
-version: 2.0.0
+description: "Implement stories using context-engineered sub-agents. Fresh context per story prevents quality degradation."
+version: 3.0.0
 
 inputs:
   - name: sprint_plan
@@ -13,29 +13,49 @@ inputs:
     default: tasks/todo.md
 
 steps:
-  - id: read_context
-    action: "Read tasks/todo.md + working-docs/[feature]/ (stories, design-analysis, architecture)"
-    outputs: [stories, design_context, architecture]
+  - id: recover_state
+    action: "If tasks/build-state.md exists, read it and resume from last completed story. Skip already-done work."
+    outputs: [resume_point, completed_stories]
 
-  - id: implement
-    action: "For each story: read acceptance criteria, implement following CLAUDE.md, include tests, follow DoD"
-    depends_on: [read_context]
+  - id: read_sprint_plan
+    action: "Read tasks/todo.md — ONLY metadata: story IDs, order, dependencies, file paths.
+             Do NOT read story content, design-analysis, or architecture.
+             Create tasks/build-state.md if it doesn't exist."
+    depends_on: [recover_state]
+    outputs: [stories_to_build, dependencies, working_docs_paths]
+
+  - id: build_stories
+    action: "For each pending story: spawn a Task sub-agent with fresh context.
+             Pass file PATHS in the prompt (story ticket, design-analysis, architecture, CLAUDE.md).
+             Sub-agent reads files itself, implements, writes tests, scans for stubs, commits atomically.
+             Sequential execution — one story at a time."
+    depends_on: [read_sprint_plan]
     inputs:
-      stories: ${{ steps.read_context.outputs.stories }}
-      design: ${{ steps.read_context.outputs.design_context }}
-    outputs: [completed_stories]
-    # No sub-agents. Claude Code implements directly.
-    # For frontend: suggest Impeccable /polish and /audit after UI work.
+      stories: ${{ steps.read_sprint_plan.outputs.stories_to_build }}
+      deps: ${{ steps.read_sprint_plan.outputs.dependencies }}
+    outputs: [build_results, commits, stubs_found]
+    # CONTEXT ENGINEERING:
+    # - Each sub-agent gets fresh 200k context → PEAK quality for every story
+    # - Orchestrator passes PATHS, not content → stays at ~15%
+    # - Anti-reflexive: only pass prior work refs if story has explicit dependency
+    # - Sub-agent does stub scan before committing
 
-  - id: track_progress
-    action: "Update tasks/todo.md marking completed. Commit after each story."
-    depends_on: [implement]
-    outputs: [all_done]
+  - id: update_state
+    action: "After each story: update tasks/build-state.md with completion status and tasks/todo.md marking done"
+    depends_on: [build_stories]
+    outputs: [state_updated]
+
+  - id: frontend_quality
+    action: "If stories included frontend work, suggest Impeccable: /polish, /audit, /typeset, /arrange"
+    depends_on: [update_state]
+    outputs: [quality_suggested]
 
   - id: remind_review
-    action: "ALWAYS remind: 'Sprint built. Next: /review for tests, QA, and docs.'"
-    depends_on: [track_progress]
+    action: "Show build summary table (story, commit, stubs, issues).
+             ALWAYS remind: 'Sprint built. Next: /review for tests, structural verification, QA audit, and docs.'"
+    depends_on: [frontend_quality]
     outputs: [reminded]
 
 error_handling:
   on_step_failure: inform_pm
+  message: "Build step failed. Check tasks/build-state.md for progress. Run /build again to resume."

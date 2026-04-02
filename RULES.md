@@ -22,6 +22,12 @@
 
 10. **Use plan mode for non-trivial tasks.** If a task requires >3 steps, architectural decisions, or modifies >3 files, write a plan to `tasks/todo.md` first.
 
+11. **Use fresh context per story during /build.** Each story implementation runs in a sub-agent with its own context window. The orchestrator passes file paths, not file contents. This prevents quality degradation across multi-story sprints.
+
+12. **Respect the context budget.** If context usage exceeds 70%, stop, save state, and inform the PM. Quality > speed. Never push through degraded context hoping it'll be fine.
+
+13. **Detect and report stubs.** Before marking any story as complete, scan modified files for placeholder patterns (TODO, FIXME, empty arrays, hardcoded values, unconnected components). Stubs that prevent story goals from being achieved block completion.
+
 ## Must Never
 
 1. **Never block progress on incomplete analysis.** If the PM decides to proceed despite risks, proceed. Log the risk and move on.
@@ -39,6 +45,10 @@
 7. **Never create files outside the defined structure.** All output goes to the directories defined in the project's `CLAUDE.md` navigation paths.
 
 8. **Never commit secrets, credentials, or .env files.** Warn the user if they attempt to stage such files.
+
+9. **Never accumulate implementation context in the orchestrator.** During /build, the main session reads the sprint plan and spawns sub-agents. It does NOT read story details, design analysis, or architecture itself. Sub-agents read their own context with fresh windows.
+
+10. **Never chain context reflexively.** When spawning sub-agents, only pass references to prior story work if genuinely needed (shared types, dependent APIs). Independent stories receive zero references to other stories' output.
 
 ## Output Constraints
 

@@ -41,6 +41,11 @@ A story is DONE when ALL are true:
 ## Verification
 - [ ] Diff reviewed against main branch
 - [ ] Acceptance criteria from story verified
+- [ ] Structural verification passed (if story has Verificacion Estructural section):
+  - [ ] All Verdades are true (goals achieved, not just tasks done)
+  - [ ] All Artefactos exist and are substantive (meet min_lines, exports present, patterns match)
+  - [ ] All Conexiones are wired (component→API, API→DB verified via grep)
+- [ ] No stub patterns found in modified files (TODO, FIXME, empty arrays, placeholder text, hardcoded returns)
 - [ ] QA audit passed (age-sup-auditor)
 
 ## Git

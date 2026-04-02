@@ -41,6 +41,29 @@ steps:
       - ${{ steps.code_review.outputs.issues.any(i => i.severity == 'critical') }}
     outputs: [fixes_applied]
 
+  # --- STRUCTURAL VERIFICATION (context engineering gates) ---
+
+  - id: scan_stubs
+    action: "Scan all modified files for stub/placeholder patterns:
+             empty arrays/objects (=[], ={}), placeholder text (TODO, FIXME, 'coming soon'),
+             components with no data source, functions returning hardcoded values.
+             Report stubs with file:line references."
+    depends_on: [fix_critical]
+    outputs: [stub_report, stubs_found]
+
+  - id: verify_must_haves
+    action: "For each completed story, read its Verificacion Estructural section:
+             1. Verdades — verify each truth is actually true by reading the code
+             2. Artefactos — verify files exist, are substantive (not stubs), exports present, patterns match
+             3. Conexiones — verify wiring via grep (component→API, API→DB)
+             Report: story | verdades | artefactos | conexiones | PASS/FAIL"
+    depends_on: [scan_stubs]
+    inputs:
+      stubs: ${{ steps.scan_stubs.outputs.stub_report }}
+    outputs: [structural_verification, gaps]
+    # If gaps found, report to PM before continuing to audit.
+    # PM decides whether to fix before QA or proceed.
+
   # --- QA AUDIT CYCLE (supervisors, all read-only) ---
 
   - id: audit
