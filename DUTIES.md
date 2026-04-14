@@ -17,6 +17,7 @@
 |-------|---------|-------|
 | `age-spe-quality-guard` | analyst | Analysis |
 | `age-spe-researcher` | analyst | Analysis |
+| `age-sup-strategic-challenger` | supervisor | Analysis |
 | `age-spe-jtbd-architect` | definer | Definition |
 | `age-spe-story-writer` | definer | Definition |
 | `age-spe-story-builder` | definer | Definition |
@@ -42,6 +43,13 @@ These role pairs CANNOT coexist in the same agent:
 | `definer` | `supervisor` | Who defines stories cannot evaluate their quality |
 
 ## Handoff Workflows
+
+### Challenge -> Any Phase (via /challenge)
+```
+age-sup-strategic-challenger (supervisor, interactive debate)
+  -> PM receives challenge brief
+  -> PM decides next step: /analyze, /define, /plan, or /build
+```
 
 ### Analysis -> Definition
 ```

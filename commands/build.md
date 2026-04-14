@@ -83,9 +83,13 @@ FILES TO READ:
    - Acceptance criteria (Given-When-Then)
    - Design section (anatomy, navigation, interaction)
    - Technical notes (data model, API endpoints, business logic, edge cases)
+   - Dependencias del Proyecto (what existing assets to USE, what new assets to CREATE)
    - Verificacion Estructural (if exists — what must be TRUE, EXIST, and WIRED)
 3. docs/working-docs/[feature]/design-analysis.md — if exists, 6-layer analysis
 4. docs/working-docs/[feature]/architecture.md — if exists, ADRs and component design
+5. docs/project-registry.md — ONLY IF the story's 'Dependencias del Proyecto > Usa' section
+   references existing assets. Read the Quick Reference for orientation, then the relevant
+   categories (CATEGORY:db, CATEGORY:api, etc.) to find paths and interfaces of existing assets.
 
 IMPLEMENT:
 - Follow CLAUDE.md conventions strictly

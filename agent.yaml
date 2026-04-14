@@ -1,9 +1,9 @@
 spec_version: "1.0.0"
 name: pm-agent-system
-version: 2.1.0
+version: 2.2.0
 description: >
-  Sistema operativo de Product Management con IA. Orquesta 15 agentes especializados
-  a traves de 14 workflows DAG para cubrir el ciclo completo: desde disenos en Pencil
+  Sistema operativo de Product Management con IA. Orquesta 16 agentes especializados
+  a traves de 15 workflows DAG para cubrir el ciclo completo: desde disenos en Pencil
   hasta codigo deployado con QA verificado. Metodologia Mercadona (Quality Guard,
   Mom Test, JTBD Reforzado, 6D Scoring). Anti-bloat rules. PM valida siempre.
   Engineering: Claude Code implementa directamente + Impeccable para frontend quality.
@@ -18,7 +18,7 @@ model:
     temperature: 0.2
     max_tokens: 16384
 
-# --- Agents (15 total: 11 specialists + 4 supervisors) ---
+# --- Agents (16 total: 11 specialists + 5 supervisors) ---
 # Engineering has no dedicated agents — Claude Code implements directly.
 # Frontend design quality: use Impeccable (https://impeccable.style/)
 agents:
@@ -41,6 +41,12 @@ agents:
     delegation:
       mode: explicit
       triggers: [design_to_prd, analyze_designs]
+  age-sup-strategic-challenger:
+    path: agents/age-sup-strategic-challenger/
+    description: "Sparring partner estrategico. Desafia premisas, debate, fuerza evidencia. Supervisor. Trigger: /challenge"
+    delegation:
+      mode: explicit
+      triggers: [challenge_command, debate_request]
 
   # Definition
   age-spe-jtbd-architect:
@@ -150,9 +156,11 @@ knowledge:
   - kno-story-splitting
   - kno-testing-strategy
   - kno-story-ticket-template
+  - kno-strategic-thinking
 
-# --- Workflows (14 commands) ---
+# --- Workflows (15 commands) ---
 workflows:
+  - wor-challenge
   - wor-analyze
   - wor-define
   - wor-story

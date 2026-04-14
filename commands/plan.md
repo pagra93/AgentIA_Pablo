@@ -8,7 +8,11 @@ description: "Launch Planning phase — design architecture and create sprint pl
 Validated stories from /define.
 
 ## Step 1: Architecture Design
-Invoke **age-spe-tech-architect** with stories. Must read CLAUDE.md for stack constraints.
+Invoke **age-spe-tech-architect** with stories. Must read CLAUDE.md for stack constraints AND `docs/project-registry.md` for existing assets.
+- Do NOT redesign tables/services that already exist in the registry (`planned` or `active`)
+- Architecture extends existing assets, never duplicates them
+- Reference registry assets by name when designing data flow
+
 Present architecture. Ask PM: "Approve or adjust?"
 
 ## Step 2: Sprint Planning

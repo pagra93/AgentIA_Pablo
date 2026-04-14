@@ -19,10 +19,11 @@ outputs:
 
 steps:
   - id: design_architecture
-    action: "Design simplest architecture fulfilling stories. Read CLAUDE.md for stack constraints. Generate ADRs."
+    action: "Read docs/project-registry.md for existing assets (planned and active). Design simplest architecture fulfilling stories, reusing existing tables/services/components. Read CLAUDE.md for stack constraints. Generate ADRs."
     agent: age-spe-tech-architect
     inputs:
       stories: ${{ inputs.stories }}
+      project_registry: docs/project-registry.md
     outputs: [architecture, adrs, components]
 
   - id: architecture_risk_scan

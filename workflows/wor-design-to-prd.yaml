@@ -26,14 +26,20 @@ steps:
       screens: ${{ steps.read_designs.outputs.screens }}
     outputs: [features, screen_to_feature_map]
 
-  - id: analyze_layers
-    action: "For each feature, analyze all screens across 6 layers: UI, DB, API, Logic, Integrations, Edge Cases. INTERNAL working step — data redistributed into stories."
-    agent: age-spe-design-analyst
+  - id: read_registry
+    action: "Read docs/project-registry.md (if exists). Extract existing assets (planned or active) to pass as context. If file doesn't exist, return empty."
     depends_on: [group_features]
+    outputs: [existing_assets]
+
+  - id: analyze_layers
+    action: "For each feature, analyze all screens across 6 layers: UI, DB, API, Logic, Integrations, Edge Cases. Reference existing assets from registry (Usa) instead of re-deriving. New assets go to Crea. INTERNAL working step — data redistributed into stories."
+    agent: age-spe-design-analyst
+    depends_on: [group_features, read_registry]
     inputs:
       features: ${{ steps.group_features.outputs.features }}
       screens: ${{ steps.read_designs.outputs.screens }}
       components: ${{ steps.read_designs.outputs.components }}
+      existing_assets: ${{ steps.read_registry.outputs.existing_assets }}
     outputs: [design_analyses, layer_data_per_screen]
 
   - id: slice_vertical_stories
@@ -73,9 +79,16 @@ steps:
       prds: ${{ steps.generate_prds.outputs.prds }}
     outputs: [folders_created]
 
+  - id: update_registry
+    action: "For each story's 'Dependencias del Proyecto > Crea', add new assets to docs/project-registry.md with status 'planned'. Skip assets that already exist. Update Quick Reference and total count."
+    depends_on: [save_documents]
+    inputs:
+      stories: ${{ steps.generate_story_tickets.outputs.stories }}
+    outputs: [registry_updated, new_planned_assets]
+
   - id: present_summary
     action: "Show PM: features detected, stories per feature, suggested priority. Present two paths: Fast Track (/plan) or Full Pipeline (/analyze + /define)."
-    depends_on: [save_documents]
+    depends_on: [save_documents, update_registry]
     inputs:
       features: ${{ steps.group_features.outputs.features }}
       stories: ${{ steps.generate_story_tickets.outputs.stories }}

@@ -46,6 +46,10 @@ Last updated: [date]
 
 ### 4. API Documentation (if APIs changed)
 
+### 5. docs/project-registry.md (if stories have "Dependencias del Proyecto > Crea")
+Promote verified assets from `planned` to `active`. Add Path column with real codebase paths.
+Update Quick Reference summary block and total asset count.
+
 ## When to Run
 
 - After EVERY feature completion (part of /review)

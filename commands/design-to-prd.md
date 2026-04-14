@@ -23,6 +23,13 @@ Abre Pencil, captura screenshots, lee componentes y layout de cada pantalla.
 3 pantallas de catalogo → Feature: "Product Catalog"
 Etc.
 
+### Paso 2.5: Lee el Project Registry
+Si existe `docs/project-registry.md`, leelo ANTES de analizar las 6 capas. Esto te dice que DB, APIs, componentes y servicios ya existen (o estan planificados) en el proyecto:
+- Si una tabla ya existe (`planned` o `active`), referenciala en "Usa" en vez de rederivarla en Notas tecnicas
+- Si un endpoint ya existe, referencialo en vez de redefinirlo
+- Si un componente compartido ya existe, usalo en la Anatomia del Diseno
+- Solo declara en "Crea" los assets genuinamente nuevos
+
 ### Paso 3: Analiza 6 capas por pantalla (paso interno)
 Extrae TODO lo que implica cada pantalla — es material de trabajo interno:
 - **UI**: Componentes, estados, interacciones, responsive, accesibilidad
@@ -47,6 +54,19 @@ Produce tickets completos en formato `kno-story-ticket-template` con:
 
 ### Paso 6: Genera PRD por feature
 PRD en formato Quality Guard (problema, metricas, AS-IS/TO-BE, actores — no solucion tecnica).
+
+### Paso 6.5: Actualiza el Project Registry
+Despues de guardar stories.md, actualiza `docs/project-registry.md`:
+- Para cada asset en la seccion "Crea" de cada story, anade una fila con status `planned`
+- NO anadas assets que ya existen en el registry (evita duplicados)
+- Actualiza el Quick Reference summary y el conteo total
+
+**CRITICAL — Reglas al escribir al registry**:
+1. **Una fila = un asset**. Nunca agrupes. Si una story crea 5 funciones en un archivo, son 5 filas. Si crea 8 endpoints, son 8 filas.
+2. **Ortografía**: aplica `rul-spanish-orthography` si el proyecto esta en español — acentos, ñ, ¿, ¡ en todas las descripciones.
+3. **Inventario puro**: descripciones factuales, no decisiones pendientes ni comentarios editoriales (ej: NO "> Decision se toma en /plan"). Esas van en architecture.md o ADR.
+4. **Categorias base obligatorias**: las 6 categorias base (DB, API, Components, Services, Types, Integrations) NUNCA se eliminan. Deja vacias si no aplican.
+5. **Categorias opcionales**: si el stack lo requiere (React/Next.js → Hooks/Pages, backend con workers → Jobs), anade la categoria opcional respetando el orden del template.
 
 ### Paso 7: Presenta resumen
 Lista de features detectadas con cantidad de stories, y recomienda siguiente paso (Fast Track o Full Pipeline).

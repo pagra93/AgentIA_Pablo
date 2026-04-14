@@ -21,6 +21,10 @@ Present JTBDs. Ask PM: "Approve, modify, or add?"
 
 ## Step 2: Write Stories
 Invoke **age-spe-story-writer** with approved JTBDs.
+- En ambos modos, el writer debe leer `docs/project-registry.md` (si existe) para:
+  - Llenar "Dependencias del Proyecto > Usa" con assets existentes (`planned` o `active`)
+  - Llenar "Dependencias del Proyecto > Crea" con assets nuevos que la story producira
+  - Evitar duplicar en Notas tecnicas tablas/endpoints ya registrados (referenciar, no redefinir)
 - En modo **Enrich**: el writer recibe stories existentes + mapping JTBD→Story. Enriquece secciones debiles, preserva secciones fuertes del design-analyst.
 - En modo **Create**: genera stories desde cero en formato kno-story-ticket-template.
 
@@ -44,6 +48,15 @@ Present final stories with scoring.
 - `docs/working-docs/[feature-name]/stories.md` — Stories (nuevas o enriquecidas)
 
 If no feature folder exists, create it. Always organize by feature, not by phase.
+
+**Update registry**: After saving stories, update `docs/project-registry.md` with assets from each story's "Dependencias del Proyecto > Crea" (status: `planned`). Skip assets that already exist in the registry.
+
+**CRITICAL — Reglas al escribir al registry**:
+1. **Una fila = un asset**. Nunca agrupes funciones/endpoints/componentes, aunque compartan archivo.
+2. **Ortografía**: aplica `rul-spanish-orthography` si el proyecto esta en español — acentos, ñ, ¿, ¡ en descripciones.
+3. **Inventario puro**: descripciones factuales. No decisiones pendientes ni comentarios editoriales.
+4. **Categorias base obligatorias**: las 6 categorias base (DB, API, Components, Services, Types, Integrations) NUNCA se eliminan.
+5. **Categorias opcionales**: si el stack lo requiere (React/Next.js → Hooks/Pages, backend con workers → Jobs), anade la categoria respetando el template.
 
 Next: "Use /plan to create architecture and sprint plan."
 

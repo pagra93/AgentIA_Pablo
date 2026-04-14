@@ -7,6 +7,11 @@ description: "Build a quality user story from an idea — no PRD required. The a
 ## Input
 Idea, problema, conversacion, o contexto del PM. No requiere PRD, research previo, ni documentos.
 
+## Step 0: Read Project Registry
+Si existe `docs/project-registry.md`, lee el Quick Reference para orientarte sobre que assets ya existen (o estan planificados) en el proyecto. Usalo en la Fase 6 (Story Assembly) para:
+- Derivar Notas tecnicas mas precisas (reusar assets existentes, no inventar nuevos)
+- Llenar la seccion "Dependencias del Proyecto" del ticket (Usa/Crea)
+
 ## Step 1: Build Story
 Invoke **age-spe-story-builder** with the PM's input.
 
@@ -28,6 +33,15 @@ If story is estimated >3 days, invoke **age-spe-story-splitter**.
 ## Step 3: Deliver
 Save to `docs/working-docs/[feature-name]/stories.md`
 If no feature folder exists, create it.
+
+**Update registry**: After saving, update `docs/project-registry.md` with assets from the story's "Dependencias del Proyecto > Crea" (status: `planned`). Skip assets that already exist in the registry.
+
+**CRITICAL — Reglas al escribir al registry**:
+1. **Una fila = un asset**. Nunca agrupes funciones/endpoints/componentes en una sola fila, aunque compartan archivo.
+2. **Ortografía**: aplica `rul-spanish-orthography` si el proyecto esta en español — acentos, ñ, ¿, ¡ en descripciones.
+3. **Inventario puro**: descripciones factuales. No decisiones pendientes ni comentarios editoriales.
+4. **Categorias base obligatorias**: las 6 categorias base (DB, API, Components, Services, Types, Integrations) NUNCA se eliminan.
+5. **Categorias opcionales**: si el stack lo requiere (React/Next.js → Hooks/Pages, backend con workers → Jobs), anade la categoria respetando el template.
 
 ## Recommended Next Steps (Iterative Flow)
 

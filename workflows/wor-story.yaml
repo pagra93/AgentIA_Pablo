@@ -19,10 +19,11 @@ outputs:
 
 steps:
   - id: build_story
-    action: "Process PM input through 7 internal phases autonomously. Produce complete JTBD + Story + Design Analysis with 6D scoring."
+    action: "Read docs/project-registry.md (if exists) for existing assets. Process PM input through 7 internal phases autonomously. Produce complete JTBD + Story + Design Analysis with 6D scoring. Populate 'Dependencias del Proyecto' section (Usa/Crea)."
     agent: age-spe-story-builder
     inputs:
       pm_input: ${{ inputs.pm_input }}
+      project_registry: docs/project-registry.md
     outputs: [jtbd, story, design_analysis, scoring, razonamiento]
 
   - id: pm_confirm
@@ -45,7 +46,7 @@ steps:
     outputs: [split_stories]
 
   - id: deliver
-    action: "Save stories to docs/working-docs/[feature]/stories.md. Suggest iterative flow: design in Pencil → /design-to-prd → review story → /plan."
+    action: "Save stories to docs/working-docs/[feature]/stories.md. Update docs/project-registry.md with assets from 'Dependencias del Proyecto > Crea' (status: planned). Suggest iterative flow: design in Pencil → /design-to-prd → review story → /plan."
     depends_on: [pm_confirm, split_if_needed]
     outputs: [stories]
 

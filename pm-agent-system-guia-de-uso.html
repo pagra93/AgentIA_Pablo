@@ -143,7 +143,7 @@
 <div class="header">
   <div class="header-label">Guia Completa de Uso</div>
   <h1>PM x10 Agent System <span>— Todo lo que necesitas saber</span></h1>
-  <div class="header-stats">15 agentes | 14 commands | 14 workflows | 7 skills | 6 rules | 5 knowledge bases</div>
+  <div class="header-stats">16 agentes | 15 commands | 15 workflows | 7 skills | 6 rules | 6 knowledge bases</div>
 </div>
 
 <div class="tabs">
@@ -152,6 +152,7 @@
   <button class="tab" data-tab="architecture">Arquitectura</button>
   <button class="tab" data-tab="agents">Agentes</button>
   <button class="tab" data-tab="folders">Carpetas</button>
+  <button class="tab" data-tab="registry">Registry</button>
   <button class="tab" data-tab="memory">Memoria</button>
   <button class="tab" data-tab="qa">QA Layer</button>
   <button class="tab" data-tab="workflows">Workflows</button>
@@ -325,6 +326,28 @@
     </div>
   </div>
 
+  <!-- CHALLENGE -->
+  <div class="folder-card" style="border-left-color:var(--red);margin-bottom:12px">
+    <div class="folder-name" style="color:var(--red)">Validar idea o plan — en cualquier momento</div>
+    <div class="folder-desc">
+      <b>Que usar</b>: /challenge — sparring partner que desafia tus premisas y fuerza evidencia<br>
+      <b>Tokens</b>: Moderado. 1 agente supervisor (read-only).
+    </div>
+    <div class="folder-files" style="line-height:2.2">
+      <b>Cuando usarlo:</b><br>
+      "Tengo una idea pero no se si estoy resolviendo el problema correcto"<br>
+      "Tengo un plan listo pero quiero que alguien busque agujeros"<br>
+      "Necesito que me desafien antes de construir"<br>
+      <br>
+      <b>Dos modos:</b><br>
+      <span style="color:var(--red);font-weight:600">/challenge idea</span> — 6 forcing questions: demanda real, status quo, especificidad, wedge, observacion, future-fit<br>
+      <span style="color:var(--red);font-weight:600">/challenge plan</span> — 5 lentes: premise challenge, scope analysis, inversion (Munger), alternativas, agujeros<br>
+      <br>
+      <b>Anti-sycophancy</b>: NUNCA dice "interesante". Toma posicion. Empuja hasta incomodidad.
+    </div>
+    <div class="folder-relation">Usalo ANTES de /analyze (para validar la idea) o DESPUES de /plan (para validar el plan). O en cualquier momento.</div>
+  </div>
+
   <!-- BUG FIX -->
   <div class="folder-card" style="border-left-color:var(--yellow);margin-bottom:12px">
     <div class="folder-name" style="color:var(--yellow)">Bug fix — cualquier tamano</div>
@@ -409,6 +432,7 @@
     <div class="principle-name">Usa lo minimo necesario. El sistema no te obliga a pasar por todo.</div>
     <div class="principle-desc">
       Typo → prompt directo (0 agentes)<br>
+      Validar idea/plan → /challenge (1 agente, debate y pushback)<br>
       Idea rapida → /story → Pencil → /design-to-prd → /plan + /build (2-3 agentes)<br>
       Feature pequena → /define + /build (3-4 agentes)<br>
       Feature media → /analyze + /define + /plan + /build + /review (8-10 agentes, contextos separados)<br>
@@ -430,6 +454,7 @@
     <button class="scenario-btn" data-scenario="existing">Proyecto Existente</button>
     <button class="scenario-btn" data-scenario="retomar">Retomar Proyecto</button>
     <button class="scenario-btn" data-scenario="save">Guardar y Push</button>
+    <button class="scenario-btn" data-scenario="challenge">Desafiar Ideas</button>
     <button class="scenario-btn" data-scenario="risks">Detectar Riesgos</button>
     <button class="scenario-btn" data-scenario="designs">Disenos a PRDs</button>
     <button class="scenario-btn" data-scenario="docs">Documentar Proyecto</button>
@@ -725,6 +750,53 @@ git fetch --prune</div>
   </div>
 
   <!-- RISK AUDIT -->
+  <!-- CHALLENGE -->
+  <div class="scenario-content" id="sc-challenge">
+    <div class="card" style="border-left:4px solid var(--red)">
+      <div class="step-header"><span class="cmd-badge">/challenge idea</span><span class="step-title">Modo Ideacion — 6 forcing questions</span></div>
+      <div class="step-agents">strategic-challenger (opus, supervisor read-only)</div>
+      <div class="step-output">Output: <b>Challenge Brief</b> con premisas validadas/cuestionadas, riesgos, alternativas, decisiones del PM</div>
+      <div class="step-tip">Usa ANTES de empezar a construir. Te pone a prueba: demanda real, status quo, especificidad, wedge, observacion, future-fit. UNA pregunta a la vez.</div>
+    </div>
+    <div class="card" style="border-left:4px solid var(--red)">
+      <div class="step-header"><span class="cmd-badge">/challenge plan</span><span class="step-title">Modo Revision — 5 lentes estrategicos</span></div>
+      <div class="step-agents">strategic-challenger (opus, supervisor read-only)</div>
+      <div class="step-output">Output: <b>Challenge Brief</b> con agujeros encontrados, riesgos via inversion (Munger), 2+ alternativas</div>
+      <div class="step-tip">Usa DESPUES de /plan o /define. Le das tu plan/PRD/stories y busca agujeros: premisas falsas, scope creep, edge cases, formas de fracasar.</div>
+    </div>
+    <div class="card">
+      <div class="step-header"><span class="step-title">Como funciona por dentro</span></div>
+      <div class="step-output">
+        <b>Anti-sycophancy</b>: NUNCA dice "interesante" ni valida sin evidencia. Toma posicion.<br>
+        <b>Pushback</b>: Si tu respuesta es vaga, reformula: "¿Cuantos? ¿Cuando? ¿Quien exactamente?"<br>
+        <b>Obligatorio</b>: Siempre genera 2+ alternativas y aplica inversion (¿que haria que fracasara?)<br>
+        <b>Celebra claridad</b>: Cuando das una respuesta solida con evidencia, lo dice explicitamente
+      </div>
+    </div>
+    <div class="card">
+      <div class="step-header"><span class="step-title">Ejemplo: /challenge idea</span></div>
+      <div class="step-output" style="font-family:var(--mono);line-height:2.2;white-space:pre-wrap">Tu: "Quiero agregar un sistema de favoritos al marketplace"
+
+<span style="color:var(--red);font-weight:600">/challenge idea</span>
+
+<span style="color:var(--red)">Challenger</span>: "¿Quien te ha PEDIDO esto? No quien lo necesitaria — quien te lo ha pedido."
+Tu: "Bueno, creo que los usuarios lo querrian..."
+<span style="color:var(--red)">Challenger</span>: "Eso suena a lo que CREES que quieren. ¿Alguien lo ha pedido explicitamente? ¿Cuantos?"
+
+Tu: "No directamente, pero veo que buscan los mismos productos repetidamente"
+<span style="color:var(--red)">Challenger</span>: "Eso es EVIDENCIA. Cuantos usuarios repiten busqueda? Con que frecuencia?"
+
+<span style="color:var(--text3)"># ... 4 preguntas mas, cada una empujando ...</span>
+
+<span style="color:var(--red)">Challenger</span>: "Si quisieras que esto FRACASARA, ¿que harias?"
+Tu: "Que nadie use los favoritos, que lo olviden..."
+<span style="color:var(--red)">Challenger</span>: "Exacto. El riesgo #1 es 'feature fantasma'. ¿Cuanto engagement minimo necesitas para que valga la pena?"
+
+<span style="color:var(--green2)">Brief guardado</span> → docs/working-docs/favoritos/challenge-brief.md
+<span style="color:var(--text3)">Siguiente: /analyze para profundizar, o /story para construir directo</span></div>
+    </div>
+  </div>
+
   <div class="scenario-content" id="sc-risks">
     <div class="card" style="border-left:4px solid var(--red)">
       <div class="step-header"><span class="cmd-badge">/unknown-unknowns</span><span class="step-title">Detectar riesgos ocultos en cualquier proyecto</span></div>
@@ -799,7 +871,7 @@ git fetch --prune</div>
   </div>
   <div class="principle-card">
     <div class="principle-name">Supervisors Observe, Never Impose</div>
-    <div class="principle-desc">Los agentes age-sup-* (quality-coach, auditor, evaluator, optimizer) son read-only. Leen, puntuan, proponen. Nunca modifican archivos ni codigo.</div>
+    <div class="principle-desc">Los agentes age-sup-* (strategic-challenger, quality-coach, auditor, evaluator, optimizer) son read-only. Leen, puntuan, proponen. Nunca modifican archivos ni codigo.</div>
   </div>
   <div class="principle-card">
     <div class="principle-name">Vertical Value Delivery</div>
@@ -826,7 +898,7 @@ git fetch --prune</div>
 
   <table>
     <tr><th>Nivel</th><th>Ubicacion</th><th>Contiene</th><th>Cuando</th></tr>
-    <tr><td>Global</td><td>~/.claude/</td><td>15 agentes, 7 skills, 6 rules, 5 knowledge, 14 commands</td><td>Se instala UNA vez con install.sh</td></tr>
+    <tr><td>Global</td><td>~/.claude/</td><td>16 agentes, 7 skills, 6 rules, 6 knowledge, 15 commands</td><td>Se instala UNA vez con install.sh</td></tr>
     <tr><td>Proyecto</td><td>proyecto/.claude/CLAUDE.md</td><td>Config del proyecto: stack, standards, paths</td><td>Se crea por proyecto con /new-project</td></tr>
   </table>
 
@@ -857,7 +929,17 @@ git fetch --prune</div>
 (si >3 dias)
     |
     v
-<span class="file">docs/working-docs/[feature]/stories.md</span></div>
+<span class="file">docs/working-docs/[feature]/stories.md</span>
+
+<span style="color:var(--red)">VALIDACION (standalone, en cualquier momento):</span>
+<span class="highlight">/challenge</span>  -->  Challenge Brief
+    |
+    v
+<span class="agent">strategic-challenger</span>
+(supervisor, debate interactivo)
+    |
+    v
+<span class="file">docs/working-docs/[topic]/challenge-brief.md</span></div>
 
   <div class="section-title" style="color:var(--orange)">Segregacion de Responsabilidades</div>
   <p class="intro">Definido en DUTIES.md (raiz + por agente). Cada agente tiene un rol claro y no puede hacer el trabajo de otro.</p>
@@ -869,7 +951,7 @@ git fetch --prune</div>
     <tr><td>architect</td><td>Disenar arquitectura, planificar sprints</td><td>Implementar codigo</td><td>tech-architect, sprint-planner</td></tr>
     <tr><td>engineer</td><td>Escribir codigo, ejecutar tests, commitear</td><td>Revisar su propio codigo</td><td>sub-agentes /build (contexto fresco por story)</td></tr>
     <tr><td>reviewer</td><td>Revisar codigo, aprobar/rechazar, ejecutar tests</td><td>Escribir implementacion</td><td>test-engineer, code-reviewer</td></tr>
-    <tr><td style="color:var(--orange)">supervisor</td><td>Leer, puntuar, proponer mejoras</td><td style="color:var(--red)">NADA mas. Solo lectura.</td><td>quality-coach, auditor, evaluator, optimizer</td></tr>
+    <tr><td style="color:var(--orange)">supervisor</td><td>Leer, puntuar, proponer mejoras</td><td style="color:var(--red)">NADA mas. Solo lectura.</td><td><b>strategic-challenger</b>, quality-coach, auditor, evaluator, optimizer</td></tr>
   </table>
 
   <div class="section-title" style="color:var(--purple)">Conflictos de Rol</div>
@@ -899,7 +981,7 @@ git fetch --prune</div>
     <tr><td>Como se usa</td><td>"Usa el agente quality-guard para evaluar esto"</td><td>Los agentes los cargan automaticamente. Tu rara vez los invocas.</td></tr>
   </table>
 
-  <div class="section-title" style="color:var(--red)">Los 15 Agentes — Que Hace Cada Uno y Cuando Usarlo Solo</div>
+  <div class="section-title" style="color:var(--red)">Los 16 Agentes — Que Hace Cada Uno y Cuando Usarlo Solo</div>
   <p class="intro">Cada agente explicado con: que hace, cuando se activa automaticamente (en pipeline), y cuando invocarlo tu directamente.</p>
 
   <!-- DESIGN ANALYST -->
@@ -910,6 +992,18 @@ git fetch --prune</div>
       <b>En pipeline</b>: Se activa con /design-to-prd.<br>
       <b>Output</b>: stories.md (tickets verticales) + prd.md por feature. Dos paths: Fast Track (/plan directo) o Full Pipeline (/analyze + /define).<br>
       <b>Usalo solo cuando</b>: "Tengo disenos y quiero stories listas para desarrollar" o "Analiza estas pantallas y genera tickets completos."
+    </div>
+  </div>
+
+  <!-- STRATEGIC CHALLENGER -->
+  <div class="folder-card red" style="margin-bottom:10px;border-left-color:var(--red)">
+    <div class="folder-name">strategic-challenger <span class="badge badge-red">opus</span> <span class="badge badge-orange">SUPERVISOR</span> <span class="badge badge-green">NUEVO</span></div>
+    <div class="folder-desc">
+      <b>Que hace</b>: Sparring partner estrategico. Desafia tus premisas, debate contigo, hace preguntas incomodas, fuerza evidencia. Toma posicion (anti-sycophancy: NUNCA dice "interesante", NUNCA valida sin evidencia). Dos modos: <b>Ideacion</b> (6 forcing questions — demanda real, status quo, especificidad, wedge, observacion, future-fit) y <b>Revision</b> (5 lentes estrategicos — premise challenge, scope analysis, inversion Munger, alternativas obligatorias, agujeros). Siempre genera minimo 2 alternativas y aplica inversion. SUPERVISOR — nunca modifica archivos.<br><br>
+      <b>Knowledge base</b>: kno-strategic-thinking (Bezos decisiones, Munger inversion, Jobs sustraccion, 4 modos de scope, anti-sycophancy).<br>
+      <b>En pipeline</b>: Se activa con /challenge.<br>
+      <b>Output</b>: Challenge Brief con premisas validadas/cuestionadas, riesgos via inversion, alternativas, decisiones del PM → guardado en docs/working-docs/[topic]/challenge-brief.md<br>
+      <b>Usalo solo cuando</b>: "¿Estoy resolviendo el problema correcto?", "Busca agujeros en mi plan", "Desafia esta idea", "Debate conmigo."
     </div>
   </div>
 
@@ -1092,7 +1186,7 @@ git fetch --prune</div>
     </div>
   </div>
 
-  <div class="section-title" style="color:var(--purple)">Las 6 Skills — Procedimientos que Cargan los Agentes</div>
+  <div class="section-title" style="color:var(--purple)">Las 7 Skills — Procedimientos que Cargan los Agentes</div>
   <p class="intro">Las skills son metodologias/procedimientos. No tienen juicio propio — son instrucciones que los agentes siguen. La mayoria se cargan automaticamente. Algunas las puedes invocar tu.</p>
 
   <table>
@@ -1129,7 +1223,7 @@ git fetch --prune</div>
 
   <div class="folder-card red">
     <div class="folder-name">agent.yaml</div>
-    <div class="folder-desc">El manifest del sistema completo. Define los 15 agentes, skills, rules, knowledge, workflows, runtime, y la configuracion del QA Layer. Es la "tabla de contenidos" de todo.</div>
+    <div class="folder-desc">El manifest del sistema completo. Define los 16 agentes, skills, rules, knowledge, workflows, runtime, y la configuracion del QA Layer. Es la "tabla de contenidos" de todo.</div>
     <div class="folder-relation">Referencia todo lo que hay en agents/, skills/, rules/, knowledge/, workflows/</div>
   </div>
   <div class="folder-card red">
@@ -1152,38 +1246,38 @@ git fetch --prune</div>
 
   <div class="folder-card blue">
     <div class="folder-name">agents/</div>
-    <div class="folder-desc">11 specialists (directorio: agent.yaml + SOUL.md + DUTIES.md) y 4 supervisors. Cada agente sabe: que es (SOUL), que puede hacer (DUTIES), y como configurarse (agent.yaml).</div>
+    <div class="folder-desc">11 specialists y 5 supervisors (cada uno con directorio: agent.yaml + SOUL.md + DUTIES.md). Cada agente sabe: que es (SOUL), que puede hacer (DUTIES), y como configurarse (agent.yaml).</div>
     <div class="folder-files">agents/age-spe-quality-guard/ (agent.yaml + SOUL.md + DUTIES.md)<br>agents/age-sup-auditor.md (todo en un archivo)</div>
     <div class="folder-relation">Referenciados por commands/ y workflows/. Cargan skills de skills/ y reglas de rules/.</div>
   </div>
   <div class="folder-card green">
     <div class="folder-name">commands/</div>
-    <div class="folder-desc">14 slash commands que tu lanzas en Claude Code. Son instrucciones en lenguaje natural que dicen paso a paso que agentes invocar. Son la "interfaz de usuario" del sistema.</div>
-    <div class="folder-files">analyze.md, define.md, story.md, plan.md, build.md, review.md, hotfix.md, code-review.md, new-project.md, save.md, design-to-prd.md, unknown-unknowns.md, docs.md, learned.md</div>
+    <div class="folder-desc">15 slash commands que tu lanzas en Claude Code. Son instrucciones en lenguaje natural que dicen paso a paso que agentes invocar. Son la "interfaz de usuario" del sistema.</div>
+    <div class="folder-files">analyze.md, define.md, story.md, plan.md, build.md, review.md, hotfix.md, code-review.md, new-project.md, save.md, design-to-prd.md, unknown-unknowns.md, docs.md, learned.md, challenge.md</div>
     <div class="folder-relation">Cada command tiene su workflow YAML correspondiente en workflows/</div>
   </div>
   <div class="folder-card cyan">
     <div class="folder-name">workflows/</div>
-    <div class="folder-desc">14 workflows en formato DAG (Directed Acyclic Graph). Definen el orden de ejecucion con depends_on, data flow entre pasos (${{ steps.X.outputs.Y }}), y condiciones. Son la version "formal" de lo que commands/ describe en lenguaje natural.</div>
-    <div class="folder-files">wor-analyze.yaml, wor-define.yaml, wor-story.yaml, wor-plan.yaml, wor-build.yaml, wor-review.yaml, wor-hotfix.yaml, wor-code-review.yaml, wor-new-project.yaml, wor-save.yaml, wor-design-to-prd.yaml, wor-unknown-unknowns.yaml, wor-docs.yaml, wor-learned.yaml</div>
+    <div class="folder-desc">15 workflows en formato DAG (Directed Acyclic Graph). Definen el orden de ejecucion con depends_on, data flow entre pasos (${{ steps.X.outputs.Y }}), y condiciones. Son la version "formal" de lo que commands/ describe en lenguaje natural.</div>
+    <div class="folder-files">wor-analyze.yaml, wor-define.yaml, wor-story.yaml, wor-plan.yaml, wor-build.yaml, wor-review.yaml, wor-hotfix.yaml, wor-code-review.yaml, wor-new-project.yaml, wor-save.yaml, wor-design-to-prd.yaml, wor-unknown-unknowns.yaml, wor-docs.yaml, wor-learned.yaml, wor-challenge.yaml</div>
     <div class="folder-relation">Cada workflow referencia agentes de agents/ y skills de skills/</div>
   </div>
   <div class="folder-card purple">
     <div class="folder-name">skills/</div>
-    <div class="folder-desc">4 capacidades reutilizables que los agentes cargan. Cada skill tiene SKILL.md con frontmatter (name, description, license, allowed-tools, metadata) y contenido.</div>
-    <div class="folder-files">ski-prd-builder/ (SKILL.md + references/good-prd-example.md + bad-prd-example.md)<br>ski-competitive-analysis/ | ski-plan-mode/ | ski-doc-updater/</div>
+    <div class="folder-desc">7 capacidades reutilizables que los agentes cargan. Cada skill tiene SKILL.md con frontmatter (name, description, license, allowed-tools, metadata) y contenido.</div>
+    <div class="folder-files">ski-prd-builder/ (SKILL.md + references/good-prd-example.md + bad-prd-example.md)<br>ski-competitive-analysis/ | ski-plan-mode/ | ski-doc-updater/ | ski-unknown-unknowns/ | ski-project-docs/ | ski-impeccable-guide/</div>
     <div class="folder-relation">Referenciados en agent.yaml de cada agente que los usa</div>
   </div>
   <div class="folder-card pink">
     <div class="folder-name">rules/</div>
-    <div class="folder-desc">5 reglas modulares que agentes cargan automaticamente. Diferente de RULES.md (global). Estas son especificas por dominio: calidad de stories, cuando algo esta "done", antipatrones, scoring.</div>
+    <div class="folder-desc">6 reglas modulares que agentes cargan automaticamente. Diferente de RULES.md (global). Estas son especificas por dominio: calidad de stories, cuando algo esta "done", antipatrones, scoring, naming, git.</div>
     <div class="folder-files">rul-antipatterns.md | rul-definition-of-done.md | rul-definition-of-ready.md | rul-scoring-dimensional.md | rul-naming-conventions.md | rul-git-branch-management.md</div>
     <div class="folder-relation">Cada regla dice en su metadata que agentes la cargan (loaded-by)</div>
   </div>
   <div class="folder-card blue">
     <div class="folder-name">knowledge/</div>
-    <div class="folder-desc">5 bases de conocimiento con metodologias reales. index.yaml controla prioridad y tags para descubrimiento. Los agentes las cargan segun su dominio.</div>
-    <div class="folder-files">index.yaml | kno-jtbd-framework.md (JTBD Reforzado + Wendel) | kno-mom-test.md (Rob Fitzpatrick) | kno-story-splitting.md (Eduardo Ferro, 9 heuristicas) | kno-testing-strategy.md (Testing Trophy, tipos de test, coverage, regresion, TDD) | kno-story-ticket-template.md (formato universal de story ticket — design-analyst, story-writer, story-builder)</div>
+    <div class="folder-desc">6 bases de conocimiento con metodologias reales. index.yaml controla prioridad y tags para descubrimiento. Los agentes las cargan segun su dominio.</div>
+    <div class="folder-files">index.yaml | kno-jtbd-framework.md (JTBD Reforzado + Wendel) | kno-mom-test.md (Rob Fitzpatrick) | kno-story-splitting.md (Eduardo Ferro, 9 heuristicas) | kno-testing-strategy.md (Testing Trophy, tipos de test, coverage, regresion, TDD) | kno-story-ticket-template.md (formato universal de story ticket — design-analyst, story-writer, story-builder) | kno-strategic-thinking.md (Bezos, Munger, Jobs, forcing questions, anti-sycophancy)</div>
     <div class="folder-relation">index.yaml define always_load, priority, y tags para cada documento</div>
   </div>
 
@@ -1227,6 +1321,270 @@ git fetch --prune</div>
   <div class="folder-card">
     <div class="folder-name">templates/</div>
     <div class="folder-desc">Template de CLAUDE.md que /new-project usa para generar el CLAUDE.md de cada proyecto. Tiene placeholders: {{PROJECT_NAME}}, {{TECH_STACK}}, etc.</div>
+  </div>
+</div>
+
+<!-- ═══════════════ PROJECT REGISTRY ═══════════════ -->
+<div class="tab-content" id="registry">
+  <p class="intro">El Project Registry es el inventario tecnico centralizado del proyecto. Resuelve el problema de que cuando creas stories para Feature B, los agentes no saben que tablas, APIs o componentes ya creo Feature A. Con el registry, todo esta conectado.</p>
+
+  <div class="section-title" style="color:var(--cyan)">El Problema que Resuelve</div>
+
+  <div class="card" style="border-left:4px solid var(--red)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--red)">!</span><span class="step-title">Sin Registry</span></div>
+    <div class="step-output">Cada feature vive aislada en <code>docs/working-docs/[feature]/</code>. Cuando creas stories para Feature B, los agentes:</div>
+    <div class="step-warn">
+      &bull; Redisenan tablas que ya existen<br>
+      &bull; Duplican endpoints y componentes<br>
+      &bull; No saben que reusar del trabajo anterior<br>
+      &bull; El architect no tiene vision global
+    </div>
+  </div>
+  <div class="card" style="border-left:4px solid var(--green2)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--green2)">✓</span><span class="step-title">Con Registry</span></div>
+    <div class="step-output">Un archivo centralizado (<code>docs/project-registry.md</code>) que todos los agentes leen antes de crear stories y que se actualiza automaticamente.</div>
+    <div class="step-tip">Feature B sabe que Feature A creo la tabla <code>users</code>, el servicio <code>authService</code> y el endpoint <code>POST /api/auth/login</code>. Los referencia en vez de reinventarlos.</div>
+  </div>
+
+  <div class="section-title" style="color:var(--cyan)">Que Contiene</div>
+
+  <p>El registry tiene <b>6 categorias</b>, cada una en formato tabla:</p>
+
+  <div class="folder-card cyan">
+    <div class="folder-name">DB Models</div>
+    <div class="folder-desc">Tablas de base de datos: nombre, campos clave, relaciones, feature origen, story origen, status.</div>
+  </div>
+  <div class="folder-card blue">
+    <div class="folder-name">API Endpoints</div>
+    <div class="folder-desc">Endpoints: metodo, path, auth, feature origen, story origen, status.</div>
+  </div>
+  <div class="folder-card green">
+    <div class="folder-name">Shared Components</div>
+    <div class="folder-desc">Componentes reutilizables: nombre, path, props/interface, feature origen.</div>
+  </div>
+  <div class="folder-card orange">
+    <div class="folder-name">Services & Utilities</div>
+    <div class="folder-desc">Servicios compartidos: nombre, path, exports clave, feature origen.</div>
+  </div>
+  <div class="folder-card purple">
+    <div class="folder-name">Types & Interfaces</div>
+    <div class="folder-desc">Tipos/interfaces: nombre, path, campos clave, feature origen.</div>
+  </div>
+  <div class="folder-card pink">
+    <div class="folder-name">External Integrations</div>
+    <div class="folder-desc">Integraciones externas: servicio, proposito, feature origen, status.</div>
+  </div>
+
+  <div class="section-title" style="color:var(--cyan)">Ciclo de Vida de Assets</div>
+
+  <div class="card" style="border-left:4px solid var(--orange)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--orange)">1</span><span class="step-title">planned</span></div>
+    <div class="step-output">Cuando una story se crea (<code>/design-to-prd</code>, <code>/define</code>, <code>/story</code>), los assets de su seccion "Crea" se anaden al registry con status <code>planned</code>.</div>
+    <div class="step-tip">Esto permite que features posteriores ya vean estos assets ANTES de que se construyan.</div>
+  </div>
+  <div class="card" style="border-left:4px solid var(--green2)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--green2)">2</span><span class="step-title">active</span></div>
+    <div class="step-output">Cuando <code>/review</code> verifica que el asset existe en el codebase (tabla migrada, endpoint funcional, componente exportado), lo promueve a <code>active</code>.</div>
+    <div class="step-tip">El path real del codebase se anade al registro.</div>
+  </div>
+  <div class="card" style="border-left:4px solid var(--red)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--red)">3</span><span class="step-title">deprecated</span></div>
+    <div class="step-output">Cuando un asset es reemplazado o eliminado, cambia a <code>deprecated</code>. Tras 2 sprints se archiva.</div>
+  </div>
+
+  <div class="section-title" style="color:var(--cyan)">Flujo Completo (Ejemplo)</div>
+
+  <div class="flow-diagram">
+Feature A (user-auth):
+  /design-to-prd → stories con "Crea: users, authService, POST /api/auth/*"
+                  → registry: users(planned), authService(planned)
+
+Feature B (product-catalog):
+  /design-to-prd → LEE registry → ve users(planned), authService(planned)
+                  → stories: "Usa: users (FK), authService (session)"
+                  → stories: "Crea: products, GET /api/products"
+                  → registry: products(planned)
+
+/plan → architect LEE registry → extiende schema, no duplica
+/build → sub-agents leen registry si story tiene "Usa"
+/review → verifica → promueve planned → active
+  </div>
+
+  <div class="section-title" style="color:var(--cyan)">Donde se Lee y Escribe</div>
+
+  <div class="card" style="border-left:4px solid var(--blue)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--blue)">R</span><span class="step-title">Lectura (READ)</span></div>
+    <div class="step-output">
+      <b>/design-to-prd</b> — antes del analisis de 6 capas<br>
+      <b>/define</b> — al escribir stories (Create o Enrich)<br>
+      <b>/story</b> — antes de la Fase 6 (Story Assembly)<br>
+      <b>/plan</b> — el architect lee para no duplicar<br>
+      <b>/build</b> — sub-agents leen si la story tiene "Usa"
+    </div>
+  </div>
+  <div class="card" style="border-left:4px solid var(--green2)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--green2)">W</span><span class="step-title">Escritura (WRITE)</span></div>
+    <div class="step-output">
+      <b>/design-to-prd</b> — anade assets "Crea" como <code>planned</code><br>
+      <b>/define</b> — anade assets "Crea" como <code>planned</code><br>
+      <b>/story</b> — anade assets "Crea" como <code>planned</code><br>
+      <b>/review</b> — promueve <code>planned</code> → <code>active</code> (Step 2.6)
+    </div>
+  </div>
+
+  <div class="section-title" style="color:var(--cyan)">Story Template: Dependencias del Proyecto</div>
+
+  <p>Cada story ticket ahora tiene una nueva seccion entre "Notas tecnicas" y "Verificacion Estructural":</p>
+
+  <div class="flow-diagram">
+## Dependencias del Proyecto
+
+### Usa (assets existentes del registry)
+| Asset    | Tipo      | Del Feature | Nota               |
+|----------|-----------|-------------|---------------------|
+| users    | db        | user-auth   | FK user_id en orders|
+| authSvc  | service   | user-auth   | getSession()        |
+
+### Crea (assets nuevos para el registry)
+| Asset          | Tipo      | Detalles                        |
+|----------------|-----------|----------------------------------|
+| orders         | db        | id, user_id, total, status       |
+| POST /api/orders| api      | Auth required, crea orden        |
+  </div>
+
+  <div class="section-title" style="color:var(--red)">Importante: Como se Instala</div>
+
+  <div class="card" style="border-left:4px solid var(--red)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--red)">!</span><span class="step-title">El registry NO se instala por separado</span></div>
+    <div class="step-output">El registry es parte del sistema PM x10. Funciona en dos niveles:</div>
+    <div class="step-tip">
+      <b>Nivel global</b> (<code>~/.claude/</code>): Los commands, agents y skills se instalan UNA VEZ ejecutando <code>bash install.sh</code> desde una <b>terminal</b> (Warp, iTerm, Terminal.app) dentro del repo de PM x10 Agent System. <b>NO desde Claude Code.</b> Esto ya incluye las instrucciones del registry.<br><br>
+      <b>Nivel proyecto</b> (<code>docs/project-registry.md</code>): Este archivo se crea dentro de cada proyecto. Para proyectos nuevos, <code>/new-project</code> lo crea automaticamente. Para proyectos existentes, se crea desde Claude Code.
+    </div>
+  </div>
+
+  <div class="section-title" style="color:var(--green2)">Para Proyectos NUEVOS</div>
+
+  <p>Si empiezas un proyecto desde cero, todo es automatico:</p>
+
+  <div class="card" style="border-left:4px solid var(--green2)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--green2)">1</span><span class="step-title">Prerequisito: install.sh (una sola vez)</span></div>
+    <div class="step-output">En una <b>terminal</b> (NO Claude Code), ve al repo de PM x10 y ejecuta:</div>
+    <div class="flow-diagram">cd ~/Desktop/PABLO/Proyectos/Agente\ IA
+bash install.sh</div>
+    <div class="step-tip">Solo se hace una vez. Instala todo en <code>~/.claude/</code>. Si ya lo hiciste antes, no hace falta repetirlo (salvo que haya actualizaciones).</div>
+  </div>
+  <div class="card" style="border-left:4px solid var(--green2)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--green2)">2</span><span class="step-title">Abre Claude Code en tu proyecto y ejecuta /new-project</span></div>
+    <div class="step-output">Claude crea toda la estructura: CLAUDE.md, docs/, tasks/, memory/, qa/, y <b>docs/project-registry.md</b> con las 6 categorias vacias. No necesitas hacer nada mas.</div>
+  </div>
+  <div class="card" style="border-left:4px solid var(--green2)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--green2)">3</span><span class="step-title">Usa los comandos normalmente</span></div>
+    <div class="step-output">Cuando uses <code>/design-to-prd</code>, <code>/define</code> o <code>/story</code>, automaticamente:</div>
+    <div class="step-tip">
+      &bull; El agente LEE el registry antes de crear stories<br>
+      &bull; Cada story incluye la seccion "Dependencias del Proyecto" (Usa/Crea)<br>
+      &bull; Los assets de "Crea" se escriben al registry con status <code>planned</code><br>
+      &bull; Si creas Feature B despues de Feature A, B ya ve los assets de A
+    </div>
+  </div>
+  <div class="card" style="border-left:4px solid var(--green2)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--green2)">4</span><span class="step-title">El ciclo completo</span></div>
+    <div class="step-output"><code>/plan</code> → el architect lee el registry y no duplica. <code>/build</code> → sub-agents leen el registry si la story tiene "Usa". <code>/review</code> → verifica assets y promueve <code>planned</code> → <code>active</code>.</div>
+  </div>
+
+  <div class="section-title" style="color:var(--orange)">Para Proyectos YA EN MARCHA (con PM x10)</div>
+
+  <p>Si ya tienes un proyecto con PM x10 (como Cuerva Smart Industry) y quieres activar el registry:</p>
+
+  <div class="card" style="border-left:4px solid var(--orange)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--orange)">1</span><span class="step-title">Actualiza el sistema global (terminal, NO Claude Code)</span></div>
+    <div class="step-output">
+      Abre una <b>terminal normal</b> (Warp, iTerm, Terminal.app) y ejecuta:
+    </div>
+    <div class="flow-diagram">cd ~/Desktop/PABLO/Proyectos/Agente\ IA
+bash install.sh</div>
+    <div class="step-tip">Esto actualiza <code>~/.claude/</code> con los commands y skills que ya incluyen las instrucciones del registry. Si todo dice <code>[identical]</code>, ya estaba actualizado.</div>
+  </div>
+  <div class="card" style="border-left:4px solid var(--orange)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--orange)">2</span><span class="step-title">Crea el registry en tu proyecto (desde Claude Code)</span></div>
+    <div class="step-output">
+      Abre <b>Claude Code en tu proyecto</b> y escribe:<br><br>
+      <i>"Crea docs/project-registry.md con el template vacio del Project Registry (6 categorias: DB Models, API Endpoints, Shared Components, Services &amp; Utilities, Types &amp; Interfaces, External Integrations, con Quick Reference y contadores)"</i><br><br>
+      Claude conoce el formato porque esta en los skills instalados. Creara el archivo con las 6 tablas vacias.
+    </div>
+    <div class="step-tip">Alternativa: ejecuta <code>/new-project</code> — detecta que ya existe CLAUDE.md y solo anade lo que falta, incluyendo el registry.</div>
+  </div>
+  <div class="card" style="border-left:4px solid var(--orange)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--orange)">3a</span><span class="step-title">Si ya tienes stories construidas → /review</span></div>
+    <div class="step-output">
+      Ejecuta <code>/review</code>. El Step 2.6 detecta que el registry esta vacio pero hay stories en <code>docs/working-docs/</code>, y ejecuta una <b>poblacion retroactiva</b>: escanea Notas tecnicas + codebase real y puebla el registry automaticamente.
+    </div>
+    <div class="step-tip">Solo ocurre UNA VEZ. Despues, el flujo normal toma el control.</div>
+  </div>
+  <div class="card" style="border-left:4px solid var(--orange)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--orange)">3b</span><span class="step-title">Si NO tienes stories todavia → empieza normal</span></div>
+    <div class="step-output">
+      Simplemente usa <code>/design-to-prd</code>, <code>/define</code> o <code>/story</code>. El registry se ira llenando solo con cada story nueva que crees.
+    </div>
+  </div>
+
+  <div class="section-title" style="color:var(--purple)">Como Probarlo</div>
+
+  <p>Pasos concretos para verificar que el registry funciona en tu proyecto:</p>
+
+  <div class="card" style="border-left:4px solid var(--purple)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--purple)">1</span><span class="step-title">Terminal: actualiza el sistema</span></div>
+    <div class="step-output">En una <b>terminal</b> (NO Claude Code):</div>
+    <div class="flow-diagram">cd ~/Desktop/PABLO/Proyectos/Agente\ IA
+bash install.sh</div>
+    <div class="step-tip">Si todo dice <code>[identical]</code>, ya esta actualizado.</div>
+  </div>
+  <div class="card" style="border-left:4px solid var(--purple)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--purple)">2</span><span class="step-title">Claude Code: crea el registry</span></div>
+    <div class="step-output">Abre Claude Code en tu proyecto y pidele que cree <code>docs/project-registry.md</code>. O ejecuta <code>/new-project</code> para que lo cree como parte de la estructura.</div>
+  </div>
+  <div class="card" style="border-left:4px solid var(--purple)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--purple)">3</span><span class="step-title">Crea una story (Feature A)</span></div>
+    <div class="step-output">Ejecuta <code>/design-to-prd</code> o <code>/story</code>. Verifica que:</div>
+    <div class="step-tip">
+      &bull; La story tiene la seccion <b>"Dependencias del Proyecto"</b> con tablas Usa y Crea<br>
+      &bull; Los assets nuevos aparecen en "Crea"<br>
+      &bull; Abre <code>docs/project-registry.md</code> — deberia tener filas nuevas con status <code>planned</code>
+    </div>
+  </div>
+  <div class="card" style="border-left:4px solid var(--purple)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--purple)">4</span><span class="step-title">Test critico: crea Feature B</span></div>
+    <div class="step-output">Genera stories para una segunda feature que use algo de la primera. Verifica que el agente detecta los assets del registry y los pone en "Usa" en vez de reinventarlos.</div>
+    <div class="step-tip">Si Feature B referencia la tabla/endpoint/componente que Feature A creo → el registry funciona.</div>
+  </div>
+
+  <div class="section-title" style="color:var(--cyan)">No Se Lanza Manualmente</div>
+
+  <div class="card" style="border-left:4px solid var(--cyan)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--cyan)">!</span><span class="step-title">No hay comando /registry — es automatico</span></div>
+    <div class="step-output">Una vez que existe <code>docs/project-registry.md</code> en tu proyecto, todos los comandos lo usan automaticamente:</div>
+    <div class="step-tip">
+      &bull; <code>/design-to-prd</code> → lee + escribe (planned)<br>
+      &bull; <code>/define</code> → lee + escribe (planned)<br>
+      &bull; <code>/story</code> → lee + escribe (planned)<br>
+      &bull; <code>/plan</code> → lee (architect no duplica)<br>
+      &bull; <code>/build</code> → lee (solo si story tiene "Usa")<br>
+      &bull; <code>/review</code> → lee + escribe (promueve planned → active)
+    </div>
+    <div class="step-output" style="margin-top:8px">Si el archivo no existe, los comandos simplemente saltan la parte del registry. <b>No rompe nada.</b> Es opt-in.</div>
+  </div>
+
+  <div class="section-title" style="color:var(--cyan)">Escalabilidad</div>
+
+  <div class="card" style="border-left:4px solid var(--text2)">
+    <div class="step-header"><span class="cmd-badge" style="background:var(--text2)">~</span><span class="step-title">Limites</span></div>
+    <div class="step-output">
+      <b>0-300 assets</b>: archivo unico <code>project-registry.md</code> (~17k tokens max)<br>
+      <b>301-1000</b>: split por categoria en <code>docs/registry/</code> con _index.md<br>
+      <b>1000+</b>: + agrupacion por feature
+    </div>
+    <div class="step-tip">Un Quick Reference de ~200 tokens en la cabecera permite orientacion rapida sin leer el archivo completo.</div>
   </div>
 </div>
 
@@ -1341,7 +1699,7 @@ git fetch --prune</div>
     </div>
   </div>
 
-  <div class="section-title" style="color:var(--blue)">Los 8 Workflows</div>
+  <div class="section-title" style="color:var(--blue)">Los 15 Workflows</div>
 
   <div class="folder-card red">
     <div class="folder-name">wor-analyze.yaml</div>
@@ -1385,16 +1743,56 @@ git fetch --prune</div>
     <div class="folder-desc">validate_branch -> check_changes -> detect_secrets -> stage -> create_commit -> sync_remote -> confirm</div>
     <div class="folder-relation">Valida que NO estas en main. Detecta archivos sensibles. Sugiere tipo de commit segun rama.</div>
   </div>
+  <div class="folder-card red">
+    <div class="folder-name">wor-challenge.yaml <span class="badge badge-green">NUEVO</span></div>
+    <div class="folder-desc">gather_context -> detect_mode -> challenge_session (<b>strategic-challenger</b>, debate interactivo) -> save_brief</div>
+    <div class="folder-relation">El challenger debate una pregunta a la vez. Anti-sycophancy. Minimo 2 alternativas + inversion. Brief guardado en docs/working-docs/.</div>
+  </div>
+  <div class="folder-card purple">
+    <div class="folder-name">wor-story.yaml</div>
+    <div class="folder-desc">story_build (<b>story-builder</b>, 7 fases internas autonomas) -> <span style="color:var(--orange)">pm_confirm</span> -> split_if_large (condicional, story-splitter)</div>
+    <div class="folder-relation">Agente autonomo: JTBD + Wendel + Behavior Change + 6D scoring + design analysis [DERIVADO]. No interroga al PM.</div>
+  </div>
+  <div class="folder-card pink">
+    <div class="folder-name">wor-design-to-prd.yaml</div>
+    <div class="folder-desc">read_designs -> analyze_6_layers (<b>design-analyst</b>) -> generate_stories (vertical slicing) -> generate_prd -> <span style="color:var(--orange)">pm_review</span></div>
+    <div class="folder-relation">Lee diseños de Pencil. 6 capas: UI, DB, API, Logica, Integraciones, Edge Cases. Stories con formato ticket universal.</div>
+  </div>
+  <div class="folder-card red">
+    <div class="folder-name">wor-unknown-unknowns.yaml</div>
+    <div class="folder-desc">detect_mode -> scan_project -> <span style="color:var(--orange)">select_dimensions</span> -> analyze_8_dimensions -> generate_findings -> prioritize_actions</div>
+    <div class="folder-relation">8 dimensiones: security, architecture, legal, costs, UX, data privacy, product, AI. Findings por tier (Critical/Important/Worth Knowing).</div>
+  </div>
+  <div class="folder-card purple">
+    <div class="folder-name">wor-docs.yaml</div>
+    <div class="folder-desc">detect_mode (init/feature/architecture/api/refresh) -> scan_project -> generate_docs (<b>ski-project-docs</b>) -> update_changelog</div>
+    <div class="folder-relation">Genera docs/project-docs/ con mision, features, arquitectura, API, guides. Exportable a Docusaurus/Nextra/GitBook.</div>
+  </div>
+  <div class="folder-card cyan">
+    <div class="folder-name">wor-learned.yaml</div>
+    <div class="folder-desc">classify (7 categorias) -> format_entry -> save_to_lessons (<b>tasks/lessons.md</b>) -> update_memory (<b>memory/MEMORY.md</b>)</div>
+    <div class="folder-relation">Guarda aprendizajes en el momento: bug, edge-case, performance, architecture, tooling, process, mistake.</div>
+  </div>
 
   <div class="section-title" style="color:var(--orange)">Relacion Commands vs Workflows</div>
   <p class="intro">Los <b>commands/</b> (*.md) son la interfaz: instrucciones en lenguaje natural que Claude Code entiende. Los <b>workflows/</b> (*.yaml) son la especificacion formal: DAG con dependencias y data flow. Ambos describen lo mismo de distinta forma.</p>
   <table>
     <tr><th>Tu Escribes</th><th>Command (lenguaje natural)</th><th>Workflow (DAG formal)</th></tr>
+    <tr><td>/challenge</td><td>commands/challenge.md</td><td>workflows/wor-challenge.yaml</td></tr>
     <tr><td>/analyze</td><td>commands/analyze.md</td><td>workflows/wor-analyze.yaml</td></tr>
     <tr><td>/define</td><td>commands/define.md</td><td>workflows/wor-define.yaml</td></tr>
+    <tr><td>/story</td><td>commands/story.md</td><td>workflows/wor-story.yaml</td></tr>
+    <tr><td>/design-to-prd</td><td>commands/design-to-prd.md</td><td>workflows/wor-design-to-prd.yaml</td></tr>
+    <tr><td>/plan</td><td>commands/plan.md</td><td>workflows/wor-plan.yaml</td></tr>
     <tr><td>/build</td><td>commands/build.md</td><td>workflows/wor-build.yaml</td></tr>
     <tr><td>/review</td><td>commands/review.md</td><td>workflows/wor-review.yaml</td></tr>
     <tr><td>/save</td><td>commands/save.md</td><td>workflows/wor-save.yaml</td></tr>
+    <tr><td>/hotfix</td><td>commands/hotfix.md</td><td>workflows/wor-hotfix.yaml</td></tr>
+    <tr><td>/code-review</td><td>commands/code-review.md</td><td>workflows/wor-code-review.yaml</td></tr>
+    <tr><td>/new-project</td><td>commands/new-project.md</td><td>workflows/wor-new-project.yaml</td></tr>
+    <tr><td>/unknown-unknowns</td><td>commands/unknown-unknowns.md</td><td>workflows/wor-unknown-unknowns.yaml</td></tr>
+    <tr><td>/docs</td><td>commands/docs.md</td><td>workflows/wor-docs.yaml</td></tr>
+    <tr><td>/learned</td><td>commands/learned.md</td><td>workflows/wor-learned.yaml</td></tr>
   </table>
 </div>
 
@@ -1440,6 +1838,30 @@ git fetch --prune</div>
     <div class="direct-trigger">"Que riesgos no estoy viendo en este proyecto?"</div>
     <div class="direct-how">/unknown-unknowns — audita el proyecto en 8 dimensiones y te da findings priorizados</div>
   </div>
+  <div class="direct-card">
+    <div class="direct-trigger">"Quiero poner a prueba mi idea antes de construir"</div>
+    <div class="direct-how">/challenge idea — sparring partner que desafia premisas, debate, fuerza evidencia. 6 forcing questions.</div>
+  </div>
+  <div class="direct-card">
+    <div class="direct-trigger">"Quiero que alguien busque agujeros en mi plan"</div>
+    <div class="direct-how">/challenge plan — 5 lentes estrategicos: premisas, scope, inversion, alternativas, agujeros. Anti-sycophancy.</div>
+  </div>
+  <div class="direct-card">
+    <div class="direct-trigger">"Tengo una idea y quiero convertirla en story"</div>
+    <div class="direct-how">/story — el story-builder trabaja 7 fases autonomas: JTBD, Wendel, Behavior Change, scoring 6D, design analysis</div>
+  </div>
+  <div class="direct-card">
+    <div class="direct-trigger">"Tengo disenos en Pencil y quiero stories listas"</div>
+    <div class="direct-how">/design-to-prd — analiza 6 capas del diseno y genera stories verticales completas + PRDs por feature</div>
+  </div>
+  <div class="direct-card">
+    <div class="direct-trigger">"Quiero documentar el proyecto para humanos"</div>
+    <div class="direct-how">/docs init — genera docs completas (mision, features, arquitectura, API). /docs [feature] para una feature especifica.</div>
+  </div>
+  <div class="direct-card">
+    <div class="direct-trigger">"Acabo de resolver algo dificil, quiero guardarlo"</div>
+    <div class="direct-how">/learned — clasifica, formatea y guarda en tasks/lessons.md + memory/MEMORY.md. Los agentes lo veran.</div>
+  </div>
 
   <div class="section-title" style="color:var(--orange)">Cuando NO usar agentes</div>
   <div class="card" style="border-left:4px solid var(--orange)">
@@ -1462,6 +1884,13 @@ git fetch --prune</div>
     <div class="routine-item">memory/MEMORY.md y tasks/lessons.md se consultan al inicio</div>
   </div>
   <div class="routine-card">
+    <div class="routine-title">Cuando dudas si estas resolviendo el problema correcto</div>
+    <div class="routine-item">/challenge idea — ANTES de empezar algo nuevo, valida que el problema es real</div>
+    <div class="routine-item">/challenge plan — DESPUES de /plan, busca agujeros antes de construir</div>
+    <div class="routine-item">Una pregunta a la vez. Anti-sycophancy. Minimo 2 alternativas. Inversion obligatoria.</div>
+    <div class="routine-item">Brief guardado en docs/working-docs/[topic]/challenge-brief.md</div>
+  </div>
+  <div class="routine-card">
     <div class="routine-title">Al trabajar en una feature</div>
     <div class="routine-item">/analyze — evalua el problema primero</div>
     <div class="routine-item">/define — genera stories solo si el analisis salio bien</div>
@@ -1469,6 +1898,14 @@ git fetch --prune</div>
     <div class="routine-item">/build — sub-agente fresco por story (context engineering)</div>
     <div class="routine-item">/save — commit y push tras cada story completada</div>
     <div class="routine-item">/review — verifica ANTES de merge</div>
+  </div>
+  <div class="routine-card">
+    <div class="routine-title">Para una idea nueva sin PRD</div>
+    <div class="routine-item">/story — genera story completa desde tu idea (7 fases autonomas)</div>
+    <div class="routine-item">Disena en Pencil basandote en la story (opcional pero recomendado)</div>
+    <div class="routine-item">/design-to-prd — enriquece con diseno real (6 capas)</div>
+    <div class="routine-item">/plan → /build → /save → /review — pipeline normal desde aqui</div>
+    <div class="routine-item">Sin diseno (fast track): /story → /plan → /build directamente</div>
   </div>
   <div class="routine-card">
     <div class="routine-title">Al arreglar un bug</div>
@@ -1529,7 +1966,7 @@ git fetch --prune</div>
 
 </div>
 
-<div class="footer">PM x10 Agent System v2.1 — 15 agentes | 14 commands | 14 workflows | 7 skills | 6 rules | 5 knowledge bases | Mercadona Methodology</div>
+<div class="footer">PM x10 Agent System v2.2 — 16 agentes | 15 commands | 15 workflows | 7 skills | 6 rules | 6 knowledge bases | Mercadona Methodology</div>
 
 <script>
 document.querySelectorAll('.tab').forEach(tab => {

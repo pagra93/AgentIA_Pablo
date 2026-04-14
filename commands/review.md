@@ -54,6 +54,48 @@ For each completed story, read its **Verificacion Estructural** section (in the 
 
 If any story FAILS: report gaps to PM. PM decides whether to fix before continuing QA audit or proceed.
 
+## Step 2.6: Registry Verification
+
+Update `docs/project-registry.md` with verified assets from completed stories.
+
+**Normal flow** (stories have "Dependencias del Proyecto > Crea"):
+For each completed story, read its "Dependencias del Proyecto > Crea" section:
+1. Verify each declared asset exists in the codebase (migration file, endpoint route, component export)
+2. If exists and is substantive (not a stub): promote from `planned` → `active` in the registry. Fill in the `Path` column with the verified codebase path.
+3. If NOT exists: report as gap (asset stays `planned` until built)
+4. If a "Usa" asset is `deprecated` in the registry: flag to PM
+
+**Retroactive population** (registry empty but stories exist):
+If `docs/project-registry.md` has zero data rows but `docs/working-docs/*/stories.md` files exist:
+1. Scan ALL existing stories' "Notas tecnicas" sections:
+   - Modelo de Datos → DB Models category
+   - API Endpoints → API Endpoints category
+   - Integraciones → External Integrations category
+2. Scan the actual codebase to find:
+   - Exported components → Shared Components category
+   - Service files → Services & Utilities category
+   - Type definitions → Types & Interfaces category
+3. Populate registry with all found assets (status: `active` for codebase-verified, `planned` for story-only)
+4. Mark header: `Retroactive population: [date]`
+5. This only runs ONCE — when registry is empty and stories exist
+
+Always update: Last updated date, Total assets count, Quick Reference summary.
+
+**CRITICAL — Reglas al escribir al registry** (aplica tanto a flujo normal como a retroactive population):
+1. **Una fila = un asset**. Nunca agrupes funciones/endpoints/componentes, aunque compartan archivo. Si `contracts.ts` exporta 8 funciones, son 8 filas.
+2. **Ortografía**: aplica `rul-spanish-orthography` si el proyecto esta en español — acentos, ñ, ¿, ¡ en descripciones.
+3. **Inventario puro**: descripciones factuales. No decisiones pendientes ni comentarios editoriales (ej: NO "> Decision se toma en /plan").
+4. **Categorias base obligatorias**: las 6 categorias base (DB, API, Components, Services, Types, Integrations) NUNCA se eliminan. Deja vacias si no aplican.
+5. **Categorias opcionales**: si el stack lo requiere (React/Next.js → Hooks/Pages, backend con workers → Jobs), anade la categoria respetando el template.
+
+**Validacion antes de promover `planned` → `active`**:
+- [ ] Ninguna fila agrupa multiples assets (funciones separadas por coma → dividir)
+- [ ] Ortografia correcta segun idioma del proyecto
+- [ ] No hay comentarios editoriales ni decisiones pendientes
+- [ ] Las 6 categorias base existen (aunque esten vacias)
+
+Si falla algun check, reescribir las filas afectadas ANTES de promover.
+
 ## Step 3: QA Audit Cycle (sequential)
 
 ### 3a: Audit

@@ -64,12 +64,19 @@ steps:
     # If gaps found, report to PM before continuing to audit.
     # PM decides whether to fix before QA or proceed.
 
+  # --- REGISTRY VERIFICATION ---
+
+  - id: update_registry
+    action: "Read completed stories' 'Dependencias del Proyecto > Crea'. Verify each asset exists in codebase. Promote verified assets from 'planned' to 'active' in docs/project-registry.md with real Path. If registry is empty but stories exist, run retroactive population (one-time). Update Quick Reference and total count."
+    depends_on: [verify_must_haves]
+    outputs: [registry_updated, new_active_assets, registry_gaps]
+
   # --- QA AUDIT CYCLE (supervisors, all read-only) ---
 
   - id: audit
     action: "Verify compliance with Definition of Done and scoring rules"
     agent: age-sup-auditor
-    depends_on: [code_review]
+    depends_on: [code_review, update_registry]
     outputs: [compliance_score, non_compliant_items]
 
   - id: evaluate

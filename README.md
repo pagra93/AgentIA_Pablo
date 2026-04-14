@@ -1,6 +1,6 @@
 # PM x10 Agent System
 
-Tu sistema operativo de Product Management con IA. Orquesta 15 agentes especializados para cubrir el ciclo completo: desde diseños en Pencil hasta codigo deployado con QA verificado. Engineering: Claude Code implementa directamente + Impeccable para frontend design quality.
+Tu sistema operativo de Product Management con IA. Orquesta 16 agentes especializados para cubrir el ciclo completo: desde diseños en Pencil hasta codigo deployado con QA verificado. Engineering: Claude Code implementa directamente + Impeccable para frontend design quality.
 
 ## Quick Start
 
@@ -12,6 +12,7 @@ chmod +x install.sh
 Luego en cualquier proyecto con Claude Code:
 ```
 /new-project         # Inicializar proyecto
+/challenge           # Sparring partner — desafía premisas, debate, fuerza evidencia
 /design-to-prd       # Analizar diseños → stories verticales + PRDs por feature
 /analyze             # Evaluar problema/PRD + investigar gaps
 /define              # Crear o enriquecer stories con JTBDs (detecta stories existentes)
@@ -37,6 +38,8 @@ Luego en cualquier proyecto con Claude Code:
 | Mediano (1-3 dias) | /analyze + /define + /plan + /build + /review | "Notificaciones push" |
 | Grande (1+ semana) | /design-to-prd → [opcional: /analyze + /define enriquece] → /plan + /build por feature | "Modulo de facturacion" |
 | Bug fix | /hotfix o prompt directo | "Los pedidos no se guardan" |
+| Validar idea | /challenge idea | "¿Estoy resolviendo el problema correcto?" |
+| Validar plan | /challenge plan | "¿Hay agujeros en mi plan?" |
 
 ## Architecture
 
@@ -47,9 +50,9 @@ pm-agent-system/
 ├── RULES.md                # Constraints globales + anti-bloat rules
 ├── DUTIES.md               # Segregacion de responsabilidades + conflict matrix
 │
-├── agents/                 # 15 agentes (todos con agent.yaml + SOUL.md + DUTIES.md)
+├── agents/                 # 16 agentes (todos con agent.yaml + SOUL.md + DUTIES.md)
 │   ├── age-spe-*           #   11 Especialistas (generan output)
-│   └── age-sup-*           #   4 Supervisores (read-only, diagnostican y proponen)
+│   └── age-sup-*           #   5 Supervisores (read-only, diagnostican y proponen)
 │
 ├── skills/                 # 6 capacidades reutilizables (ski-*)
 │   ├── ski-prd-builder/    #   Template PRD Quality Guard compliant
@@ -67,15 +70,16 @@ pm-agent-system/
 │   ├── rul-naming-conventions
 │   └── rul-git-branch-management
 │
-├── knowledge/              # 5 bases de conocimiento (kno-*)
+├── knowledge/              # 6 bases de conocimiento (kno-*)
 │   ├── kno-jtbd-framework       #   JTBD Reforzado (8 elementos) + Wendel + Behavior Change
 │   ├── kno-mom-test              #   Mom Test + Gap Detection + Interview Guides
 │   ├── kno-story-splitting       #   9 heuristicas Eduardo Ferro
 │   ├── kno-testing-strategy      #   Testing Trophy, test types, coverage, regression, anti-patterns, TDD
-│   └── kno-story-ticket-template #   Formato universal de story ticket (design-analyst, story-writer, story-builder)
+│   ├── kno-story-ticket-template #   Formato universal de story ticket (design-analyst, story-writer, story-builder)
+│   └── kno-strategic-thinking    #   Frameworks de pensamiento estrategico (Bezos, Munger, Jobs, anti-sycophancy)
 │
-├── workflows/              # 14 workflows DAG (wor-*)
-├── commands/               # 14 slash commands para Claude Code
+├── workflows/              # 15 workflows DAG (wor-*)
+├── commands/               # 15 slash commands para Claude Code
 │
 ├── memory/                 # Estado persistente cross-session
 │   ├── MEMORY.md           #   Working memory (max 200 lineas)
@@ -95,7 +99,7 @@ pm-agent-system/
 └── install.sh              # Instalacion safe a ~/.claude/
 ```
 
-## Agents (18)
+## Agents (19)
 
 ### Specialists (11) — generan output
 | Agent | Model | Phase | What it does |
@@ -125,9 +129,10 @@ Para frontend design quality. NO es parte de este sistema — es un paquete exte
   - `/impeccable:critique` — feedback de UX
   - `/impeccable:adapt` — responsive multi-device
 
-### Supervisors (4) — read-only, diagnostican y proponen
+### Supervisors (5) — read-only, diagnostican y proponen
 | Agent | Model | Phase | What it does |
 |-------|-------|-------|-------------|
+| **strategic-challenger** | **opus** | **Analysis** | **Sparring partner: desafia premisas, debate, fuerza evidencia. Modo ideacion (6 forcing questions) y revision (5 lentes estrategicos). Anti-sycophancy.** |
 | quality-coach | opus | Definition | Entrenador de Calidad: 6D scoring con hard rules, 7 antipatrones, reescrituras sugeridas |
 | auditor | haiku | QA | Verificacion binaria de compliance (compliant/non-compliant) |
 | evaluator | haiku | QA | Scoring 4 dimensiones ponderadas + trend analysis |

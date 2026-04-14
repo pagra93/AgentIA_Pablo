@@ -236,6 +236,7 @@ echo "  Skills:   $skill_count (skills + rules + knowledge in ~/.claude/skills/)
 echo ""
 echo -e "${CYAN}What Claude Code now has:${NC}"
 echo ""
+echo "  /challenge          Challenge premises, debate, force evidence"
 echo "  /analyze            Evaluate problem/PRD"
 echo "  /define             Create JTBDs + stories"
 echo "  /story              Build story from idea (autonomous)"
@@ -262,7 +263,7 @@ echo ""
 # Find CLAUDE.md files that contain PM x10 markers
 found_projects=()
 while IFS= read -r -d '' claude_file; do
-    if grep -q "PM x10\|pm-agent-system\|pm x10" "$claude_file" 2>/dev/null; then
+    if grep -q "PM x10\|pm-agent-system\|pm x10\|Orchestration Rules\|specialized agents" "$claude_file" 2>/dev/null; then
         project_dir=$(dirname "$claude_file")
         # Handle both .claude/CLAUDE.md and CLAUDE.md
         if [ "$(basename "$project_dir")" = ".claude" ]; then
@@ -270,7 +271,7 @@ while IFS= read -r -d '' claude_file; do
         fi
         found_projects+=("$claude_file")
     fi
-done < <(find "$HOME" -maxdepth 5 -name "CLAUDE.md" -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/pm-agent-system/*" -not -path "$SCRIPT_DIR/*" -print0 2>/dev/null)
+done < <(find "$HOME" -maxdepth 8 -name "CLAUDE.md" -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/pm-agent-system/*" -not -path "$SCRIPT_DIR/*" -print0 2>/dev/null)
 
 if [ ${#found_projects[@]} -eq 0 ]; then
     echo "  No existing PM x10 projects found."
@@ -297,21 +298,21 @@ else
 
             updated=false
 
-            # Update agent count: 14 → 15
-            if grep -q "14 specialized agents\|14 specialized (" "$pf" 2>/dev/null; then
-                sed -i '' 's/14 specialized agents (10 specialists/15 specialized agents (11 specialists/g; s/14 specialized (10 specialists/15 specialized (11 specialists/g' "$pf"
+            # Update agent count: 14/15 → 16
+            if grep -q "14 specialized agents\|14 specialized (\|15 specialized agents\|15 specialized (" "$pf" 2>/dev/null; then
+                sed -i '' 's/14 specialized agents (10 specialists/16 specialized agents (11 specialists + 5 supervisors/g; s/15 specialized agents (11 specialists/16 specialized agents (11 specialists + 5 supervisors/g' "$pf"
                 updated=true
             fi
 
-            # Update knowledge count: 3/4 → 5
-            if grep -q "Knowledge: 3 \|Knowledge: 4 " "$pf" 2>/dev/null; then
-                sed -i '' 's/Knowledge: 3 .*/Knowledge: 5 (JTBD framework, Mom Test, story splitting, testing strategy, story ticket template)/g; s/Knowledge: 4 .*/Knowledge: 5 (JTBD framework, Mom Test, story splitting, testing strategy, story ticket template)/g' "$pf"
+            # Update knowledge count: 3/4/5 → 6
+            if grep -q "Knowledge: [345] " "$pf" 2>/dev/null; then
+                sed -i '' 's/Knowledge: [345] .*/Knowledge: 6 (JTBD framework, Mom Test, story splitting, testing strategy, story ticket template, strategic thinking)/g' "$pf"
                 updated=true
             fi
 
-            # Update commands count: 13 → 14
-            if grep -q "Commands: 13 " "$pf" 2>/dev/null; then
-                sed -i '' 's/Commands: 13 slash commands/Commands: 14 slash commands/g' "$pf"
+            # Update commands count: 13/14 → 15
+            if grep -q "Commands: 1[34] " "$pf" 2>/dev/null; then
+                sed -i '' 's/Commands: 1[34] slash commands/Commands: 15 slash commands/g' "$pf"
                 updated=true
             fi
 
@@ -319,6 +320,22 @@ else
             if ! grep -q "/story" "$pf" 2>/dev/null; then
                 sed -i '' 's|/build.*Implement stories|/story              Build story from idea (autonomous)\n/build              Implement stories|' "$pf"
                 updated=true
+            fi
+
+            # Add /challenge command if missing
+            if ! grep -q "/challenge" "$pf" 2>/dev/null; then
+                sed -i '' 's|/analyze.*Evaluate problem|/challenge          Challenge premises, debate, force evidence\n/analyze            Evaluate problem|' "$pf"
+                updated=true
+            fi
+
+            # Add project registry line if missing
+            if ! grep -q "project-registry" "$pf" 2>/dev/null; then
+                if grep -q "PROJECT_KNOWLEDGE" "$pf" 2>/dev/null; then
+                    sed -i '' '/PROJECT_KNOWLEDGE/a\
+- Project registry: docs/project-registry.md — technical asset inventory (DB, APIs, components)
+' "$pf"
+                    updated=true
+                fi
             fi
 
             # Add Testing section if missing

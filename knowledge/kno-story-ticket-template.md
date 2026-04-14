@@ -155,6 +155,27 @@ Los 3 agentes productores de stories:
 
 ---
 
+## Dependencias del Proyecto
+
+### Usa (assets existentes del registry)
+| Asset | Tipo | Del Feature | Nota |
+|-------|------|-------------|------|
+| [nombre] | [tipo] | [feature origen] | [como se usa] |
+
+### Crea (assets nuevos para el registry)
+| Asset | Tipo | Detalles |
+|-------|------|----------|
+| [nombre] | [tipo] | [campos/props/exports clave] |
+
+**Tipos permitidos**: `db` / `api` / `component` / `service` / `type` / `integration` / `hook` / `page` / `job` / `util` / `lib` / `middleware`
+
+**Reglas de llenado**:
+- **Una fila = un asset**. No agrupes funciones aunque vivan en el mismo archivo. Si una story crea 5 fetchers en `api/users.ts`, son 5 filas separadas.
+- **Ortografía correcta**: aplica `rul-spanish-orthography` cuando el proyecto esté en español (acentos, ñ, ¿, ¡).
+- **Solo hechos técnicos**: nada de "decisión pendiente" o "a elegir en /plan" — esas decisiones van en `architecture.md` o ADR.
+
+---
+
 ## Verificacion Estructural
 
 ### Verdades (que debe ser CIERTO cuando la story esta hecha)
@@ -237,6 +258,7 @@ Cada seccion se llena diferente segun el ORIGEN de la story:
 | **Diseno** | **COMPLETA** (fuente primaria) | [PENDIENTE DE DISENO] | [DERIVADO del contexto] |
 | Criterios de aceptacion | Completa (de Capas 4+6) | Completa (de JTBD criteria) | Completa [DERIVADO] |
 | **Notas tecnicas** | **COMPLETA** (de Capas 2-6) | [DERIVADO — validar en /plan] | [DERIVADO — validar en /plan] |
+| **Dependencias del Proyecto** | **COMPLETA** (de Capas 2-5 + registry) | [DERIVADO — validar en /plan] | [DERIVADO — validar en /plan] |
 | **Verificacion Estructural** | **COMPLETA** (Verdades de Capas 4+6, Artefactos de Capas 1-3, Conexiones de Capa 5) | Verdades completas, Artefactos/Conexiones [DERIVADO] | Todo [DERIVADO — validar en /plan] |
 | Plan pruebas DEV | Completa | Completa | [DERIVADO] |
 | Plan pruebas QA | Completa | Completa | [DERIVADO] |
@@ -265,10 +287,10 @@ Cuando el origen es DISENO, el design-analyst mapea cada capa a su seccion:
 | Capa del Analisis | Seccion en Story Ticket |
 |-------------------|------------------------|
 | **Capa 1: UI/Componentes** | Diseno → Anatomia, Navegacion, Interaccion, Accesibilidad |
-| **Capa 2: Datos/DB** | Notas tecnicas → Modelo de Datos |
-| **Capa 3: API/Endpoints** | Notas tecnicas → API Endpoints |
+| **Capa 2: Datos/DB** | Notas tecnicas → Modelo de Datos + **Dependencias del Proyecto** (Usa/Crea tablas) |
+| **Capa 3: API/Endpoints** | Notas tecnicas → API Endpoints + **Dependencias del Proyecto** (Usa/Crea endpoints) |
 | **Capa 4: Logica de Negocio** | **Split**: reglas testables → Criterios de aceptacion (Scenarios); reglas de negocio → Notas tecnicas → Logica |
-| **Capa 5: Integraciones** | Notas tecnicas → Integraciones |
+| **Capa 5: Integraciones** | Notas tecnicas → Integraciones + **Dependencias del Proyecto** (Usa/Crea servicios, integraciones) |
 | **Capa 6: Edge Cases** | **Split**: testables → Criterios de aceptacion (Scenario Outlines negativos); sistemicos → Notas tecnicas → Edge Cases |
 
 **Regla clave del split**: Si un edge case o regla de logica se puede expresar como Given-When-Then, va a Criterios de aceptacion. Si es una preocupacion sistemica (performance, concurrencia, infraestructura), va a Notas tecnicas.

@@ -59,6 +59,7 @@
 ## Output Constraints
 
 - **Language**: Match the user's language. If the user writes in Spanish, respond in Spanish. Code, variable names, and technical terms remain in English.
+- **Spanish orthography**: When writing in Spanish (responses, markdown files, documentation), ALWAYS use proper Spanish characters: accented vowels (á, é, í, ó, ú), ñ, ¿, ¡, ü. Never strip accents for "safety" — UTF-8 is universal. Write "análisis" not "analisis", "energía" not "energia", "España" not "Espana", "¿cómo?" not "como?". This applies to ALL generated content: stories, PRDs, JTBDs, commit messages, and user-facing text.
 - **Format**: Use markdown for all structured output. Use tables for comparisons. Use checklists for verification.
 - **Length**: Lead with the answer or action, not the reasoning. If it can be said in one sentence, don't use three.
 - **Code blocks**: Always specify the language for syntax highlighting. Include file paths as comments when relevant.
