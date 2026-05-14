@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{PACKAGE_NAME}} — Guía operativa</title>
+<style>
+  :root {
+    --bg: #1a1611;
+    --surface: #211c16;
+    --surface-2: #2a241b;
+    --accent: #d4825a;
+    --accent-soft: rgba(212, 130, 90, 0.15);
+    --text: #f5f0e8;
+    --text-2: #b8ada0;
+    --text-3: #908578;
+    --border: rgba(245, 240, 232, 0.08);
+    --border-strong: rgba(245, 240, 232, 0.18);
+    --success: #7ec88a;
+    --warning: #d4b860;
+    --danger: #d97a6a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 15px; line-height: 1.6; padding: 2rem; max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 2.5rem; margin-bottom: 0.5rem; font-weight: 700; }
+  h1 .accent { color: var(--accent); }
+  h2 { font-size: 1.5rem; margin: 2.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-strong); color: var(--accent); }
+  h3 { font-size: 1.2rem; margin: 1.5rem 0 0.75rem; color: var(--text); }
+  p { color: var(--text-2); margin-bottom: 1rem; }
+  code { background: var(--surface-2); padding: 0.15em 0.4em; border-radius: 4px; font-family: ui-monospace, monospace; font-size: 0.9em; color: var(--accent); }
+  pre { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; overflow-x: auto; margin: 1rem 0; }
+  pre code { background: none; padding: 0; color: var(--text); }
+  ul, ol { margin: 0.5rem 0 1rem 1.5rem; color: var(--text-2); }
+  li { margin: 0.3rem 0; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+  th, td { padding: 0.6rem; text-align: left; border-bottom: 1px solid var(--border); }
+  th { color: var(--accent); font-weight: 600; }
+  td { color: var(--text-2); }
+  .badge { display: inline-block; padding: 0.2em 0.6em; background: var(--accent-soft); color: var(--accent); border-radius: 4px; font-size: 0.85em; margin-right: 0.4em; }
+  .note { background: var(--surface); border-left: 3px solid var(--accent); padding: 1rem; margin: 1rem 0; border-radius: 0 8px 8px 0; }
+  .header-meta { color: var(--text-3); font-size: 0.95em; margin-bottom: 2rem; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+</style>
+</head>
+<body>
+
+<h1>{{PACKAGE_NAME}} <span class="accent">— Guía operativa</span></h1>
+<p class="header-meta">Paquete desplegable generado por <a href="../../README.md" style="color: var(--accent);">AgentArchitect</a> · Dominio: <code>{{DOMAIN}}</code> · Prefix: <code>{{PREFIX}}</code> · Versión 0.1.0 · {{DATE}}</p>
+
+<h2>Qué es</h2>
+<p>{{PURPOSE}}</p>
+
+<div class="note">
+  <strong>Filosofía:</strong> {{PHILOSOPHY}}
+</div>
+
+<h2>Flujo principal</h2>
+<pre><code>{{STAGES}}</code></pre>
+
+<h2>Agentes del paquete</h2>
+<table>
+<thead><tr><th>Agente</th><th>Rol</th><th>Estado</th></tr></thead>
+<tbody>
+{{AGENTS_HTML_ROWS}}
+</tbody>
+</table>
+
+<p><em>Estado inicial:</em> los agentes son <strong>stubs</strong>. Su lógica se implementa en sesiones posteriores al arranque del paquete.</p>
+
+<h2>Supervisores QA (heredados)</h2>
+<p>Estos 5 supervisores son comunes a todos los paquetes generados por AgentArchitect. Son <strong>read-only</strong>: observan, puntúan, proponen, pero no modifican.</p>
+<table>
+<thead><tr><th>Agente</th><th>Rol</th><th>Trigger</th></tr></thead>
+<tbody>
+<tr><td><code>age-sup-auditor</code></td><td>Verifica compliance con rules</td><td><code>/review</code></td></tr>
+<tr><td><code>age-sup-evaluator</code></td><td>Puntúa fases en 4D</td><td><code>/review</code></td></tr>
+<tr><td><code>age-sup-optimizer</code></td><td>Detecta patrones, propone mejoras</td><td><code>/review</code></td></tr>
+<tr><td><code>age-sup-cynic</code></td><td>Adversarial: desafía premisas</td><td><code>/adversarial</code></td></tr>
+<tr><td><code>age-sup-boundary-walker</code></td><td>Adversarial: explora bordes</td><td><code>/adversarial</code></td></tr>
+</tbody>
+</table>
+
+<h2>Comandos disponibles</h2>
+<h3>Específicos del paquete</h3>
+<table>
+<thead><tr><th>Comando</th><th>Para qué</th></tr></thead>
+<tbody>
+{{COMMANDS_HTML_ROWS}}
+</tbody>
+</table>
+
+<h3>Genéricos heredados</h3>
+<table>
+<thead><tr><th>Comando</th><th>Para qué</th></tr></thead>
+<tbody>
+<tr><td><code>/save</code></td><td>Commit + push a GitHub</td></tr>
+<tr><td><code>/docs</code></td><td>Generar/actualizar documentación</td></tr>
+<tr><td><code>/learned</code></td><td>Logear una lección aprendida</td></tr>
+<tr><td><code>/challenge</code></td><td>Sparring estratégico (cuestionar premisas)</td></tr>
+<tr><td><code>/unknown-unknowns</code></td><td>Detector de riesgos en 8 dimensiones</td></tr>
+<tr><td><code>/hotfix</code></td><td>Pipeline de bug-fix ligero</td></tr>
+<tr><td><code>/code-review</code></td><td>Code review standalone</td></tr>
+<tr><td><code>/adversarial</code></td><td>Cynic + Boundary-Walker locales del paquete</td></tr>
+</tbody>
+</table>
+
+<h2>Cómo se usa</h2>
+
+<h3>1. Instalar a <code>~/.claude/</code></h3>
+<pre><code>bash install.sh</code></pre>
+<p>Compila los agentes del paquete y los comandos a <code>~/.claude/</code>. Después de esto, los <code>/{{PREFIX}}-*</code> están disponibles globalmente en Claude Code.</p>
+
+<h3>2. Desplegar en un proyecto cliente</h3>
+<pre><code>bash deploy.sh /ruta/al/proyecto-cliente</code></pre>
+<p>Materializa la estructura del paquete en el proyecto (si es nuevo, crea dashboard, pm/config.json y memory desde <code>project-template</code> del arquitecto). Añade su pestaña al dashboard del proyecto.</p>
+
+<div class="note">
+  <strong>Multi-paquete</strong>: si el proyecto cliente ya tiene otros paquetes desplegados, este solo añade su pestaña sin pisar las demás. El dashboard del proyecto renderiza dinámicamente todas las pestañas activas.
+</div>
+
+<h3>3. Trabajar en el paquete</h3>
+<p>Abre Cursor o Claude Code en <code>{{PACKAGE_NAME}}/</code>. Los agentes y comandos del paquete estarán disponibles (después de <code>install.sh</code>).</p>
+
+<h2>Outputs canónicos</h2>
+<p>{{OUTPUTS}}</p>
+
+<h2>Estructura del paquete</h2>
+<pre><code>{{PACKAGE_NAME}}/
+├── .claude/settings.local.json
+├── agents/              ← especialistas del paquete + 5 supervisores QA heredados
+├── commands/            ← /{{PREFIX}}-* + comandos genéricos heredados
+├── skills/, rules/, knowledge/  ← genéricos heredados del arquitecto
+├── templates/           ← templates específicos del paquete
+├── docs/general/        ← docs cross-dominio
+├── memory/MEMORY.md
+├── pm/                  ← (opcional) estado operativo
+├── changelog/
+├── context-ledger/      ← log append-only por sesión
+├── install.sh, deploy.sh, dashboard-section.yaml
+├── CLAUDE.md, SOUL.md, DUTIES.md, RULES.md, agent.yaml, system-overview.md, README.md
+└── guia-de-uso.html     ← esta guía</code></pre>
+
+<h2>Relación con el arquitecto</h2>
+<p>Este paquete vive bajo <a href="../../README.md" style="color: var(--accent);">AgentArchitect</a>. Cuando el arquitecto propaga mejoras a lo genérico (skills, rules, knowledge, comandos transversales, supervisores QA, código del dashboard), este paquete las recibe vía <code>/arc-propagate</code>.</p>
+<p>Lo específico del dominio se mantiene aquí directamente.</p>
+
+<hr>
+<p style="color: var(--text-3); font-size: 0.9em; text-align: center;">
+  {{PACKAGE_NAME}} v0.1.0 · Generado por AgentArchitect · {{AUTHOR}} · {{DATE}}
+</p>
+
+</body>
+</html>
