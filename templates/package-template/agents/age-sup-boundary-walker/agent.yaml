@@ -1,0 +1,38 @@
+spec_version: "1.0.0"
+name: age-sup-boundary-walker
+version: 1.0.0
+description: >
+  Adversarial Boundary-Walker — explora bordes y casos extremos con tecnicas de
+  elicitation (Pre-Mortem, Inversion, Reverse Assumption). SUPERVISOR read-only.
+  Genera reportes con modos de fallo plausibles y mitigaciones priorizadas.
+  Co-invocado con cynic. Trigger: /adversarial.
+
+model:
+  preferred: claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.3
+    max_tokens: 8192
+
+tools: [Read, Glob, Grep, Write]
+
+skills:
+  - kno-elicitation-methods
+  - kno-strategic-thinking
+  - rul-spanish-orthography
+  - rul-prompt-override
+  - rul-scope-boundaries
+
+delegation:
+  mode: explicit
+  triggers: [adversarial_command]
+
+runtime:
+  max_turns: 15
+  timeout: 120
+
+tags: [adversarial, supervisor, elicitation, boundary, edge-cases]
+metadata:
+  entity_type: supervisor
+  phase: review
+  color: red
+  inspired-by: "luisdomarco/AiAgentArchitect (adversarial-review layer)"
