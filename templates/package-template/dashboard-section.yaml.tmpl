@@ -1,0 +1,76 @@
+# Dashboard Section — {{PACKAGE_NAME}}
+#
+# Define la pestana que este paquete aporta al dashboard del proyecto cliente
+# donde se despliega. Cuando se ejecuta deploy.sh, este archivo se copia a:
+#
+#   <proyecto-cliente>/dashboard/sections/{{PACKAGE_NAME}}-section.yaml
+#
+# El bridge.py del dashboard lee todos los *-section.yaml en dashboard/sections/
+# y renderiza pestanas dinamicamente para cada paquete desplegado.
+
+tab_id: "{{PREFIX}}"
+tab_label: "{{DOMAIN}}"
+tab_icon: ""  # Opcional: emoji o icono Unicode (ej: ", #, 1, n)
+tab_order: 100  # Orden relativo (menor = mas a la izquierda). 100 = default.
+
+# Carpetas que el dashboard escanea para esta pestana.
+# Rutas relativas a la raiz del proyecto cliente.
+scan_dirs:
+  - "docs/{{DOMAIN_FOLDER}}/"
+
+# Secciones renderizadas dentro de la pestana.
+# Tipos soportados:
+#   - list: lista de elementos (cada item es una linea o entrada de markdown)
+#   - kanban: tablero kanban (estados como columnas; las entradas tienen estado)
+#   - markdown: renderiza un archivo markdown completo
+#   - tree: arbol de carpetas con archivos navegables
+sections:
+  - id: pipeline
+    label: "Pipeline"
+    type: kanban
+    source: "docs/{{DOMAIN_FOLDER}}/pipeline.md"
+    # Estados del kanban (columnas). Personalizar segun el flujo del dominio.
+    states:
+      - id: backlog
+        label: "Backlog"
+      - id: en_progreso
+        label: "En progreso"
+      - id: en_revision
+        label: "En revision"
+      - id: hecho
+        label: "Hecho"
+
+  - id: inbox
+    label: "Inbox"
+    type: list
+    source: "docs/{{DOMAIN_FOLDER}}/inbox.md"
+    description: "Ideas y entradas pendientes de procesar"
+
+  - id: lessons
+    label: "Lecciones"
+    type: list
+    source: "docs/{{DOMAIN_FOLDER}}/lessons.md"
+    description: "Aprendizajes del trabajo en {{DOMAIN}}"
+
+  # Anade aqui mas secciones especificas del dominio.
+  # Ejemplos:
+  #
+  # - id: tree
+  #   label: "Documentos"
+  #   type: tree
+  #   source: "docs/{{DOMAIN_FOLDER}}/"
+  #
+  # - id: configuracion
+  #   label: "Configuracion"
+  #   type: markdown
+  #   source: "docs/{{DOMAIN_FOLDER}}/config.md"
+
+# Metadatos para auditoria y propagaciones.
+# El propagator NO toca este archivo en proyectos clientes (es config local).
+# Si quieres cambiar la pestana, edita dashboard-section.yaml en el paquete y
+# vuelve a desplegar (deploy.sh) en el proyecto cliente.
+metadata:
+  package: "{{PACKAGE_NAME}}"
+  prefix: "{{PREFIX}}"
+  domain: "{{DOMAIN}}"
+  generated_at: "{{DATE}}"

@@ -1,0 +1,254 @@
+#!/usr/bin/env bash
+# {{PACKAGE_NAME}} — Deploy
+#
+# Despliega este paquete en un proyecto cliente:
+# 1. Si el proyecto NO tiene estructura todavia: la materializa desde
+#    templates/project-template/ del arquitecto (dashboard, pm/config.json, memory/, etc.)
+# 2. Crea docs/{{DOMAIN_FOLDER}}/ con la estructura del dominio
+# 3. Anade el paquete a pm/config.json del proyecto (deployed_packages)
+# 4. Copia dashboard-section.yaml -> proyecto/dashboard/sections/{{PACKAGE_NAME}}-section.yaml
+# 5. Registra el deployment en ~/.claude/projects-registry.txt
+#
+# Idempotente: ejecutar dos veces no rompe nada ni duplica.
+#
+# Usage:
+#   bash deploy.sh /ruta/al/proyecto-cliente
+#   bash deploy.sh /ruta/al/proyecto-cliente --dry-run
+#   bash deploy.sh /ruta/al/proyecto-cliente --force-update  (actualiza incluso si ya esta desplegado)
+
+set -euo pipefail
+
+PACKAGE_NAME="{{PACKAGE_NAME}}"
+PREFIX="{{PREFIX}}"
+DOMAIN="{{DOMAIN}}"
+DOMAIN_FOLDER="{{DOMAIN_FOLDER}}"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# El package esta en .../AgentArchitect/exports/<paquete>/, asi que el arquitecto es ../..
+ARCHITECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+PROJECT_TEMPLATE_DIR="$ARCHITECT_DIR/templates/project-template"
+
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+# --- Parse args ---
+TARGET_PROJECT="${1:-}"
+DRY_RUN=false
+FORCE_UPDATE=false
+for arg in "$@"; do
+    case "$arg" in
+        --dry-run) DRY_RUN=true ;;
+        --force-update) FORCE_UPDATE=true ;;
+    esac
+done
+
+if [ -z "$TARGET_PROJECT" ]; then
+    echo -e "${RED}Error:${NC} falta ruta del proyecto cliente."
+    echo "Usage: bash deploy.sh /ruta/al/proyecto-cliente [--dry-run] [--force-update]"
+    exit 1
+fi
+
+# Validacion: ruta no debe contener .. ni ser ruta peligrosa (seguridad)
+if [[ "$TARGET_PROJECT" == *".."* ]] || [[ "$TARGET_PROJECT" == "/" ]] || [[ "$TARGET_PROJECT" == "$HOME" ]]; then
+    echo -e "${RED}Error:${NC} ruta no permitida: $TARGET_PROJECT"
+    exit 1
+fi
+
+# Resolver path absoluto
+if [ -d "$TARGET_PROJECT" ]; then
+    TARGET_PROJECT="$(cd "$TARGET_PROJECT" && pwd)"
+else
+    echo -e "${RED}Error:${NC} la ruta no existe o no es directorio: $TARGET_PROJECT"
+    exit 1
+fi
+
+# Validacion: project-template existe?
+if [ ! -d "$PROJECT_TEMPLATE_DIR" ]; then
+    echo -e "${RED}Error:${NC} no se encuentra templates/project-template/ del arquitecto en $PROJECT_TEMPLATE_DIR"
+    echo "Este paquete debe vivir bajo AgentArchitect/exports/ para que deploy.sh funcione."
+    exit 1
+fi
+
+echo ""
+echo -e "${GREEN}${PACKAGE_NAME} — Deploy${NC}"
+echo "================================"
+echo "Source:           $SCRIPT_DIR"
+echo "Target proyecto:  $TARGET_PROJECT"
+echo "Project template: $PROJECT_TEMPLATE_DIR"
+echo "Domain folder:    $DOMAIN_FOLDER"
+echo "Dry-run:          $DRY_RUN"
+echo ""
+
+# Helper para ejecutar o solo mostrar (dry-run)
+do_action() {
+    local action_desc="$1"
+    shift
+    if [ "$DRY_RUN" = true ]; then
+        echo -e "  ${YELLOW}[dry-run]${NC} $action_desc"
+    else
+        "$@" && echo -e "  ${GREEN}[done]${NC} $action_desc"
+    fi
+}
+
+# ============================================
+# 1. MATERIALIZAR PROYECTO SI NO EXISTE
+# ============================================
+PROJECT_INITIALIZED=false
+if [ ! -d "$TARGET_PROJECT/dashboard" ] || [ ! -d "$TARGET_PROJECT/pm" ]; then
+    echo -e "${CYAN}Proyecto no inicializado todavia. Materializando estructura desde project-template...${NC}"
+    PROJECT_INITIALIZED=true
+
+    # Copiar carpetas base
+    for subdir in .claude pm memory dashboard; do
+        if [ ! -d "$TARGET_PROJECT/$subdir" ]; then
+            do_action "Crear $subdir/" mkdir -p "$TARGET_PROJECT/$subdir"
+        fi
+    done
+    do_action "Crear docs/" mkdir -p "$TARGET_PROJECT/docs"
+
+    # Copiar archivos del project-template (sin .tmpl)
+    if [ -f "$PROJECT_TEMPLATE_DIR/.claude/CLAUDE.md.tmpl" ]; then
+        do_action "Materializar .claude/CLAUDE.md" \
+            cp "$PROJECT_TEMPLATE_DIR/.claude/CLAUDE.md.tmpl" "$TARGET_PROJECT/.claude/CLAUDE.md"
+    fi
+    if [ -f "$PROJECT_TEMPLATE_DIR/pm/config.json.tmpl" ]; then
+        # Sustituir placeholders simples
+        project_name=$(basename "$TARGET_PROJECT")
+        today=$(date +%Y-%m-%d)
+        if [ "$DRY_RUN" = false ]; then
+            sed "s|{{PROJECT_NAME}}|$project_name|g; s|{{DATE}}|$today|g" \
+                "$PROJECT_TEMPLATE_DIR/pm/config.json.tmpl" > "$TARGET_PROJECT/pm/config.json"
+            echo -e "  ${GREEN}[done]${NC} Materializar pm/config.json"
+        else
+            echo -e "  ${YELLOW}[dry-run]${NC} Materializar pm/config.json"
+        fi
+    fi
+    if [ -f "$PROJECT_TEMPLATE_DIR/pm/tasks.json.tmpl" ]; then
+        do_action "Materializar pm/tasks.json" \
+            cp "$PROJECT_TEMPLATE_DIR/pm/tasks.json.tmpl" "$TARGET_PROJECT/pm/tasks.json"
+    fi
+    if [ -f "$PROJECT_TEMPLATE_DIR/memory/MEMORY.md.tmpl" ]; then
+        do_action "Materializar memory/MEMORY.md" \
+            cp "$PROJECT_TEMPLATE_DIR/memory/MEMORY.md.tmpl" "$TARGET_PROJECT/memory/MEMORY.md"
+    fi
+
+    # Copiar codigo del dashboard (4 archivos canonicos)
+    for dashfile in bridge.py index.html styles.css app.js; do
+        if [ -f "$PROJECT_TEMPLATE_DIR/dashboard/$dashfile" ]; then
+            do_action "Copiar dashboard/$dashfile" \
+                cp "$PROJECT_TEMPLATE_DIR/dashboard/$dashfile" "$TARGET_PROJECT/dashboard/$dashfile"
+        fi
+    done
+    do_action "Crear dashboard/sections/" mkdir -p "$TARGET_PROJECT/dashboard/sections"
+fi
+
+# ============================================
+# 2. CREAR DOCS/<DOMAIN_FOLDER>/ DEL PAQUETE
+# ============================================
+DOMAIN_DOCS_DIR="$TARGET_PROJECT/docs/$DOMAIN_FOLDER"
+if [ ! -d "$DOMAIN_DOCS_DIR" ]; then
+    echo -e "${CYAN}Creando docs/${DOMAIN_FOLDER}/ en el proyecto...${NC}"
+    do_action "Crear docs/$DOMAIN_FOLDER/" mkdir -p "$DOMAIN_DOCS_DIR"
+
+    # Archivos base del dominio (cada paquete puede personalizar esto despues)
+    if [ "$DRY_RUN" = false ]; then
+        cat > "$DOMAIN_DOCS_DIR/README.md" <<EOF
+# ${DOMAIN_FOLDER}/
+
+Documentos del paquete **${PACKAGE_NAME}** (dominio: ${DOMAIN}).
+
+Estructura inicial creada por el deploy del paquete. Personaliza segun el flujo del dominio.
+EOF
+        echo -e "  ${GREEN}[done]${NC} Crear docs/$DOMAIN_FOLDER/README.md"
+    fi
+fi
+
+# ============================================
+# 3. ANADIR PAQUETE A pm/config.json DEL PROYECTO
+# ============================================
+CONFIG_JSON="$TARGET_PROJECT/pm/config.json"
+if [ -f "$CONFIG_JSON" ]; then
+    if grep -q "\"$PACKAGE_NAME\"" "$CONFIG_JSON"; then
+        if [ "$FORCE_UPDATE" = false ]; then
+            echo -e "${YELLOW}Paquete ya desplegado segun pm/config.json. Use --force-update para refrescar.${NC}"
+        fi
+    else
+        echo -e "${CYAN}Anadiendo ${PACKAGE_NAME} a deployed_packages en pm/config.json...${NC}"
+        if [ "$DRY_RUN" = false ]; then
+            # Insertar en el array deployed_packages (asumiendo formato estandar de project-template)
+            # Usamos python para JSON manipulation seguro
+            python3 - <<PYTHON_SCRIPT
+import json
+path = "$CONFIG_JSON"
+package_name = "$PACKAGE_NAME"
+with open(path, "r") as f:
+    data = json.load(f)
+if package_name not in data.get("deployed_packages", []):
+    data.setdefault("deployed_packages", []).append(package_name)
+    with open(path, "w") as f:
+        json.dump(data, f, indent=2)
+PYTHON_SCRIPT
+            echo -e "  ${GREEN}[done]${NC} Anadido a pm/config.json"
+        else
+            echo -e "  ${YELLOW}[dry-run]${NC} Anadir a pm/config.json"
+        fi
+    fi
+fi
+
+# ============================================
+# 4. COPIAR DASHBOARD-SECTION.YAML
+# ============================================
+SECTIONS_DIR="$TARGET_PROJECT/dashboard/sections"
+SECTION_DEST="$SECTIONS_DIR/${PACKAGE_NAME}-section.yaml"
+if [ -f "$SCRIPT_DIR/dashboard-section.yaml" ]; then
+    if [ ! -d "$SECTIONS_DIR" ]; then
+        do_action "Crear dashboard/sections/" mkdir -p "$SECTIONS_DIR"
+    fi
+    if [ -f "$SECTION_DEST" ] && [ "$FORCE_UPDATE" = false ]; then
+        echo -e "${YELLOW}dashboard/sections/${PACKAGE_NAME}-section.yaml ya existe. Use --force-update para refrescar.${NC}"
+    else
+        do_action "Copiar dashboard-section.yaml a $SECTION_DEST" \
+            cp "$SCRIPT_DIR/dashboard-section.yaml" "$SECTION_DEST"
+    fi
+else
+    echo -e "${YELLOW}Warning:${NC} dashboard-section.yaml no encontrado en el paquete. Saltando."
+fi
+
+# ============================================
+# 5. REGISTRAR DEPLOYMENT EN ~/.claude/projects-registry.txt
+# ============================================
+PROJECTS_REGISTRY="$HOME/.claude/projects-registry.txt"
+if [ "$DRY_RUN" = false ]; then
+    REGISTRY_ENTRY="${TARGET_PROJECT}|${PACKAGE_NAME}|$(date -u +%Y-%m-%dT%H:%M:%S%z)"
+    if ! grep -q "^${TARGET_PROJECT}|${PACKAGE_NAME}|" "$PROJECTS_REGISTRY" 2>/dev/null; then
+        echo "$REGISTRY_ENTRY" >> "$PROJECTS_REGISTRY"
+        echo -e "${CYAN}Registrado en ~/.claude/projects-registry.txt${NC}"
+    fi
+fi
+
+# ============================================
+# SUMMARY
+# ============================================
+echo ""
+echo "================================"
+echo -e "${GREEN}Deploy ${PACKAGE_NAME} en ${TARGET_PROJECT}: complete!${NC}"
+echo ""
+
+if [ "$PROJECT_INITIALIZED" = true ]; then
+    echo -e "${CYAN}Proyecto inicializado desde project-template.${NC}"
+fi
+
+echo -e "${CYAN}Que tienes ahora:${NC}"
+echo "  - docs/${DOMAIN_FOLDER}/        (carpeta para artefactos del dominio ${DOMAIN})"
+echo "  - dashboard/sections/${PACKAGE_NAME}-section.yaml (pestana para el dashboard)"
+echo "  - pm/config.json incluye '${PACKAGE_NAME}' en deployed_packages"
+echo ""
+echo -e "${CYAN}Proximos pasos:${NC}"
+echo "  1. Arrancar el dashboard del proyecto:"
+echo "     cd '$TARGET_PROJECT' && python3 dashboard/bridge.py"
+echo "  2. Usar los comandos /${PREFIX}-* del paquete (deben estar instalados via install.sh)"
+echo "  3. Empezar a trabajar en docs/${DOMAIN_FOLDER}/"
+echo ""
