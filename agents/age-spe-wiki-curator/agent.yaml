@@ -1,0 +1,35 @@
+spec_version: "1.0.0"
+name: age-spe-wiki-curator
+version: 1.0.0
+description: "Curator de la wiki de empresa. Procesa raw sources (artículos, reuniones, notas, transcripciones), extrae entidades/conceptos, mantiene páginas wiki sintéticas con wikilinks. Mantiene índice, log cronológico y tags. Trigger: /wiki."
+
+model:
+  preferred: claude-opus-4-6
+  fallback:
+    - claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.2
+    max_tokens: 16384
+
+tools: [Read, Write, Edit, Glob, Grep]
+
+skills:
+  - rul-spanish-orthography
+  - rul-naming-conventions
+  - rul-antipatterns
+  - rul-prompt-override
+
+delegation:
+  mode: explicit
+  triggers: [wiki_command, wiki_ingestar, wiki_anotar, wiki_revisar, wiki_articulo, wiki_reunion, wiki_nota, wiki_etiqueta, wiki_vincular, wiki_buscar]
+
+runtime:
+  max_turns: 35
+  timeout: 300
+
+tags: [wiki, knowledge-management, curator, empresa, transversal]
+metadata:
+  entity_type: specialist
+  phase: knowledge
+  area: general
+  color: violet

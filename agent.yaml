@@ -2,11 +2,12 @@ spec_version: "1.0.0"
 name: pm-agent-system
 version: 2.2.0
 description: >
-  Sistema operativo de Product Management con IA. Orquesta 16 agentes especializados
-  a traves de 15 workflows DAG para cubrir el ciclo completo: desde disenos en Pencil
+  Sistema operativo de Product Management con IA. Orquesta 18 agentes especializados
+  a traves de 16 workflows DAG para cubrir el ciclo completo: desde disenos en Pencil
   hasta codigo deployado con QA verificado. Metodologia Mercadona (Quality Guard,
   Mom Test, JTBD Reforzado, 6D Scoring). Anti-bloat rules. PM valida siempre.
   Engineering: Claude Code implementa directamente + Impeccable para frontend quality.
+  Wiki transversal de empresa (raw sources -> sintesis derivada con wikilinks).
 author: pablo
 license: MIT
 
@@ -18,9 +19,11 @@ model:
     temperature: 0.2
     max_tokens: 16384
 
-# --- Agents (16 total: 11 specialists + 5 supervisors) ---
+# --- Agents (18 total: 13 specialists + 5 supervisors) ---
 # Engineering has no dedicated agents — Claude Code implements directly.
 # Frontend design quality: use Impeccable (https://impeccable.style/)
+# Coordination: 1 PM por área. V1 solo Producto (age-spe-pm-producto).
+# Knowledge: 1 curator transversal (age-spe-wiki-curator) para la wiki de empresa.
 agents:
   # Analysis
   age-spe-quality-guard:
@@ -132,6 +135,22 @@ agents:
       mode: auto
       triggers: [evaluation_complete]
 
+  # Coordination — un PM por área. V1 solo Producto. Marketing/RRHH tendrán el suyo.
+  age-spe-pm-producto:
+    path: agents/age-spe-pm-producto/
+    description: "PM de Producto: índice + buzón de ideas. Procesa inbox.md, mantiene tasks.json, infiere estado por filesystem, detecta drift y dependencias resueltas. Trigger: /pm"
+    delegation:
+      mode: explicit
+      triggers: [pm_command]
+
+  # Knowledge — curator transversal a todas las áreas (Producto, Marketing, RRHH, Operaciones).
+  age-spe-wiki-curator:
+    path: agents/age-spe-wiki-curator/
+    description: "Wiki Curator: procesa raw sources (artículos, reuniones, notas, transcripciones), sintetiza entidades/conceptos/topics, mantiene índice/log/tags, propone promociones. Transversal. Trigger: /wiki"
+    delegation:
+      mode: explicit
+      triggers: [wiki_command]
+
 # --- Skills, Rules, Knowledge ---
 skills:
   - ski-prd-builder
@@ -149,6 +168,8 @@ rules:
   - rul-scoring-dimensional
   - rul-naming-conventions
   - rul-git-branch-management
+  - rul-spanish-orthography
+  - rul-llm-coding-discipline
 
 knowledge:
   - kno-jtbd-framework
@@ -175,6 +196,8 @@ workflows:
   - wor-docs
   - wor-design-to-prd
   - wor-learned
+  - wor-pm
+  - wor-wiki
 
 # --- Runtime ---
 runtime:

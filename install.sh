@@ -159,6 +159,51 @@ $(cat "$duties_md")
 "
         fi
 
+        # Inline preloaded skills declared in agent.yaml's `skills:` list.
+        # YAML format expected:
+        #   skills:
+        #     - skill-name-1
+        #     - skill-name-2
+        # Skill source can live in skills/<name>/SKILL.md, rules/<name>.md, or knowledge/<name>.md.
+        if [ -f "$agent_yaml" ]; then
+            skills_list=$(awk '
+                /^skills:/ { in_skills=1; next }
+                in_skills && /^[a-zA-Z]/ { in_skills=0 }
+                in_skills && /^[[:space:]]*-[[:space:]]+/ {
+                    sub(/^[[:space:]]*-[[:space:]]+/, "")
+                    sub(/[[:space:]]*#.*$/, "")
+                    print
+                }
+            ' "$agent_yaml")
+
+            for skill_name in $skills_list; do
+                skill_content=""
+                skill_source=""
+                if [ -f "$SCRIPT_DIR/skills/$skill_name/SKILL.md" ]; then
+                    skill_source="skills/$skill_name/SKILL.md"
+                    skill_content=$(cat "$SCRIPT_DIR/skills/$skill_name/SKILL.md")
+                elif [ -f "$SCRIPT_DIR/rules/$skill_name.md" ]; then
+                    skill_source="rules/$skill_name.md"
+                    skill_content=$(cat "$SCRIPT_DIR/rules/$skill_name.md")
+                elif [ -f "$SCRIPT_DIR/knowledge/$skill_name.md" ]; then
+                    skill_source="knowledge/$skill_name.md"
+                    skill_content=$(cat "$SCRIPT_DIR/knowledge/$skill_name.md")
+                fi
+
+                if [ -n "$skill_content" ]; then
+                    compiled="$compiled
+
+---
+
+# Preloaded Skill: $skill_name
+<!-- source: $skill_source -->
+
+$skill_content
+"
+                fi
+            done
+        fi
+
         # Write compiled agent
         dest_file="$TARGET_DIR/agents/$agent_name.md"
         safe_write "$dest_file" "$compiled"
@@ -218,6 +263,48 @@ done
 echo ""
 
 # ============================================
+# 6. COPY DASHBOARD TEMPLATE
+# ============================================
+if [ -d "$SCRIPT_DIR/dashboard-template" ]; then
+    echo -e "${CYAN}Installing dashboard template...${NC}"
+    mkdir -p "$TARGET_DIR/dashboard-template"
+    copy_dir_recursive "$SCRIPT_DIR/dashboard-template" "$TARGET_DIR/dashboard-template"
+    echo ""
+fi
+
+# ============================================
+# 7. COPY TEMPLATES (CLAUDE-template, wiki-*, raw-*, config, inbox, etc.)
+# ============================================
+if [ -d "$SCRIPT_DIR/templates" ]; then
+    echo -e "${CYAN}Installing templates...${NC}"
+    mkdir -p "$TARGET_DIR/templates"
+    copy_dir_recursive "$SCRIPT_DIR/templates" "$TARGET_DIR/templates"
+    echo ""
+fi
+
+# ============================================
+# 8. GENERATE pmx10 wrapper (one-command operations)
+# ============================================
+PMX10_TEMPLATE="$SCRIPT_DIR/scripts/pmx10.template"
+PMX10_DEST="$TARGET_DIR/pmx10"
+if [ -f "$PMX10_TEMPLATE" ]; then
+    echo -e "${CYAN}Installing pmx10 wrapper...${NC}"
+    # Sustituir {{SYSTEM_REPO}} con la ruta real del repo
+    sed "s|{{SYSTEM_REPO}}|$SCRIPT_DIR|g" "$PMX10_TEMPLATE" > "$PMX10_DEST"
+    chmod +x "$PMX10_DEST"
+    echo -e "  ${GREEN}[installed]${NC} ~/.claude/pmx10  (uso: bash ~/.claude/pmx10 help)"
+    # Sugerir alias si no existe ya en .zshrc o .bashrc
+    SHELL_RC=""
+    [ -f "$HOME/.zshrc" ] && SHELL_RC="$HOME/.zshrc"
+    [ -z "$SHELL_RC" ] && [ -f "$HOME/.bashrc" ] && SHELL_RC="$HOME/.bashrc"
+    if [ -n "$SHELL_RC" ] && ! grep -q "alias pmx10=" "$SHELL_RC" 2>/dev/null; then
+        echo -e "  ${YELLOW}Tip:${NC} para escribir 'pmx10' directamente en vez de 'bash ~/.claude/pmx10':"
+        echo "       echo 'alias pmx10=\"bash \$HOME/.claude/pmx10\"' >> $SHELL_RC && source $SHELL_RC"
+    fi
+    echo ""
+fi
+
+# ============================================
 # SUMMARY
 # ============================================
 echo "================================"
@@ -233,6 +320,9 @@ echo "Installed:"
 echo "  Agents:   $agent_count (compiled to ~/.claude/agents/)"
 echo "  Commands: $cmd_count (in ~/.claude/commands/)"
 echo "  Skills:   $skill_count (skills + rules + knowledge in ~/.claude/skills/)"
+if [ -d "$TARGET_DIR/dashboard-template" ]; then
+    echo "  Dashboard: ~/.claude/dashboard-template/ (copiado a cada proyecto via /new-project)"
+fi
 echo ""
 echo -e "${CYAN}What Claude Code now has:${NC}"
 echo ""
@@ -251,6 +341,8 @@ echo "  /design-to-prd      Designs → PRDs"
 echo "  /unknown-unknowns   Risk detection"
 echo "  /docs               Project documentation"
 echo "  /learned            Save a learning anytime"
+echo "  /pm                 PM de Producto: indice + buzon + acciones"
+echo "  /wiki               Wiki de empresa: ingestar artículos/reuniones/notas"
 echo ""
 
 # ============================================
@@ -298,10 +390,25 @@ else
 
             updated=false
 
-            # Update agent count: 14/15 → 16
-            if grep -q "14 specialized agents\|14 specialized (\|15 specialized agents\|15 specialized (" "$pf" 2>/dev/null; then
-                sed -i '' 's/14 specialized agents (10 specialists/16 specialized agents (11 specialists + 5 supervisors/g; s/15 specialized agents (11 specialists/16 specialized agents (11 specialists + 5 supervisors/g' "$pf"
+            # Update agent count: 14/15/16/17 → 18
+            if grep -q "1[4567] specialized agents\|1[4567] specialized (\|17 specialized (12 specialists" "$pf" 2>/dev/null; then
+                sed -i '' 's/14 specialized agents (10 specialists/18 specialized (13 specialists + 5 supervisors/g; s/15 specialized agents (11 specialists/18 specialized (13 specialists + 5 supervisors/g; s/16 specialized agents (11 specialists/18 specialized (13 specialists + 5 supervisors/g; s/17 specialized (12 specialists/18 specialized (13 specialists/g' "$pf"
                 updated=true
+            fi
+
+            # Update commands count: 13/14/15 → 16
+            if grep -q "Commands: 1[345] " "$pf" 2>/dev/null; then
+                sed -i '' 's/Commands: 1[345] slash commands.*/Commands: 16 slash commands (incluye \/wiki)/g' "$pf"
+                updated=true
+            fi
+
+            # Add /wiki command if missing
+            if ! grep -q "/wiki" "$pf" 2>/dev/null; then
+                if grep -q "/pm " "$pf" 2>/dev/null; then
+                    sed -i '' 's|/pm .*PM de Producto.*|&\
+/wiki               Wiki de empresa: ingestar artículos/reuniones/notas|' "$pf"
+                    updated=true
+                fi
             fi
 
             # Update knowledge count: 3/4/5 → 6
