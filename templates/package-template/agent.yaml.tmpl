@@ -1,0 +1,128 @@
+spec_version: "1.0.0"
+name: {{PACKAGE_NAME}}
+version: 0.1.0
+description: >
+  {{PURPOSE}}
+
+  Paquete desplegable generado por AgentArchitect el {{DATE}}. Dominio: {{DOMAIN}}.
+  Prefix: {{PREFIX}}. Flujo principal: {{STAGES}}.
+  Hereda skills/rules/knowledge genericos y supervisores QA del arquitecto.
+author: {{AUTHOR}}
+license: MIT
+
+model:
+  preferred: claude-opus-4-6
+  fallback:
+    - claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.2
+    max_tokens: 16384
+
+# --- Agents (especialistas del paquete + 5 supervisores heredados) ---
+# Los especialistas se rellenan con stubs por el mini-discovery del generator.
+# Cada uno con `age-spe-{{PREFIX}}-<nombre>` y DUTIES.md inicial con TODO.
+agents:
+  # Especialistas del paquete (rellenados por el generator desde mini-discovery):
+{{AGENTS_YAML_BLOCK}}
+
+  # Supervisores QA heredados (read-only):
+  age-sup-auditor:
+    path: agents/age-sup-auditor/
+    description: "Verifica compliance con rules. Read-only. Trigger: /review"
+    delegation:
+      mode: auto
+      triggers: [review_command]
+  age-sup-evaluator:
+    path: agents/age-sup-evaluator/
+    description: "Puntua fases en 4D. Read-only. Trigger: /review"
+    delegation:
+      mode: auto
+      triggers: [audit_complete]
+  age-sup-optimizer:
+    path: agents/age-sup-optimizer/
+    description: "Detecta patrones y propone mejoras. Read-only. Trigger: /review"
+    delegation:
+      mode: auto
+      triggers: [evaluation_complete]
+  age-sup-cynic:
+    path: agents/age-sup-cynic/
+    description: "Adversarial: desafia premisas. Read-only. Trigger: /adversarial"
+    delegation:
+      mode: explicit
+      triggers: [adversarial_command]
+  age-sup-boundary-walker:
+    path: agents/age-sup-boundary-walker/
+    description: "Adversarial: explora bordes y casos extremos. Read-only. Trigger: /adversarial"
+    delegation:
+      mode: explicit
+      triggers: [adversarial_command]
+
+# --- Skills (heredadas del arquitecto, propagables) ---
+skills:
+  - ski-plan-mode
+  - ski-doc-updater
+  - ski-project-docs
+  - ski-unknown-unknowns
+  - ski-context-ledger
+  - ski-compression
+
+# --- Rules (heredadas del arquitecto, propagables) ---
+rules:
+  - rul-naming-conventions
+  - rul-git-branch-management
+  - rul-spanish-orthography
+  - rul-llm-coding-discipline
+  - rul-prompt-override
+  - rul-scope-boundaries
+  - rul-lazy-loading
+
+# --- Knowledge (heredadas del arquitecto, propagables) ---
+knowledge:
+  - kno-mom-test
+  - kno-strategic-thinking
+  - kno-elicitation-methods
+  - kno-mcp-integration
+
+# --- Workflows (comandos del paquete) ---
+# Comandos especificos del paquete: /{{PREFIX}}-*
+# Comandos genericos heredados: save, docs, learned, challenge, unknown-unknowns, hotfix, code-review, adversarial
+workflows:
+{{WORKFLOWS_YAML_BLOCK}}
+  # Genericos:
+  - save
+  - docs
+  - learned
+  - challenge
+  - unknown-unknowns
+  - hotfix
+  - code-review
+  - adversarial
+
+# --- Runtime ---
+runtime:
+  max_turns: 100
+  timeout: 600
+
+# --- QA Layer ---
+qa:
+  tier: full
+  scoring:
+    completeness: 0.30
+    quality: 0.30
+    compliance: 0.25
+    efficiency: 0.15
+  auto_activate: true
+  report_path: docs/general/qa-report.md
+
+# --- Tags & Metadata ---
+tags:
+  - {{DOMAIN}}
+  - package
+
+metadata:
+  entity_type: package
+  domain: {{DOMAIN}}
+  prefix: {{PREFIX}}
+  philosophy: "{{PHILOSOPHY}}"
+  parent_system: agent-architect
+  generated_at: {{DATE}}
