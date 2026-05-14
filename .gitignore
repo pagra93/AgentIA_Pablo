@@ -10,3 +10,7 @@ _reference/
 # Temp files
 *.tmp
 *.swp
+
+# Python
+__pycache__/
+*.pyc
