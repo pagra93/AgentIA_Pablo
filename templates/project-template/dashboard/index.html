@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-title">
+      <h1 id="project-name">Dashboard</h1>
+      <span class="header-meta" id="project-meta"></span>
+    </div>
+    <div class="header-actions">
+      <button id="btn-refresh" title="Refrescar (no recarga la página)">↻ Refrescar</button>
+      <a href="/api/tabs" target="_blank" title="Ver JSON crudo">{ } JSON</a>
+    </div>
+  </div>
+</header>
+
+<nav id="tabs" class="tabs">
+  <!-- Pestañas se renderizan dinámicamente desde /api/tabs -->
+  <div class="tabs-loading">Cargando pestañas…</div>
+</nav>
+
+<main id="content">
+  <!-- Contenido de la pestaña activa se renderiza aquí -->
+  <div class="content-loading">Cargando…</div>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <span id="footer-info"></span>
+    <span class="footer-build">multi-tab dashboard v0.1.0</span>
+  </div>
+</footer>
+
+<script src="/app.js"></script>
+</body>
+</html>
