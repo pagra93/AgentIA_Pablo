@@ -1,5 +1,5 @@
 ---
-description: "Log a lesson learned at any moment — bug resolved, tricky problem, discovery, mistake to avoid. Saves to tasks/lessons.md and memory/MEMORY.md."
+description: "Log a lesson learned at any moment — bug resolved, tricky problem, discovery, mistake to avoid. Saves to docs/producto/lessons.md and memory/MEMORY.md."
 ---
 
 # /learned — Guardar un Aprendizaje
@@ -45,7 +45,7 @@ Clasificar automaticamente en una de estas categorias:
 | **process** | Algo sobre como trabajar mejor |
 | **mistake** | Error que no quieres repetir |
 
-### Paso 3: Guardar en tasks/lessons.md
+### Paso 3: Guardar en docs/producto/lessons.md
 
 Append con formato:
 
@@ -63,7 +63,7 @@ Append con formato:
 
 Antes de guardar, verificar:
 
-1. **Ya existe algo similar?** — Buscar en tasks/lessons.md entradas sobre el mismo tema. Si existe, ACTUALIZAR esa entrada en vez de crear una nueva.
+1. **Ya existe algo similar?** — Buscar en docs/producto/lessons.md entradas sobre el mismo tema. Si existe, ACTUALIZAR esa entrada en vez de crear una nueva.
 2. **Vale la pena guardarlo?** — Solo guardar si:
    - Tardo >15 minutos en resolver
    - La causa no era obvia
@@ -77,7 +77,7 @@ Solo si el aprendizaje es un patron que podria repetirse. No para cosas puntuale
 
 ### Paso 6: Confirmar
 
-"Aprendizaje guardado en tasks/lessons.md.
+"Aprendizaje guardado en docs/producto/lessons.md.
 [Si aplica: + memory/MEMORY.md actualizado]
 La proxima vez que un agente trabaje, lo vera."
 
@@ -95,7 +95,7 @@ O si es trivial:
 ## Por Que Importa
 
 - Un bug que te costo 2 horas la primera vez deberia costarte 5 minutos la segunda
-- tasks/lessons.md es lo primero que los agentes leen al iniciar sesion
+- docs/producto/lessons.md es lo primero que los agentes leen al iniciar sesion
 - El optimizer usa estas lecciones para proponer mejoras sistemicas
 - Cuando vuelvas en semanas, TODO esta documentado
 

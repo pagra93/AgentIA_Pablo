@@ -4,7 +4,7 @@ description: "Generate or update project documentation. Modes: init, feature, ar
 
 # /docs — Project Documentation Generator
 
-Generates and maintains complete project documentation in `docs/project-docs/`.
+Generates and maintains complete project documentation in `docs/general/exportable/`.
 
 ## Usage
 
@@ -23,7 +23,7 @@ Generates and maintains complete project documentation in `docs/project-docs/`.
 Interviews you about the project and creates the documentation structure:
 
 1. Ask: What is this project? Who is it for? Mission/vision? Tech stack?
-2. Create `docs/project-docs/` with: index.md, overview/, features/, architecture/, guides/, api/, changelog.md
+2. Create `docs/general/exportable/` with: index.md, overview/, features/, architecture/, guides/, api/, changelog.md
 3. Generate initial content from your answers
 
 Use this ONCE per project, after `/new-project`.
@@ -31,8 +31,8 @@ Use this ONCE per project, after `/new-project`.
 ### /docs [feature-name] — Document a Feature
 After completing and reviewing a feature:
 
-1. Read the implementation (code, tests, stories from tasks/todo.md)
-2. Create `docs/project-docs/features/[feature-name].md` with:
+1. Read the implementation (code, tests, stories from docs/producto/sprint.md)
+2. Create `docs/general/exportable/features/[feature-name].md` with:
    - What it does (user-facing)
    - How it works (technical)
    - How to use it (examples)
@@ -65,8 +65,8 @@ Re-scan everything and update stale docs:
 ## Where It Writes
 
 ```
-docs/project-docs/           # Full documentation (for humans)
-docs/PROJECT_KNOWLEDGE.md    # NOT touched (that's ski-doc-updater's job)
+docs/general/exportable/           # Full documentation (for humans)
+docs/general/PROJECT_KNOWLEDGE.md    # NOT touched (that's ski-doc-updater's job)
 ```
 
 ## When to Use
@@ -78,7 +78,7 @@ docs/PROJECT_KNOWLEDGE.md    # NOT touched (that's ski-doc-updater's job)
 | Just ran /plan with new architecture | `/docs architecture` |
 | Built new API endpoints | `/docs api` |
 | Returning after weeks, docs feel stale | `/docs refresh` |
-| Want to export to docs site | Just copy docs/project-docs/ |
+| Want to export to docs site | Just copy docs/general/exportable/ |
 
 ## Typical Flow
 
@@ -101,6 +101,6 @@ docs/PROJECT_KNOWLEDGE.md    # NOT touched (that's ski-doc-updater's job)
 
 This is NOT the same as PROJECT_KNOWLEDGE.md:
 - **PROJECT_KNOWLEDGE.md** = Claude's quick reference (always loaded, concise)
-- **docs/project-docs/** = Full human documentation (loaded only when asked, detailed)
+- **docs/general/exportable/** = Full human documentation (loaded only when asked, detailed)
 
 Both are useful. They don't duplicate each other.

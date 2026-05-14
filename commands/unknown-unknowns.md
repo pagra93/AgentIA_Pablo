@@ -54,7 +54,7 @@ Top 5 prioritized actions — not a wall of text, just what to do next.
 
 ## Output
 
-Saved to `docs/working_docs/risk-audit/` if docs/ exists.
+Saved to `docs/producto/features/risk-audit/` if docs/ exists.
 
 ## Standalone vs Pipeline
 

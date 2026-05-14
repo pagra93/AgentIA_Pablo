@@ -8,8 +8,8 @@ description: "Sparring partner estrategico — desafia premisas, debate, hace pr
 Leer silenciosamente (NO mostrar al PM):
 - CLAUDE.md del proyecto (si existe)
 - `git log --oneline -20` (actividad reciente)
-- docs/working-docs/ (features en progreso)
-- tasks/lessons.md (lecciones relevantes)
+- docs/producto/features/ (features en progreso)
+- docs/producto/lessons.md (lecciones relevantes)
 
 ## Step 2: Detect Mode
 Si argumento proporcionado:
@@ -42,7 +42,7 @@ El agente produce el brief con:
 - Alternativas exploradas (minimo 2)
 - Decisiones del PM documentadas
 
-**Where to save**: `docs/working-docs/[topic]/challenge-brief.md`
+**Where to save**: `docs/producto/features/[topic]/challenge-brief.md`
 
 ## Step 5: Next Step
 Segun el modo:
