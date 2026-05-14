@@ -1,0 +1,63 @@
+# {{PROJECT_NAME}}
+
+Proyecto cliente con paquetes desplegables de AgentArchitect.
+
+## Estado actual
+
+Paquetes desplegados: ver `pm/config.json` → `deployed_packages`.
+
+## Quick start
+
+```bash
+# Arrancar dashboard multi-pestaña
+python3 dashboard/bridge.py
+
+# Abrir en navegador
+open http://localhost:7700
+```
+
+## Estructura
+
+```
+{{PROJECT_NAME}}/
+├── .claude/CLAUDE.md       ← contexto para Claude Code
+├── pm/
+│   ├── config.json         ← paquetes desplegados
+│   └── tasks.json          ← (opcional) tareas
+├── memory/MEMORY.md        ← memoria persistente
+├── docs/                   ← una carpeta por dominio
+│   └── <dominio>/...
+└── dashboard/              ← multi-pestaña, una por paquete
+    ├── bridge.py
+    ├── index.html, styles.css, app.js
+    └── sections/
+        └── <paquete>-section.yaml
+```
+
+## Comandos disponibles (vía Claude Code)
+
+Después de instalar los paquetes (sus `install.sh`), los comandos `/<prefix>-*` y los transversales (`/save`, `/docs`, etc.) están disponibles globalmente.
+
+Para listar qué tienes ahora:
+
+```bash
+ls ~/.claude/commands/
+```
+
+## Desplegar paquetes
+
+```bash
+# Primer paquete (materializa esta estructura)
+bash <arquitecto>/exports/<paquete>/deploy.sh "$(pwd)"
+
+# Paquetes adicionales (añaden pestañas al dashboard sin pisar)
+bash <arquitecto>/exports/<otro>/deploy.sh "$(pwd)"
+```
+
+## Documentación
+
+- **`.claude/CLAUDE.md`** — contexto de este proyecto para Claude Code (más detallado)
+
+## Licencia
+
+Según el proyecto. Por defecto: privado, sin licencia explícita.

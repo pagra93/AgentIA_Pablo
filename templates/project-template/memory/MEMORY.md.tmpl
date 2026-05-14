@@ -1,0 +1,31 @@
+# {{PROJECT_NAME}} — Memory Index
+
+Memoria persistente del proyecto. Es un repositorio único donde todos los paquetes desplegados pueden escribir (cada uno con su propia subcarpeta opcional para evitar colisiones).
+
+Tipos de memoria:
+
+- `user/` — preferencias del PM en este proyecto
+- `feedback/` — correcciones aceptadas durante el trabajo
+- `project/` — decisiones específicas de este proyecto (cross-paquete)
+- `reference/` — punteros a recursos externos relevantes al proyecto
+
+## Convenciones cross-paquete
+
+Si dos paquetes desplegados podrían escribir sobre el mismo tema, usan subcarpetas:
+
+```
+memory/
+├── shared/           ← decisiones que afectan a múltiples paquetes
+├── pm/               ← memoria específica de PM x10 (si desplegado)
+├── newsletter/       ← memoria específica de newsletter-system
+├── marketing/        ← memoria específica de marketing-system
+└── ...
+```
+
+(Vacío en estado inicial. Las entradas se crean conforme el trabajo avanza.)
+
+## Notas
+
+- Esta memoria es **del proyecto cliente**, no de los paquetes ni del arquitecto.
+- El arquitecto tiene su propia memoria. Los paquetes tienen la suya (en `<arquitecto>/exports/<paquete>/memory/`).
+- Cada nivel es independiente.

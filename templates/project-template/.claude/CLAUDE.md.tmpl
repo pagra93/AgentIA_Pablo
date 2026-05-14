@@ -1,0 +1,91 @@
+# {{PROJECT_NAME}}
+
+Proyecto cliente con uno o varios paquetes desplegables de AgentArchitect.
+
+> **Estado**: este archivo se materializó cuando se desplegó el primer paquete en este proyecto.
+> Modificable a mano si el PM quiere personalizar el contexto.
+
+## Paquetes desplegados
+
+Listados en `pm/config.json` campo `deployed_packages`. Cada paquete aporta:
+
+- Agentes con prefix propio (ej. `age-spe-<prefix>-*`) ya instalados en `~/.claude/`
+- Comandos con prefix (`/<prefix>-*`) disponibles en Claude Code
+- Una pestaña en el dashboard multi-pestaña del proyecto (ver `dashboard/`)
+- Una carpeta `docs/<dominio>/` con artefactos del dominio
+
+Para ver el estado actual:
+
+```bash
+cat pm/config.json
+ls dashboard/sections/
+ls docs/
+```
+
+## Cómo arrancar
+
+```bash
+# Dashboard multi-pestaña del proyecto
+python3 dashboard/bridge.py
+
+# Abre http://localhost:7700 en el navegador
+```
+
+El dashboard renderiza una pestaña por paquete desplegado, leyendo `dashboard/sections/*.yaml`.
+
+## Desplegar paquetes adicionales
+
+```bash
+# Desplegar otro paquete del arquitecto:
+bash <arquitecto>/exports/<paquete>/deploy.sh "$(pwd)"
+```
+
+El nuevo paquete:
+- Añade su pestaña al dashboard existente (no lo reemplaza)
+- Añade su carpeta `docs/<dominio>/`
+- Se registra en `pm/config.json`
+
+## Estructura
+
+```
+{{PROJECT_NAME}}/
+├── .claude/CLAUDE.md         ← este archivo (contexto del proyecto)
+├── pm/
+│   ├── config.json           ← lista paquetes desplegados
+│   └── tasks.json            ← (opcional) estado de tareas
+├── memory/MEMORY.md          ← memoria persistente del proyecto
+├── docs/                     ← una carpeta por dominio desplegado
+│   ├── producto/             ← (si PM x10 desplegado)
+│   ├── newsletter/           ← (si Newsletter desplegado)
+│   ├── marketing/            ← (si Marketing desplegado)
+│   └── ...
+└── dashboard/
+    ├── bridge.py             ← servidor del dashboard multi-pestaña
+    ├── index.html
+    ├── styles.css
+    ├── app.js
+    └── sections/
+        ├── <paquete-1>-section.yaml
+        ├── <paquete-2>-section.yaml
+        └── ...
+```
+
+## Convenciones
+
+- **Slash commands**: cada paquete trae sus `/<prefix>-*`. Comandos transversales sin prefix: `/save`, `/docs`, `/learned`, `/challenge`, `/unknown-unknowns`, `/hotfix`, `/code-review`.
+- **Docs por dominio**: cada paquete escribe en `docs/<su-dominio>/`. No se mezclan.
+- **Pestañas del dashboard**: una por paquete desplegado, ordenadas por `tab_order` en cada `dashboard-section.yaml`.
+
+## Mejoras al dashboard (vienen del arquitecto)
+
+El **código** del dashboard (bridge.py, index.html, styles.css, app.js) lo mantiene el arquitecto en `templates/project-template/dashboard/`. Cuando hay mejoras, se propagan vía `/arc-propagate scope=dashboard` desde el arquitecto.
+
+Lo **local** (sections/*.yaml, pm/config.json, memory) NO se propaga — es config de este proyecto.
+
+## Identidad
+
+Soy el proyecto cliente **{{PROJECT_NAME}}**. Los paquetes desplegados aquí me aportan sus agentes, comandos y vistas. Yo soy el espacio donde se trabaja.
+
+---
+
+Generado el {{DATE}}. Materializado por el primer deploy de paquete que tocó este proyecto.
