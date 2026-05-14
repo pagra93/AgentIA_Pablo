@@ -53,8 +53,13 @@ knowledge:
   - kno-mcp-integration      # como anadir/usar servidores MCP (NUEVO)
 
 # --- Workflows (6 comandos /arc-*) ---
-# Se rellenan en Fase 3.
-workflows: []
+workflows:
+  - arc-new-package    # /arc-new-package — crear paquete via mini-discovery (generator)
+  - arc-propagate      # /arc-propagate — propagar cambios genericos (propagator)
+  - arc-audit          # /arc-audit — auditar conformidad de paquetes (auditor)
+  - arc-catalog        # /arc-catalog — refrescar exports/README.md (cataloger)
+  - arc-aggregate      # /arc-aggregate — analisis macro cross-paquete (aggregator)
+  - arc-adversarial    # /arc-adversarial — revision adversarial (cynic + boundary-walker)
 
 # --- Runtime ---
 runtime:
