@@ -4,6 +4,20 @@ description: "Validation-only pipeline — code review, tests, audit, evaluation
 
 # /code-review — Validation Only
 
+## Pre-flight: leer `prompt_override` de la HU
+
+Antes de invocar cualquier agente sobre una HU o EPIC concreta:
+
+1. Localiza el frontmatter YAML de esa HU en `docs/<área>/features/<feature>/stories.md`.
+2. Lee el campo `prompt_override`. Si existe y no está vacío, **inclúyelo como contexto adicional explícito** en el mensaje al sub-agente: «Contexto adicional del usuario para esta tarea: <prompt_override>».
+3. El sub-agente ya conoce la regla universal (ver `rul-prompt-override` precargado) y la respetará.
+4. Si no hay `prompt_override`, procede normal.
+
+Esto vale tanto si el usuario lanza el comando manualmente (clipboard) como si el PM lo lanza autónomamente.
+
+---
+
+
 ## Step 1: Code Review
 Invoke **age-spe-code-reviewer**: review recent changes for quality, security, best practices.
 

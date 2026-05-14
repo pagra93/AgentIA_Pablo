@@ -4,6 +4,20 @@ description: "Implement stories from sprint plan using context-engineered sub-ag
 
 # /build — Development (Context-Engineered)
 
+## Pre-flight: leer `prompt_override` de la HU
+
+Antes de invocar cualquier agente sobre una HU o EPIC concreta:
+
+1. Localiza el frontmatter YAML de esa HU en `docs/<área>/features/<feature>/stories.md`.
+2. Lee el campo `prompt_override`. Si existe y no está vacío, **inclúyelo como contexto adicional explícito** en el mensaje al sub-agente: «Contexto adicional del usuario para esta tarea: <prompt_override>».
+3. El sub-agente ya conoce la regla universal (ver `rul-prompt-override` precargado) y la respetará.
+4. Si no hay `prompt_override`, procede normal.
+
+Esto vale tanto si el usuario lanza el comando manualmente (clipboard) como si el PM lo lanza autónomamente.
+
+---
+
+
 ## Context Engineering Principle
 
 **The orchestrator (you) stays lean. Sub-agents do the heavy lifting.**
@@ -22,13 +36,13 @@ This prevents context rot: story 5 gets the same PEAK quality as story 1.
 |------------|--------|
 | 0-30% | Normal operation |
 | 30-50% | Continue, but monitor |
-| 50%+ | STOP — save state to tasks/build-state.md, inform PM to run /build again |
+| 50%+ | STOP — save state to pm/build-state.md, inform PM to run /build again |
 
 ---
 
 ## Step 0: Session Recovery
 
-If `tasks/build-state.md` exists, read it FIRST.
+If `pm/build-state.md` exists, read it FIRST.
 - Resume from last completed story — skip already-done work.
 - Do NOT re-read stories already marked as Done.
 - If the file shows a story was in progress but not committed, restart that story.
@@ -37,19 +51,19 @@ If `tasks/build-state.md` exists, read it FIRST.
 
 ## Step 1: Read Sprint Plan (METADATA ONLY)
 
-Read `tasks/todo.md` to identify:
+Read `docs/producto/sprint.md` to identify:
 - What stories exist and their IDs (HU-XX)
 - Their execution order and dependencies
 - Which are already done vs pending
 
 **CRITICAL**: Do NOT read any of these yourself:
-- `docs/working-docs/[feature]/stories.md` — the sub-agent reads this
-- `docs/working-docs/[feature]/design-analysis.md` — the sub-agent reads this
-- `docs/working-docs/[feature]/architecture.md` — the sub-agent reads this
+- `docs/producto/features/[feature]/stories.md` — the sub-agent reads this
+- `docs/producto/features/[feature]/design-analysis.md` — the sub-agent reads this
+- `docs/producto/features/[feature]/architecture.md` — the sub-agent reads this
 
 You only need to know WHAT stories exist and WHERE their files are. Not what's IN them.
 
-Create `tasks/build-state.md` if it doesn't exist:
+Create `pm/build-state.md` if it doesn't exist:
 ```markdown
 # Build State
 Sprint: [name from todo.md]
@@ -79,15 +93,15 @@ Task prompt for each story:
 
 FILES TO READ:
 1. [project CLAUDE.md path] — project conventions, stack, patterns
-2. docs/working-docs/[feature]/stories.md — find story HU-XX, read its:
+2. docs/producto/features/[feature]/stories.md — find story HU-XX, read its:
    - Acceptance criteria (Given-When-Then)
    - Design section (anatomy, navigation, interaction)
    - Technical notes (data model, API endpoints, business logic, edge cases)
    - Dependencias del Proyecto (what existing assets to USE, what new assets to CREATE)
    - Verificacion Estructural (if exists — what must be TRUE, EXIST, and WIRED)
-3. docs/working-docs/[feature]/design-analysis.md — if exists, 6-layer analysis
-4. docs/working-docs/[feature]/architecture.md — if exists, ADRs and component design
-5. docs/project-registry.md — ONLY IF the story's 'Dependencias del Proyecto > Usa' section
+3. docs/producto/features/[feature]/design-analysis.md — if exists, 6-layer analysis
+4. docs/producto/features/[feature]/architecture.md — if exists, ADRs and component design
+5. docs/general/project-registry.md — ONLY IF the story's 'Dependencias del Proyecto > Usa' section
    references existing assets. Read the Quick Reference for orientation, then the relevant
    categories (CATEGORY:db, CATEGORY:api, etc.) to find paths and interfaces of existing assets.
 
@@ -100,6 +114,13 @@ IMPLEMENT:
   - See kno-testing-strategy for Testing Trophy methodology
 - Follow rul-definition-of-done checklist
 - Follow rul-git-branch-management
+
+CODING DISCIPLINE (rul-llm-coding-discipline):
+Apply the 4 principles BEFORE writing code:
+1. Think Before Coding: state assumptions explicitly. If ambiguity exists, ask — don't pick silently. If 2+ approaches exist, present tradeoffs.
+2. Simplicity First: minimum code that solves the problem. No speculative abstractions, no flexibility nobody asked for, no error handling for impossible scenarios. If your file grows >150 lines, pause and ask "would a senior say this is overcomplicated?"
+3. Surgical Changes: every modified line must trace to the story's acceptance criteria. Don't refactor adjacent code. If you see dead code or tech debt: mention it in the final report, don't fix it here.
+4. Goal-Driven Execution: define success criteria before coding (typically the story's Given-When-Then). For multi-step work, enumerate "step → verify" pairs.
 
 ANALYSIS PARALYSIS GUARD:
 If you make 5+ consecutive Read/Grep/Glob calls without any Edit/Write/Bash action:
@@ -145,6 +166,8 @@ When done, report back:
 - Any stubs remaining (with file:line)
 - Any deferred issues (from fix attempt limit)
 - Any deviations from the story spec (with Rule number)
+- Assumptions made (Think Before Coding) — what you decided silently if any
+- Tech debt observed in adjacent code (Surgical Changes) — mentioned but NOT fixed in this commit. Pablo decides if a separate refactor commit is warranted.
 "
 ```
 
@@ -160,8 +183,8 @@ When spawning the sub-agent for story N:
 
 When the sub-agent returns:
 1. Read its report (files, tests, commit, stubs, issues)
-2. Update `tasks/build-state.md` with the completion
-3. Update `tasks/todo.md` marking the story as done
+2. Update `pm/build-state.md` with the completion
+3. Update `docs/producto/sprint.md` marking the story as done
 4. If the sub-agent reports stubs or issues, note them in build-state.md
 5. Move to next story
 
@@ -181,7 +204,7 @@ See https://impeccable.style/ — install with: `npx skills add pbakaus/impeccab
 
 ## Step 4: When All Stories Done — ALWAYS Remind
 
-Update `tasks/build-state.md` with final status, then:
+Update `pm/build-state.md` with final status, then:
 
 "Sprint stories built and committed. Each story was implemented with a fresh context window.
 
@@ -210,3 +233,23 @@ If you skip /review:
 - **Single story sprint**: Still use the sub-agent pattern — it ensures clean context
 - **Sub-agent fails**: If a Task sub-agent fails or returns an error, report the issue to the PM. Do NOT try to implement the story yourself (that defeats the context engineering).
 - **Impeccable**: Optional but recommended for frontend design quality
+
+---
+
+## Auto-sync con PM (último paso, automático)
+
+Tras completar todos los pasos anteriores, ejecuta **age-spe-pm-producto** en dos modos secuenciales:
+
+### 1. modo `sync`
+- Lee filesystem (stories.md, qa.md, sprint.md, etc.)
+- Actualiza `pm/tasks.json` con los cambios producidos por este command
+- Actualiza `pm/id-counters.json`
+- Reporta drift solo si lo detecta (sino, output silent)
+
+### 2. modo `dossier all`
+- Detecta qué feature folders se modificaron en los últimos 60 segundos
+- Regenera `_dossier.md` y appendea evento a `_events.jsonl` en cada una
+- Preserva sección `<!-- USER:notes -->` del dossier
+- Output silent excepto reporte breve de qué dossiers se actualizaron
+
+**Por qué**: el dashboard refleja el nuevo estado (kanban + tabla + dossiers contextuales) sin que tengas que ejecutar `/pm sync` ni `/pm dossier` manual. Si el sync detecta drift, se reporta al final.

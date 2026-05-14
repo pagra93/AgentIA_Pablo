@@ -4,12 +4,26 @@ description: "Launch Definition phase — transform research into JTBDs, stories
 
 # /define — Definition Pipeline
 
+## Pre-flight: leer `prompt_override` de la HU
+
+Antes de invocar cualquier agente sobre una HU o EPIC concreta:
+
+1. Localiza el frontmatter YAML de esa HU en `docs/<área>/features/<feature>/stories.md`.
+2. Lee el campo `prompt_override`. Si existe y no está vacío, **inclúyelo como contexto adicional explícito** en el mensaje al sub-agente: «Contexto adicional del usuario para esta tarea: <prompt_override>».
+3. El sub-agente ya conoce la regla universal (ver `rul-prompt-override` precargado) y la respetará.
+4. Si no hay `prompt_override`, procede normal.
+
+Esto vale tanto si el usuario lanza el comando manualmente (clipboard) como si el PM lo lanza autónomamente.
+
+---
+
+
 ## Input
 Research brief from /analyze, or user-provided context.
 
 ## Step 0: Detect Existing Stories
 
-Before starting, check if `docs/working-docs/[feature]/stories.md` already exists (from `/design-to-prd`).
+Before starting, check if `docs/producto/features/[feature]/stories.md` already exists (from `/design-to-prd`).
 
 - **Si existe**: Modo **Enrich** — los JTBDs se mapean a stories existentes, el story-writer enriquece secciones [DERIVADO] preservando Diseno y Notas tecnicas.
 - **Si NO existe**: Modo **Create** — pipeline completo, genera stories desde cero.
@@ -21,7 +35,7 @@ Present JTBDs. Ask PM: "Approve, modify, or add?"
 
 ## Step 2: Write Stories
 Invoke **age-spe-story-writer** with approved JTBDs.
-- En ambos modos, el writer debe leer `docs/project-registry.md` (si existe) para:
+- En ambos modos, el writer debe leer `docs/general/project-registry.md` (si existe) para:
   - Llenar "Dependencias del Proyecto > Usa" con assets existentes (`planned` o `active`)
   - Llenar "Dependencias del Proyecto > Crea" con assets nuevos que la story producira
   - Evitar duplicar en Notas tecnicas tablas/endpoints ya registrados (referenciar, no redefinir)
@@ -34,6 +48,10 @@ If any story scores < 7:
 - Present suggestions to PM
 - "Accept suggestions, modify, or proceed as-is?"
 - If accepted: rerun story-writer with suggestions
+- **If "proceed as-is" (override del quality-coach)**: es una decisión crítica loggable. Escribir entrada al `_events.jsonl` de la feature:
+  ```jsonl
+  {"ts":"<ISO>","agent":"human","event":"decision","summary":"override quality-coach en HU-XXX","context":"<razón>","entity":"HU-XXX"}
+  ```
 
 ## Step 4: Split Large Stories
 Invoke **age-spe-story-splitter** only for stories flagged as >3 days.
@@ -44,12 +62,12 @@ Present final stories with scoring.
 - En modo **Create**: presentar stories completas con marcadores de confianza.
 
 **Where to save**: Save to the feature's folder:
-- `docs/working-docs/[feature-name]/jtbds.md` — JTBDs generated
-- `docs/working-docs/[feature-name]/stories.md` — Stories (nuevas o enriquecidas)
+- `docs/producto/features/[feature-name]/jtbds.md` — JTBDs generated
+- `docs/producto/features/[feature-name]/stories.md` — Stories (nuevas o enriquecidas)
 
 If no feature folder exists, create it. Always organize by feature, not by phase.
 
-**Update registry**: After saving stories, update `docs/project-registry.md` with assets from each story's "Dependencias del Proyecto > Crea" (status: `planned`). Skip assets that already exist in the registry.
+**Update registry**: After saving stories, update `docs/general/project-registry.md` with assets from each story's "Dependencias del Proyecto > Crea" (status: `planned`). Skip assets that already exist in the registry.
 
 **CRITICAL — Reglas al escribir al registry**:
 1. **Una fila = un asset**. Nunca agrupes funciones/endpoints/componentes, aunque compartan archivo.
@@ -71,3 +89,23 @@ Next: "Use /plan to create architecture and sprint plan."
 | Notas tecnicas | [DERIVADO] | **PRESERVAR** (del design-analyst) |
 | Plan pruebas | COMPLETA | **MERGE** existentes + nuevos |
 | Scoring 6D | COMPLETA | **RECALCULAR** (D1/D2 suben con evidence) |
+
+---
+
+## Auto-sync con PM (último paso, automático)
+
+Tras completar todos los pasos anteriores, ejecuta **age-spe-pm-producto** en dos modos secuenciales:
+
+### 1. modo `sync`
+- Lee filesystem (stories.md, qa.md, sprint.md, etc.)
+- Actualiza `pm/tasks.json` con los cambios producidos por este command
+- Actualiza `pm/id-counters.json`
+- Reporta drift solo si lo detecta (sino, output silent)
+
+### 2. modo `dossier all`
+- Detecta qué feature folders se modificaron en los últimos 60 segundos
+- Regenera `_dossier.md` y appendea evento a `_events.jsonl` en cada una
+- Preserva sección `<!-- USER:notes -->` del dossier
+- Output silent excepto reporte breve de qué dossiers se actualizaron
+
+**Por qué**: el dashboard refleja el nuevo estado (kanban + tabla + dossiers contextuales) sin que tengas que ejecutar `/pm sync` ni `/pm dossier` manual. Si el sync detecta drift, se reporta al final.

@@ -4,6 +4,20 @@ description: "Launch QA phase — test, code review, audit, evaluate, optimize, 
 
 # /review — Testing & QA Pipeline
 
+## Pre-flight: leer `prompt_override` de la HU
+
+Antes de invocar cualquier agente sobre una HU o EPIC concreta:
+
+1. Localiza el frontmatter YAML de esa HU en `docs/<área>/features/<feature>/stories.md`.
+2. Lee el campo `prompt_override`. Si existe y no está vacío, **inclúyelo como contexto adicional explícito** en el mensaje al sub-agente: «Contexto adicional del usuario para esta tarea: <prompt_override>».
+3. El sub-agente ya conoce la regla universal (ver `rul-prompt-override` precargado) y la respetará.
+4. Si no hay `prompt_override`, procede normal.
+
+Esto vale tanto si el usuario lanza el comando manualmente (clipboard) como si el PM lo lanza autónomamente.
+
+---
+
+
 ## Step 1: Testing (Validation Loop)
 Invoke **age-spe-test-engineer**: generate tests, execute full suite, verify coverage, iterate (max 3 cycles).
 
@@ -56,7 +70,7 @@ If any story FAILS: report gaps to PM. PM decides whether to fix before continui
 
 ## Step 2.6: Registry Verification
 
-Update `docs/project-registry.md` with verified assets from completed stories.
+Update `docs/general/project-registry.md` with verified assets from completed stories.
 
 **Normal flow** (stories have "Dependencias del Proyecto > Crea"):
 For each completed story, read its "Dependencias del Proyecto > Crea" section:
@@ -66,7 +80,7 @@ For each completed story, read its "Dependencias del Proyecto > Crea" section:
 4. If a "Usa" asset is `deprecated` in the registry: flag to PM
 
 **Retroactive population** (registry empty but stories exist):
-If `docs/project-registry.md` has zero data rows but `docs/working-docs/*/stories.md` files exist:
+If `docs/general/project-registry.md` has zero data rows but `docs/producto/features/*/stories.md` files exist:
 1. Scan ALL existing stories' "Notas tecnicas" sections:
    - Modelo de Datos → DB Models category
    - API Endpoints → API Endpoints category
@@ -106,7 +120,7 @@ Invoke **age-sup-evaluator**: score phase on Completeness, Quality, Compliance, 
 
 ### 3c: Optimize
 Invoke **age-sup-optimizer**: review history, propose improvements.
-Updates `tasks/lessons.md`, `memory/MEMORY.md`, and `docs/PROJECT_KNOWLEDGE.md`.
+Updates `docs/producto/lessons.md`, `memory/MEMORY.md`, and `docs/general/PROJECT_KNOWLEDGE.md`.
 
 ## Step 4: Auto Documentation
 Use **ski-doc-updater** to update PROJECT_KNOWLEDGE.md, changelog, API docs.
@@ -128,8 +142,8 @@ Any fail: Report what's missing.
 "Feature completada y verificada. ¿Genero documentación completa de esta feature?"
 
 **If PM says yes:**
-1. Detect which feature was just completed (from tasks/todo.md or ask PM)
-2. Read ALL working docs from `docs/working-docs/[feature]/`:
+1. Detect which feature was just completed (from docs/producto/sprint.md or ask PM)
+2. Read ALL working docs from `docs/producto/features/[feature]/`:
    - design-analysis.md (if exists — from /design-to-prd)
    - prd.md (problem definition)
    - research.md (Mom Test findings)
@@ -137,7 +151,7 @@ Any fail: Report what's missing.
    - stories.md (user stories with scoring)
    - architecture.md (ADRs, components)
 3. Read the actual implementation (code, tests, configs)
-4. Generate `docs/project-docs/features/[feature].md` using **ski-project-docs** with:
+4. Generate `docs/general/exportable/features/[feature].md` using **ski-project-docs** with:
    - What it does (user-facing description)
    - How it works (technical: architecture, data flow, key components)
    - How to use it (examples, configuration)
@@ -145,8 +159,8 @@ Any fail: Report what's missing.
    - Known limitations
    - Related features
    - Evidence trail (linked to working-docs)
-5. Update `docs/project-docs/features/_index.md` (feature list)
-6. Update `docs/project-docs/changelog.md`
+5. Update `docs/general/exportable/features/_index.md` (feature list)
+6. Update `docs/general/exportable/changelog.md`
 
 **If PM says no:**
 Skip. Documentation can be generated later with `/docs [feature-name]`.
@@ -160,3 +174,23 @@ The working-docs folder has EVERYTHING: the design analysis, PRD, research, JTBD
 - Nothing has been forgotten yet
 
 Generating docs later is possible (`/docs [feature]`) but you'll have less context in the conversation.
+
+---
+
+## Auto-sync con PM (último paso, automático)
+
+Tras completar todos los pasos anteriores, ejecuta **age-spe-pm-producto** en dos modos secuenciales:
+
+### 1. modo `sync`
+- Lee filesystem (stories.md, qa.md, sprint.md, etc.)
+- Actualiza `pm/tasks.json` con los cambios producidos por este command
+- Actualiza `pm/id-counters.json`
+- Reporta drift solo si lo detecta (sino, output silent)
+
+### 2. modo `dossier all`
+- Detecta qué feature folders se modificaron en los últimos 60 segundos
+- Regenera `_dossier.md` y appendea evento a `_events.jsonl` en cada una
+- Preserva sección `<!-- USER:notes -->` del dossier
+- Output silent excepto reporte breve de qué dossiers se actualizaron
+
+**Por qué**: el dashboard refleja el nuevo estado (kanban + tabla + dossiers contextuales) sin que tengas que ejecutar `/pm sync` ni `/pm dossier` manual. Si el sync detecta drift, se reporta al final.

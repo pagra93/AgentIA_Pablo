@@ -4,6 +4,20 @@ description: "Analiza disenos de Pencil, extrae funcionalidad completa (6 capas)
 
 # /design-to-prd — De Disenos a Stories Verticales + PRDs
 
+## Pre-flight: leer `prompt_override` de la HU
+
+Antes de invocar cualquier agente sobre una HU o EPIC concreta:
+
+1. Localiza el frontmatter YAML de esa HU en `docs/<área>/features/<feature>/stories.md`.
+2. Lee el campo `prompt_override`. Si existe y no está vacío, **inclúyelo como contexto adicional explícito** en el mensaje al sub-agente: «Contexto adicional del usuario para esta tarea: <prompt_override>».
+3. El sub-agente ya conoce la regla universal (ver `rul-prompt-override` precargado) y la respetará.
+4. Si no hay `prompt_override`, procede normal.
+
+Esto vale tanto si el usuario lanza el comando manualmente (clipboard) como si el PM lo lanza autónomamente.
+
+---
+
+
 Analiza cada pantalla de los disenos, detecta features, y genera **story tickets completos** (no task lists) con PRDs listos para el pipeline.
 
 ## Como Usarlo
@@ -24,7 +38,7 @@ Abre Pencil, captura screenshots, lee componentes y layout de cada pantalla.
 Etc.
 
 ### Paso 2.5: Lee el Project Registry
-Si existe `docs/project-registry.md`, leelo ANTES de analizar las 6 capas. Esto te dice que DB, APIs, componentes y servicios ya existen (o estan planificados) en el proyecto:
+Si existe `docs/general/project-registry.md`, leelo ANTES de analizar las 6 capas. Esto te dice que DB, APIs, componentes y servicios ya existen (o estan planificados) en el proyecto:
 - Si una tabla ya existe (`planned` o `active`), referenciala en "Usa" en vez de rederivarla en Notas tecnicas
 - Si un endpoint ya existe, referencialo en vez de redefinirlo
 - Si un componente compartido ya existe, usalo en la Anatomia del Diseno
@@ -56,7 +70,7 @@ Produce tickets completos en formato `kno-story-ticket-template` con:
 PRD en formato Quality Guard (problema, metricas, AS-IS/TO-BE, actores — no solucion tecnica).
 
 ### Paso 6.5: Actualiza el Project Registry
-Despues de guardar stories.md, actualiza `docs/project-registry.md`:
+Despues de guardar stories.md, actualiza `docs/general/project-registry.md`:
 - Para cada asset en la seccion "Crea" de cada story, anade una fila con status `planned`
 - NO anadas assets que ya existen en el registry (evita duplicados)
 - Actualiza el Quick Reference summary y el conteo total
@@ -71,23 +85,61 @@ Despues de guardar stories.md, actualiza `docs/project-registry.md`:
 ### Paso 7: Presenta resumen
 Lista de features detectadas con cantidad de stories, y recomienda siguiente paso (Fast Track o Full Pipeline).
 
-## Donde Guarda Todo
+## Donde Guarda Todo (V3.2: 2 archivos por feature)
 
 ```
-docs/working-docs/
+docs/producto/features/
 ├── user-authentication/
-│   ├── stories.md               # Story tickets verticales (OUTPUT PRINCIPAL)
-│   ├── design-reference.md      # 6 capas analisis raw (referencia opcional)
-│   └── prd.md                   # PRD Quality Guard compliant
+│   ├── stories.md   # Story tickets verticales (con bloque YAML por story + "Notas tecnicas" completas)
+│   └── prd.md       # PRD Quality Guard compliant (problema, AS-IS/TO-BE, actores — sin solucion tecnica)
 ├── product-catalog/
 │   ├── stories.md
-│   ├── design-reference.md
 │   └── prd.md
 └── checkout-flow/
     ├── stories.md
-    ├── design-reference.md
     └── prd.md
 ```
+
+**V3.2 change**: el design-analyst ya NO crea `design-reference.md`. Toda la riqueza técnica de las 6 capas (DB, API, Lógica, Integraciones, Edge Cases) va integrada en la sección "Notas técnicas" de cada story específica. Stories.md es la fuente única para implementación.
+
+**V3.3 change (PRD evolutivo)**: el `prd.md` se escribe con **marcadores `<!-- AUTO:section -->`** delimitando las 7 secciones canónicas (problema, métricas, as_is_to_be, actores, scope, diseno_tecnico, stories). Esto permite que `/analyze`, `/define`, `/plan` enriquezcan secciones específicas posteriormente sin sobrescribir lo demás. Ver `agents/age-spe-design-analyst/SOUL.md` Paso 6 para el formato exacto.
+
+## Frontmatter YAML obligatorio (V3.2)
+
+Cada `## HU-XXX:` debe llevar un bloque YAML completo inmediatamente debajo:
+
+```yaml
+id: HU-042
+parent_epic: EPIC-010
+feature: notif-push
+status: backlog_sin_priorizar
+origin: design
+agent_suggested: tech-architect
+criticality: medium
+created_at: 2026-05-13T10:00:00Z
+```
+
+Ver `agents/age-spe-design-analyst/DUTIES.md` sección "Story Frontmatter (REQUIRED)" para detalles completos.
+
+## Step 0: Detectar épicas pre-existentes (V3.2)
+
+ANTES de crear cualquier feature folder, el design-analyst lee `pm/tasks.json`. Si encuentra una épica con `feature: <slug>` que coincida con el feature que está creando (por ejemplo, una idea procesada del inbox):
+
+- **VINCULA** las HUs nuevas a esa épica (`parent_epic: EPIC-XXX` existente)
+- Preserva el `title` de la épica original
+- Reporta: "EPIC-XXX ya existía, vinculadas N stories nuevas"
+
+Si NO hay match → crea EPIC nueva (comportamiento legacy).
+
+**Patrón de uso target**:
+```markdown
+## Idea: avisos push de pedidos       ← inbox.md
+feature: notif-push
+30% del soporte es 'dónde está mi pedido'
+```
+→ `/pm inbox` crea `EPIC-013` con `feature: notif-push, origin: inbox`
+→ Diseñas en Pencil
+→ `/design-to-prd` detecta `EPIC-013` y vincula las HUs nuevas a ella (no duplica)
 
 ## Que Hacer Despues
 
@@ -124,9 +176,8 @@ Todo se unifica en el MISMO `stories.md` — sin archivos duplicados.
 ### Los documentos se van anadiendo a la carpeta de la feature:
 
 ```
-docs/working-docs/user-authentication/
+docs/producto/features/user-authentication/
 ├── stories.md                   # De /design-to-prd (o enriquecido por /define)
-├── design-reference.md          # De /design-to-prd
 ├── prd.md                       # De /design-to-prd
 ├── research.md                  # De /analyze (si Full Pipeline)
 ├── jtbds.md                     # De /define (si Full Pipeline)
@@ -141,3 +192,23 @@ docs/working-docs/user-authentication/
 - El PRD NO prescribe solucion tecnica (los detalles tech estan en las stories)
 - Funciona con Pencil (MCP tools) o con screenshots/mockups que le pases
 - Las secciones JTBD se marcan [DERIVADO] — para enriquecerlas usar /analyze + /define
+
+---
+
+## Auto-sync con PM (último paso, automático)
+
+Tras completar todos los pasos anteriores, ejecuta **age-spe-pm-producto** en dos modos secuenciales:
+
+### 1. modo `sync`
+- Lee filesystem (stories.md, qa.md, sprint.md, etc.)
+- Actualiza `pm/tasks.json` con los cambios producidos por este command
+- Actualiza `pm/id-counters.json`
+- Reporta drift solo si lo detecta (sino, output silent)
+
+### 2. modo `dossier all`
+- Detecta qué feature folders se modificaron en los últimos 60 segundos
+- Regenera `_dossier.md` y appendea evento a `_events.jsonl` en cada una
+- Preserva sección `<!-- USER:notes -->` del dossier
+- Output silent excepto reporte breve de qué dossiers se actualizaron
+
+**Por qué**: el dashboard refleja el nuevo estado (kanban + tabla + dossiers contextuales) sin que tengas que ejecutar `/pm sync` ni `/pm dossier` manual. Si el sync detecta drift, se reporta al final.

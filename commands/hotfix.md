@@ -4,6 +4,20 @@ description: "Quick bug fix pipeline — lightweight analysis, fix, test, verify
 
 # /hotfix — Bug Fix Pipeline
 
+## Pre-flight: leer `prompt_override` de la HU
+
+Antes de invocar cualquier agente sobre una HU o EPIC concreta:
+
+1. Localiza el frontmatter YAML de esa HU en `docs/<área>/features/<feature>/stories.md`.
+2. Lee el campo `prompt_override`. Si existe y no está vacío, **inclúyelo como contexto adicional explícito** en el mensaje al sub-agente: «Contexto adicional del usuario para esta tarea: <prompt_override>».
+3. El sub-agente ya conoce la regla universal (ver `rul-prompt-override` precargado) y la respetará.
+4. Si no hay `prompt_override`, procede normal.
+
+Esto vale tanto si el usuario lanza el comando manualmente (clipboard) como si el PM lo lanza autónomamente.
+
+---
+
+
 ## Step 1: Understand
 Ask: "Describe the bug — error messages, steps to reproduce, expected vs actual."
 
@@ -53,6 +67,11 @@ Ahora necesito que TU verifiques:
 ### PM says "SI, resuelto"
 → Continue to Step 8 (commit + save learning). The bug IS resolved.
 
+**Decisión crítica loggable**: escribir al `_events.jsonl` de la feature relacionada (si el bug pertenece a una feature concreta):
+```jsonl
+{"ts":"<ISO>","agent":"human","event":"decision","summary":"confirmar resolución de bug","context":"<bug title>","entity":"<feature-slug o bug-id>"}
+```
+
 ### PM says "NO, sigue pasando"
 → Do NOT commit. Do NOT save learning. The bug is NOT resolved.
 → Ask: "Que ves exactamente? Describe que pasa cuando lo pruebas."
@@ -75,9 +94,9 @@ Update PROJECT_KNOWLEDGE.md if behavior changed.
 **ONLY execute this step if Step 7 = PM says "SI, resuelto".**
 Not when tests pass. Not when audit passes. When the PM CONFIRMS it works.
 
-1. **Check for duplicate**: Search `tasks/lessons.md` for existing entries about the same bug/area. If found, UPDATE the existing entry instead of creating a new one.
+1. **Check for duplicate**: Search `docs/producto/lessons.md` for existing entries about the same bug/area. If found, UPDATE the existing entry instead of creating a new one.
 
-2. Append (or update) in `tasks/lessons.md`:
+2. Append (or update) in `docs/producto/lessons.md`:
 
 ```markdown
 ### [Date] — bug-resolution — [Short title]
@@ -103,7 +122,7 @@ Root cause: [one line]
 Fix: [one line]
 Attempts: [N]
 Prevention: [one line]
-Saved to: tasks/lessons.md"
+Saved to: docs/producto/lessons.md"
 
 ## Anti-Bloat Rules
 
@@ -118,3 +137,23 @@ These rules prevent documentation noise:
    - It reveals a gap in tests or process
 4. **One entry per bug** — even if you ran /hotfix 20 times, only 1 entry (the resolution)
 5. **Count attempts** — note "Attempts: 5" so you know this was hard, but don't create 5 entries
+
+---
+
+## Auto-sync con PM (último paso, automático)
+
+Tras completar todos los pasos anteriores, ejecuta **age-spe-pm-producto** en dos modos secuenciales:
+
+### 1. modo `sync`
+- Lee filesystem (stories.md, qa.md, sprint.md, etc.)
+- Actualiza `pm/tasks.json` con los cambios producidos por este command
+- Actualiza `pm/id-counters.json`
+- Reporta drift solo si lo detecta (sino, output silent)
+
+### 2. modo `dossier all`
+- Detecta qué feature folders se modificaron en los últimos 60 segundos
+- Regenera `_dossier.md` y appendea evento a `_events.jsonl` en cada una
+- Preserva sección `<!-- USER:notes -->` del dossier
+- Output silent excepto reporte breve de qué dossiers se actualizaron
+
+**Por qué**: el dashboard refleja el nuevo estado (kanban + tabla + dossiers contextuales) sin que tengas que ejecutar `/pm sync` ni `/pm dossier` manual. Si el sync detecta drift, se reporta al final.
