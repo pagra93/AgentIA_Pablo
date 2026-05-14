@@ -26,17 +26,31 @@ model:
 # Vacio en Fase 1; se rellena progresivamente en Fases 8 y 9.
 agents: {}
 
-# --- Skills (genericos heredados de PM x10 + nuevos) ---
-# Se rellenan en Fase 2.
-skills: []
+# --- Skills (6 total: 4 heredados de PM x10 + 2 nuevos inspirados en luisdomarco) ---
+skills:
+  - ski-plan-mode           # planning estructurado para tareas no triviales
+  - ski-doc-updater         # mantenimiento de docs/PROJECT_KNOWLEDGE.md
+  - ski-project-docs        # generacion de docs/project-docs/ exportable
+  - ski-unknown-unknowns    # detector de riesgos en 8 dimensiones
+  - ski-context-ledger      # log append-only por sesion (NUEVO)
+  - ski-compression         # distillates de docs largos (NUEVO)
 
-# --- Rules (genericos + dos nuevos: rul-scope-boundaries y rul-lazy-loading) ---
-# Se rellenan en Fase 2.
-rules: []
+# --- Rules (7 total: 5 heredados de PM x10 + 2 nuevos inspirados en luisdomarco) ---
+rules:
+  - rul-naming-conventions       # convenciones de nomenclatura
+  - rul-git-branch-management    # flujo Git/GitHub
+  - rul-spanish-orthography      # ortografia espanola obligatoria
+  - rul-llm-coding-discipline    # 4 principios anti-antipatterns LLM
+  - rul-prompt-override          # respeto de prompt_override en HU/Epic
+  - rul-scope-boundaries         # aislamiento estricto arquitecto/paquetes (NUEVO)
+  - rul-lazy-loading             # cargar solo lo necesario (NUEVO)
 
-# --- Knowledge (genericos + dos nuevos: kno-elicitation-methods y kno-mcp-integration) ---
-# Se rellenan en Fase 2.
-knowledge: []
+# --- Knowledge (4 total: 2 heredados de PM x10 + 2 nuevos inspirados en luisdomarco) ---
+knowledge:
+  - kno-mom-test             # metodologia Mom Test (Rob Fitzpatrick)
+  - kno-strategic-thinking   # frameworks de pensamiento estrategico
+  - kno-elicitation-methods  # tecnicas de cuestionamiento (NUEVO)
+  - kno-mcp-integration      # como anadir/usar servidores MCP (NUEVO)
 
 # --- Workflows (6 comandos /arc-*) ---
 # Se rellenan en Fase 3.
