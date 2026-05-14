@@ -13,6 +13,8 @@ tools: [Read, Write, Glob, Grep]
 
 skills:
   - kno-story-splitting
+  - rul-spanish-orthography
+  - rul-prompt-override
 
 delegation:
   mode: explicit

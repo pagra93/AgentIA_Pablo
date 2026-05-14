@@ -19,6 +19,8 @@ tools: [Read, Glob, Grep]
 
 skills:
   - kno-strategic-thinking
+  - rul-spanish-orthography
+  - rul-prompt-override
 
 delegation:
   mode: explicit

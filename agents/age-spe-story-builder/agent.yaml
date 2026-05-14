@@ -17,6 +17,8 @@ skills:
   - kno-jtbd-framework
   - rul-scoring-dimensional
   - kno-story-ticket-template
+  - rul-spanish-orthography
+  - rul-prompt-override
 
 delegation:
   mode: explicit

@@ -41,7 +41,7 @@ Cuando recibo stories.md existentes (de `/design-to-prd`) junto con el mapping J
 
 ### Cuando se activa
 
-- El workflow `/define` detecta `docs/working-docs/[feature]/stories.md`
+- El workflow `/define` detecta `docs/producto/features/[feature]/stories.md`
 - Recibo las stories existentes + mapping JTBD → Story ID como input adicional
 
 ### Merge Strategy por Seccion

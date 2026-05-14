@@ -23,6 +23,8 @@ skills:
   - ski-unknown-unknowns
   - kno-story-ticket-template
   - kno-story-splitting
+  - rul-spanish-orthography
+  - rul-prompt-override
 
 delegation:
   mode: explicit

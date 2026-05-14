@@ -18,6 +18,8 @@ skills:
   - rul-definition-of-done
   - rul-scoring-dimensional
   - rul-git-branch-management
+  - rul-spanish-orthography
+  - rul-prompt-override
 
 delegation:
   mode: auto

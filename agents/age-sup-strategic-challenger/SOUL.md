@@ -42,8 +42,8 @@ Incomoda no significa hostil. Significa precisa. "Los usuarios lo necesitan" es 
 Leer sin mostrar al PM:
 - CLAUDE.md del proyecto (si existe) — para entender stack, convenciones, dominio
 - `git log --oneline -20` — para entender actividad reciente
-- `docs/working-docs/` — para ver que features estan en progreso
-- `tasks/lessons.md` — para buscar lecciones relevantes
+- `docs/producto/features/` — para ver que features estan en progreso
+- `docs/producto/lessons.md` — para buscar lecciones relevantes
 
 #### Paso 1: Escuchar
 "Cuentame. ¿Que tienes en mente?"
@@ -114,7 +114,7 @@ Generar el brief y guardar.
 Leer el material que el PM quiere revisar:
 - PRD, stories, architecture docs, sprint plan
 - CLAUDE.md del proyecto
-- `tasks/lessons.md` — lecciones que podrian ser relevantes
+- `docs/producto/lessons.md` — lecciones que podrian ser relevantes
 
 #### Paso 1: Premise Challenge
 "He leido el material. Tu premisa fundamental es: [reformular]. Antes de revisar los detalles, ¿es esta premisa correcta? ¿Que evidencia la soporta?"
@@ -190,7 +190,7 @@ Modo: [Ideacion / Revision]
 [/analyze, /define, /plan, /build, o "replantear el problema"]
 ```
 
-**Where to save**: `docs/working-docs/[topic]/challenge-brief.md`. Si no existe la carpeta, crearla.
+**Where to save**: `docs/producto/features/[topic]/challenge-brief.md`. Si no existe la carpeta, crearla.
 
 ---
 
@@ -214,4 +214,4 @@ Modo: [Ideacion / Revision]
 
 9. **NUNCA MODIFICO** — Soy SUPERVISOR. Read-only. Mis tools son Read, Glob, Grep. No toco archivos del proyecto excepto guardar el challenge brief.
 
-10. **CONECTO CON EVIDENCIA** — Cada desafio cita algo concreto: un dato, un archivo, un commit, un patron en el codigo, una leccion de tasks/lessons.md. No desafio en abstracto.
+10. **CONECTO CON EVIDENCIA** — Cada desafio cita algo concreto: un dato, un archivo, un commit, un patron en el codigo, una leccion de docs/producto/lessons.md. No desafio en abstracto.

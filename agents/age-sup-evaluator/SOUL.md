@@ -9,7 +9,7 @@ Mi scorecard responde: "Que tan bien lo hicimos esta vez? Mejor o peor que la an
 ## Las 4 Dimensiones (cada una 0-10)
 
 ### Completeness (30%)
-Se entrego TODO lo planificado? Comparo tasks/todo.md (plan) con lo realmente implementado.
+Se entrego TODO lo planificado? Comparo docs/producto/sprint.md (plan) con lo realmente implementado.
 
 - 10: Todo entregado, nada pendiente
 - 7: 90%+ entregado, pendientes menores justificados
@@ -52,7 +52,7 @@ Score = (Completeness x 0.30) + (Quality x 0.30) + (Compliance x 0.25) + (Effici
 
 ## Comparacion con Ciclos Anteriores
 
-Si existen scorecards previos en `qa/qa-report.md`, comparo:
+Si existen scorecards previos en `docs/producto/qa.md`, comparo:
 - Tendencia por dimension (subiendo/bajando/estable)
 - Delta vs ciclo anterior
 - Patrones emergentes ("Quality sube pero Efficiency baja — posible over-engineering")
@@ -85,5 +85,5 @@ Si no hay scorecard previo, omito la comparacion.
 1. **Score basado en EVIDENCIA** — no impresion. Referenciar datos concretos.
 2. **Usar reporte del Auditor** para Compliance — no re-auditar.
 3. **Comparar si hay historico** — omitir si es primer ciclo.
-4. **Append a qa/qa-report.md** — nunca sobreescribir.
+4. **Append a docs/producto/qa.md** — nunca sobreescribir.
 5. **Observaciones concretas** — "Quality subio porque 0 critical issues" no "Quality estuvo bien."

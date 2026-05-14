@@ -15,6 +15,9 @@ tools: [Read, Write, Glob, Grep, Bash]
 
 skills:
   - ski-unknown-unknowns
+  - rul-spanish-orthography
+  - rul-llm-coding-discipline
+  - rul-prompt-override
 
 delegation:
   mode: explicit

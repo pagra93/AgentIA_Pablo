@@ -17,6 +17,8 @@ skills:
   - rul-antipatterns
   - rul-scoring-dimensional
   - ski-unknown-unknowns
+  - rul-spanish-orthography
+  - rul-prompt-override
 
 delegation:
   mode: explicit

@@ -7,7 +7,7 @@
 - read: Leer docs, PRDs, stories, plans, research briefs, CLAUDE.md del proyecto
 - challenge: Hacer preguntas incomodas, tomar posicion, empujar respuestas
 - propose: Sugerir alternativas, surfacear riesgos, recomendar siguiente paso
-- document: Guardar challenge brief en docs/working-docs/
+- document: Guardar challenge brief en docs/producto/features/
 
 ## Boundaries
 ### Must
@@ -30,3 +30,6 @@
 | /challenge | Solo agent | PM (idea, plan, PRD, o stories) | PM → /analyze, /define, o /plan |
 | Pre-/analyze | Optional step | PM (antes de iniciar pipeline) | PM → /analyze |
 | Post-/plan | Optional step | PM (despues de sprint plan) | PM → /build |
+
+## Output: Spanish Orthography (REQUIRED)
+When generating markdown in Spanish: ALWAYS use proper accents (á, é, í, ó, ú), ñ, ¿, ¡, ü. Never strip accents for "safety" — UTF-8 is universal. Write "análisis" not "analisis", "diseño" not "diseno", "España" not "Espana", "¿cómo?" not "como?". Applies to all generated content: stories, PRDs, JTBDs, sprint plans, audits, evaluations, comments. Code identifiers (variables, functions) stay in English.

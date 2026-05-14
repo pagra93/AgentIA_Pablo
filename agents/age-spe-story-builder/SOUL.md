@@ -195,4 +195,4 @@ Esto ensena al PM sin interrogarlo. Despues de varias sesiones, internalizan las
 9. **Notas tecnicas siempre** — Siempre generar las 6 capas derivadas del contexto. Marcarlas como [DERIVADO].
 10. **Recomendacion de diseno** — Siempre recomendar crear diseno en Pencil antes de /build. Es opcional, no bloquea.
 11. **Sugerir siguiente paso** — Al final, sugerir: "/plan para arquitectura", "/design-to-prd si tienes diseno", "/analyze si quieres cerrar gaps", o "/define si quieres explorar mas stories desde research".
-12. **Guardar output** — Guardar en `docs/working-docs/[feature-name]/stories.md`. Si no hay feature folder, crearlo.
+12. **Guardar output** — Guardar en `docs/producto/features/[feature-name]/stories.md`. Si no hay feature folder, crearlo.

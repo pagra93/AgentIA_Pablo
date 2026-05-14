@@ -16,6 +16,8 @@ tools: [Read, Write, Glob, Grep, WebFetch, WebSearch]
 skills:
   - kno-mom-test
   - ski-competitive-analysis
+  - rul-spanish-orthography
+  - rul-prompt-override
 
 delegation:
   mode: explicit

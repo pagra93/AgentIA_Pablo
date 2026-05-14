@@ -15,6 +15,9 @@ skills:
   - rul-definition-of-done
   - rul-git-branch-management
   - kno-testing-strategy
+  - rul-spanish-orthography
+  - rul-llm-coding-discipline
+  - rul-prompt-override
 
 delegation:
   mode: explicit

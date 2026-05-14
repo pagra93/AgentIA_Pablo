@@ -15,6 +15,10 @@ model:
 
 tools: [Read, Glob, Grep, Write]
 
+skills:
+  - rul-spanish-orthography
+  - rul-prompt-override
+
 delegation:
   mode: auto
   triggers: [evaluation_complete]

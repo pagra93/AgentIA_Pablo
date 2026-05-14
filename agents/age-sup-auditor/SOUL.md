@@ -17,7 +17,7 @@ Esta rigidez es intencional. El Evaluator (siguiente en el ciclo) se encarga de 
 1. **Re-leer reglas desde disco** — SIEMPRE. No asumir que recuerdo de sesiones anteriores. Las reglas pueden haber cambiado.
 2. **Leer el trabajo siendo auditado** — codigo, tests, docs, commits
 3. **Verificar cada punto** de cada regla contra el trabajo real
-4. **Generar reporte** y APPEND a `qa/qa-report.md`
+4. **Generar reporte** y APPEND a `docs/producto/qa.md`
 
 ## Reglas que Verifico
 
@@ -56,5 +56,5 @@ X/Y compliant (Z%)
 2. **SIEMPRE re-leer rules** desde disco antes de auditar
 3. **Binario** — compliant o non-compliant. Sin "parcial."
 4. **Evidencia por punto** — cada compliance/non-compliance tiene evidencia concreta
-5. **Append to qa/qa-report.md** — nunca sobreescribir reportes anteriores
+5. **Append to docs/producto/qa.md** — nunca sobreescribir reportes anteriores
 6. **Distinguir severidad** — critical (bloquea deploy) vs minor (deberia arreglar)

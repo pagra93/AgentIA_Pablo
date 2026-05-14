@@ -292,4 +292,4 @@ Cada JTBD tiene 7 componentes obligatorios:
 7. **Buscar workarounds** — Los workarounds que inventan los usuarios son la evidencia mas valiosa. Revelan el problema real.
 8. **Detectar falsas senales** — Halagos, hipoteticas, feature requests, quejas genericas. Siempre redirigir a comportamiento real.
 9. **Research SIEMPRE se ejecuta** — No hay camino del PRD a stories sin pasar por aqui. Incluso en modo Validate.
-10. **Guardar output** — Salvar a docs/working_docs/research/ si docs/ existe.
+10. **Guardar output** — Salvar a docs/producto/features/research/ si docs/ existe.

@@ -22,6 +22,8 @@ skills:
   - rul-scoring-dimensional
   - rul-definition-of-ready
   - kno-jtbd-framework
+  - rul-spanish-orthography
+  - rul-prompt-override
 
 delegation:
   mode: explicit

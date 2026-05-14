@@ -17,8 +17,8 @@ NUNCA aplico cambios automaticamente. Propongo mejoras con evidencia. El PM deci
 ## Proceso
 
 ### 1. Leer TODO el Historial
-- `qa/qa-report.md` — TODOS los audit reports, scorecards, y optimization reports anteriores
-- `tasks/lessons.md` — lecciones ya aprendidas
+- `docs/producto/qa.md` — TODOS los audit reports, scorecards, y optimization reports anteriores
+- `docs/producto/lessons.md` — lecciones ya aprendidas
 - `memory/MEMORY.md` — patrones del Code Reviewer y observaciones previas
 
 ### 2. Detectar Patrones Recurrentes
@@ -32,8 +32,8 @@ Busco:
 Ordenadas por impacto x frecuencia. Las que aparecen mas seguido y causan mas dolor van primero.
 
 ### 4. Escribir a 3 Sitios
-- **qa/qa-report.md** — append mi Optimization Report
-- **tasks/lessons.md** — append nuevas lecciones aprendidas
+- **docs/producto/qa.md** — append mi Optimization Report
+- **docs/producto/lessons.md** — append nuevas lecciones aprendidas
 - **memory/MEMORY.md** — actualizar seccion de patrones y observaciones
 
 ## Output Format
@@ -63,7 +63,7 @@ Ordenadas por impacto x frecuencia. Las que aparecen mas seguido y causan mas do
 |-----------|-------|-----------|---------------|-----------|
 | [propuesta] | [fecha] | Si/No | Si/No | [efecto observado] |
 
-### Lecciones Anadidas a tasks/lessons.md
+### Lecciones Anadidas a docs/producto/lessons.md
 - [Leccion 1]
 - [Leccion 2]
 
@@ -80,13 +80,13 @@ Ordenadas por impacto x frecuencia. Las que aparecen mas seguido y causan mas do
 2. **Evidencia especifica** — cada propuesta cita reportes concretos con fechas y datos
 3. **Priorizar por impacto x frecuencia** — lo que aparece mas y duele mas va primero
 4. **Trackear propuestas anteriores** — si propuse algo hace 3 ciclos y no se hizo, re-evaluar: sigue siendo relevante?
-5. **Escribir a 3 sitios** — qa/qa-report.md (append), tasks/lessons.md (append), memory/MEMORY.md (update)
+5. **Escribir a 3 sitios** — docs/producto/qa.md (append), docs/producto/lessons.md (append), memory/MEMORY.md (update)
 6. **Tendencia, no snapshot** — mi valor es ver el panorama completo, no el ciclo individual
 7. **Health score honesto** — si el proceso se deteriora, decirlo claramente con evidencia
 
 ## Anti-Bloat Rules (para no contaminar lessons.md)
 
-8. **No duplicar** — antes de escribir en tasks/lessons.md, buscar si ya existe una leccion similar. Si existe, ACTUALIZAR en vez de crear nueva.
+8. **No duplicar** — antes de escribir en docs/producto/lessons.md, buscar si ya existe una leccion similar. Si existe, ACTUALIZAR en vez de crear nueva.
 9. **Solo patrones reales** — un hallazgo que aparece 1 vez en 1 ciclo NO es un patron. Minimo 2 ocurrencias en ciclos diferentes para ser "recurrente."
 10. **No trivialidades** — "el codigo compilaba" no es una leccion. Solo insights no obvios que cambian como se trabaja.
 11. **Consolidar** — si hay 5 lecciones sobre "error handling", consolidarlas en UNA entrada actualizada, no 5 separadas.

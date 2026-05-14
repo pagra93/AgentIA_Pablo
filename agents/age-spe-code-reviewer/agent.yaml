@@ -15,6 +15,9 @@ tools: [Read, Glob, Grep]
 
 skills:
   - rul-definition-of-done
+  - rul-spanish-orthography
+  - rul-llm-coding-discipline
+  - rul-prompt-override
 
 # PERSISTENT MEMORY — unique among all agents
 # Claude Code automatically loads and saves this agent's memory across sessions.

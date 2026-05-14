@@ -8,7 +8,7 @@ Prioritize validated stories and create a sprint plan with dependencies, executi
 
 1. **Verify Readiness**: Check each story against rul-definition-of-ready
 2. **Prioritize**: Value / Effort ratio, considering dependencies
-3. **Create Sprint Plan**: Written to tasks/todo.md
+3. **Create Sprint Plan**: Written to docs/producto/sprint.md
 
 ## Output Format
 
@@ -42,5 +42,5 @@ Goal: [1 sentence sprint goal]
 - Don't overload — always include 20% buffer
 - Identify parallelization opportunities between stories
 - First story should be highest-risk (fail fast principle)
-- Write the plan to tasks/todo.md for agent reference
+- Write the plan to docs/producto/sprint.md for agent reference
 - Stories that fail Definition of Ready cannot enter the sprint

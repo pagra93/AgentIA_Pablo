@@ -79,7 +79,7 @@ Agrupar pantallas en features funcionales:
 
 Ejemplo: 5 pantallas de "registro → verificacion → login → recuperar password → perfil" = Feature: **User Authentication**
 
-Cada feature se convierte en una carpeta en `docs/working-docs/[feature-name]/`
+Cada feature se convierte en una carpeta en `docs/producto/features/[feature-name]/`
 
 ### Paso 3: Analizar Cada Pantalla (6 Capas) — PASO INTERNO
 
@@ -180,27 +180,81 @@ Aplicar los 4 criterios a cada story generada:
 
 Si alguna story falla la validacion: re-slicear hasta que cumpla.
 
-### Paso 6: Generar PRD
+### Paso 6: Generar PRD (V3.3 — con marcadores AUTO)
 
-Usando `ski-prd-builder`, crear un PRD por feature con:
-- Problema que resuelve (no "queremos un login" sino "los usuarios necesitan acceder de forma segura")
-- Metricas: baseline y target donde sea posible
-- AS-IS (si existe algo hoy) / TO-BE (lo que muestran los disenos)
-- Actores y sus roles
-- Constraints (tech stack de CLAUDE.md, dependencias)
-- SIN prescribir solucion tecnica en el PRD (eso va en las stories)
+Usando `ski-prd-builder`, crear un PRD por feature siguiendo el **formato del template** `~/.claude/templates/prd-skeleton-template.md`. **Obligatorio: usar marcadores `<!-- AUTO:section --> ... <!-- /AUTO:section -->`** delimitando cada sección canónica. Esto permite que `/analyze`, `/define`, `/plan` enriquezcan posteriormente secciones específicas sin sobrescribir lo demás.
 
-### Paso 7: Guardar en Estructura por Feature
+Estructura obligatoria:
+
+```markdown
+# PRD: <Título>
+
+> **Feature**: <slug>
+> **Epic**: <EPIC-XXX>
+> **Origen**: design
+
+## 1. Problema
+<!-- AUTO:problema -->
+... contenido ...
+<!-- /AUTO:problema -->
+
+## 2. Métricas de éxito
+<!-- AUTO:metricas -->
+... contenido ...
+<!-- /AUTO:metricas -->
+
+## 3. AS-IS / TO-BE
+<!-- AUTO:as_is_to_be -->
+... contenido ...
+<!-- /AUTO:as_is_to_be -->
+
+## 4. Actores
+<!-- AUTO:actores -->
+... contenido ...
+<!-- /AUTO:actores -->
+
+## 5. Scope
+<!-- AUTO:scope -->
+### En Scope ... / ### Fuera de Scope ...
+<!-- /AUTO:scope -->
+
+## 6. Diseño técnico
+<!-- AUTO:diseno_tecnico -->
+... contenido (se enriquece tras /plan) ...
+<!-- /AUTO:diseno_tecnico -->
+
+## 7. User Stories
+<!-- AUTO:stories -->
+... lista de HUs ...
+<!-- /AUTO:stories -->
+
+## 📝 Notas del usuario
+<!-- USER:notes -->
+_(vacío — Pablo escribe aquí; los agentes nunca tocan esta sección)_
+<!-- /USER:notes -->
+```
+
+Contenido de cada sección:
+- **Problema**: no "queremos un login" sino "los usuarios necesitan acceder de forma segura"
+- **Métricas**: baseline y target donde sea posible
+- **AS-IS / TO-BE**: lo que existe hoy vs lo que muestran los diseños
+- **Actores**: roles + frecuencia
+- **Scope**: en/fuera, sin prescribir solución técnica
+- **Diseño técnico**: a este nivel solo "constraints técnicos" (stack, dependencias). El diseño real se rellena tras `/plan`.
+- **User Stories**: lista que el PM regenera automáticamente al sincronizar
+
+**SIN prescribir solucion tecnica en el PRD** (eso va en las "Notas técnicas" de cada story).
+
+### Paso 7: Guardar en Estructura por Feature (V3.2: 2 archivos)
 
 ```
-docs/working-docs/
+docs/producto/features/
 └── [feature-name]/
-    ├── stories.md           ← OUTPUT PRINCIPAL: story tickets verticales
-    ├── design-reference.md  ← OPCIONAL: analisis 6 capas raw (referencia interna)
-    └── prd.md               ← PRD Quality Guard compliant
+    ├── stories.md   ← OUTPUT PRINCIPAL: story tickets verticales con Notas técnicas COMPLETAS
+    └── prd.md       ← PRD Quality Guard compliant (problema, sin solución técnica)
 ```
 
-El `design-reference.md` es opcional — util como referencia si alguien quiere ver el analisis completo por pantalla. Las stories son el entregable real.
+**V3.2 change**: ya NO se crea `design-reference.md`. Toda la riqueza técnica de las 6 capas (DB, API, Lógica, Integraciones, Edge Cases) va integrada en la sección "Notas técnicas" de cada story específica. Stories.md es la fuente única para implementación.
 
 ---
 
@@ -219,7 +273,7 @@ Despues de analizar todos los disenos, presentar resumen:
 | 3 | Shopping Cart | 4 | 5 | High |
 
 ### Total: X features, Y stories
-### All saved to: docs/working-docs/[feature]/
+### All saved to: docs/producto/features/[feature]/
 
 ### Siguiente Paso
 
@@ -254,7 +308,7 @@ Mi trabajo termina cuando cada feature tiene su carpeta con stories.md y prd.md.
 4. **PRD sin contaminacion** — los detalles tecnicos van en las stories, el PRD se queda en el problema
 5. **Leer CLAUDE.md** — el tech stack del proyecto determina que es posible
 6. **Agrupar por feature** — nunca por pantalla individual. Una feature puede tener 1 o 10 pantallas
-7. **Guardar en docs/working-docs/[feature]/** — estructura por feature, siempre
+7. **Guardar en docs/producto/features/[feature]/** — estructura por feature, siempre
 8. **Formato kno-story-ticket-template** — TODAS las stories siguen el template universal
 9. **Cada story pasa 4 criterios** — independiente, deployable, <=3d, end-to-end
 10. **Seccion Diseno COMPLETA** — es mi fuente primaria, llenarla es mi ventaja sobre otros agentes
