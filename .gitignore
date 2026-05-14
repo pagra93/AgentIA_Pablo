@@ -1,0 +1,21 @@
+# OS
+.DS_Store
+
+# Reference repos (cloned for analysis, not part of the system)
+_reference/
+
+# Claude Code local config (settings.local.json se trackea aparte si se quiere)
+# .claude/
+
+# Temp files
+*.tmp
+*.swp
+
+# Python
+__pycache__/
+*.pyc
+
+# Exports (cada paquete es su propio repo Git anidado)
+exports/*/
+!exports/README.md
+!exports/.gitkeep

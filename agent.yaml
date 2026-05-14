@@ -1,0 +1,73 @@
+spec_version: "1.0.0"
+name: agent-architect
+version: 0.1.0
+description: >
+  Meta-sistema que mantiene paquetes desplegables de agentes (PM x10, Newsletter,
+  Marketing, ...). Orquesta 9 agentes (4 especialistas + 5 supervisores) para construir
+  paquetes nuevos via mini-discovery, propagar mejoras genericas a todos los paquetes
+  y proyectos clientes desplegados, auditar drift contra la convencion canonica, y
+  analizar patrones cross-paquete. Hereda filosofia, convenciones y formato de PM x10.
+  Sin triple-platform: solo Claude Code. Sin layers como plugins: lo que es util se
+  incorpora directamente como agente/skill.
+author: pablo
+license: MIT
+
+model:
+  preferred: claude-opus-4-6
+  fallback:
+    - claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.2
+    max_tokens: 16384
+
+# --- Agents (9 total: 4 specialists + 5 supervisors) ---
+# Especialistas: generator, propagator, cataloger, aggregator
+# Supervisores: auditor, evaluator, optimizer, cynic, boundary-walker (todos READ-ONLY)
+# Vacio en Fase 1; se rellena progresivamente en Fases 8 y 9.
+agents: {}
+
+# --- Skills (genericos heredados de PM x10 + nuevos) ---
+# Se rellenan en Fase 2.
+skills: []
+
+# --- Rules (genericos + dos nuevos: rul-scope-boundaries y rul-lazy-loading) ---
+# Se rellenan en Fase 2.
+rules: []
+
+# --- Knowledge (genericos + dos nuevos: kno-elicitation-methods y kno-mcp-integration) ---
+# Se rellenan en Fase 2.
+knowledge: []
+
+# --- Workflows (6 comandos /arc-*) ---
+# Se rellenan en Fase 3.
+workflows: []
+
+# --- Runtime ---
+runtime:
+  max_turns: 100
+  timeout: 600
+
+# --- QA Layer ---
+qa:
+  tier: full
+  scoring:
+    completeness: 0.30
+    quality: 0.30
+    compliance: 0.25
+    efficiency: 0.15
+  auto_activate: false  # El auditor del arquitecto se invoca explicitamente
+  report_path: docs/architect/audits/
+
+# --- Tags & Metadata ---
+tags:
+  - meta-system
+  - architecture
+  - package-management
+  - propagation
+  - agent-os
+
+metadata:
+  entity_type: meta-orchestrator
+  domain: meta-system
+  philosophy: "Single Source of Truth, Propagation Over Duplication"
+  parent_system: pm-agent-system  # Hereda convenciones y filosofia
