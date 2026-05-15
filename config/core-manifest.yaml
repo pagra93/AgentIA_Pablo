@@ -1,0 +1,126 @@
+# Core Manifest — Archivos propagables
+#
+# Define qué archivos del arquitecto se propagan a:
+# - Paquetes existentes (exports/*/)
+# - templates/package-template/ (para que paquetes futuros lo hereden)
+# - Proyectos clientes (sólo el código del dashboard)
+#
+# El propagator (/arc-propagate) lee esto para saber qué tocar y qué dejar.
+# Lo no listado aquí NO se propaga (decisión consciente).
+
+version: "1.0"
+
+# ============================================
+# Propagables a PAQUETES (exports/*/)
+# ============================================
+# Cuando se cambia uno de estos en el arquitecto, se replica en cada paquete
+# (con safeguards de conflicto: archivo modificado localmente requiere prompt).
+to_packages:
+  # Skills genéricas
+  skills:
+    - skills/ski-plan-mode/
+    - skills/ski-doc-updater/
+    - skills/ski-project-docs/
+    - skills/ski-unknown-unknowns/
+    - skills/ski-context-ledger/
+    - skills/ski-compression/
+
+  # Rules genéricas
+  rules:
+    - rules/rul-naming-conventions.md
+    - rules/rul-git-branch-management.md
+    - rules/rul-spanish-orthography.md
+    - rules/rul-llm-coding-discipline.md
+    - rules/rul-prompt-override.md
+    - rules/rul-scope-boundaries.md
+    - rules/rul-lazy-loading.md
+
+  # Knowledge genéricos
+  knowledge:
+    - knowledge/kno-mom-test.md
+    - knowledge/kno-strategic-thinking.md
+    - knowledge/kno-elicitation-methods.md
+    - knowledge/kno-mcp-integration.md
+
+  # Comandos genéricos (los que están en templates/package-template/commands/)
+  commands:
+    - templates/package-template/commands/save.md
+    - templates/package-template/commands/docs.md
+    - templates/package-template/commands/learned.md
+    - templates/package-template/commands/challenge.md
+    - templates/package-template/commands/unknown-unknowns.md
+    - templates/package-template/commands/hotfix.md
+    - templates/package-template/commands/code-review.md
+    - templates/package-template/commands/adversarial.md
+
+  # Supervisores QA (cuerpos de los agentes; se propagan junto)
+  supervisors:
+    - templates/package-template/agents/age-sup-auditor/
+    - templates/package-template/agents/age-sup-evaluator/
+    - templates/package-template/agents/age-sup-optimizer/
+    - templates/package-template/agents/age-sup-cynic/
+    - templates/package-template/agents/age-sup-boundary-walker/
+
+# ============================================
+# Propagables al TEMPLATE de paquete (templates/package-template/)
+# ============================================
+# Las mismas rutas que to_packages.skills/rules/knowledge se replican al template.
+# Esto garantiza que paquetes FUTUROS heredan las versiones más recientes.
+# El propagator hace esto automáticamente cuando se propaga algo de tipo skill/rule/knowledge.
+to_template_package:
+  mirror_from_root: true  # skills/ del root → templates/package-template/skills/
+  # (rules/ y knowledge/ del root → templates/package-template/rules/ y knowledge/)
+
+# ============================================
+# Propagables a PROYECTOS CLIENTES (registrados en ~/.claude/projects-registry.txt)
+# ============================================
+# Sólo el CÓDIGO del dashboard (canónico). NO los configs locales.
+to_client_projects:
+  dashboard_code:
+    - templates/project-template/dashboard/bridge.py
+    - templates/project-template/dashboard/index.html
+    - templates/project-template/dashboard/styles.css
+    - templates/project-template/dashboard/app.js
+  # NO se propagan:
+  # - dashboard/sections/*.yaml (config local de cada paquete desplegado)
+  # - pm/config.json (estado local del proyecto)
+  # - memory/MEMORY.md (memoria del proyecto)
+  # - docs/<dominio>/* (contenido específico del trabajo)
+
+# ============================================
+# NO se propaga (decisión consciente)
+# ============================================
+# Lista de cosas que NUNCA se propagan, aunque tengan rutas relacionadas.
+# Sirve como recordatorio explícito al PM si pregunta "¿por qué no se propagó X?".
+never_propagate:
+  - guia-de-uso.html        # contenido específico del paquete, NO se uniforma
+  - dashboard-section.yaml  # config específica del paquete (define su pestaña)
+  - agent.yaml              # config específica del paquete
+  - SOUL.md                 # identidad del paquete
+  - DUTIES.md               # roles del paquete
+  - RULES.md                # reglas (heredan las generales pero pueden añadir específicas)
+  - CLAUDE.md               # contexto del paquete
+  - README.md               # README específico
+  - context-ledger/*        # logs por sesión, append-only, no propagables
+  - memory/MEMORY.md        # memoria del paquete
+  - docs/                   # contenido del paquete
+
+# ============================================
+# Estrategia de conflictos
+# ============================================
+# Si un archivo del paquete ha sido modificado localmente y la versión del
+# template/arquitecto cambió, el propagator hace:
+conflict_strategy:
+  default: prompt           # pregunta al PM caso por caso
+  options:
+    - overwrite             # sobreescribe sin preguntar (peligroso, solo --apply --force)
+    - preserve              # nunca toca lo modificado localmente
+    - prompt                # default: muestra diff y pregunta
+    - log                   # marca como pendiente en changelog/propagations.md y sigue
+
+# ============================================
+# Detección de "modificado localmente"
+# ============================================
+# El propagator usa checksum (no timestamp) para detectar si un archivo del
+# paquete divergió respecto a la versión canónica del template/arquitecto.
+checksum_method: sha256

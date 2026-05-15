@@ -1,0 +1,187 @@
+# Convenciones canónicas de un paquete desplegable
+#
+# Define la estructura, archivos y supervisores mínimos que debe tener
+# todo paquete generado por el arquitecto. Lo usa el auditor para verificar
+# conformidad y el generator como base de qué crear.
+#
+# Editar este archivo es decisión consciente — afecta a todos los paquetes
+# (los auditará el auditor en la siguiente ejecución de /arc-audit).
+
+version: "1.0"
+
+# ============================================
+# Archivos requeridos en la raíz del paquete
+# ============================================
+required_root_files:
+  - CLAUDE.md
+  - SOUL.md
+  - DUTIES.md
+  - RULES.md
+  - agent.yaml
+  - README.md
+  - system-overview.md
+  - install.sh
+  - deploy.sh
+  - dashboard-section.yaml
+  - guia-de-uso.html
+  - .gitignore
+
+# ============================================
+# Carpetas requeridas
+# ============================================
+required_dirs:
+  - .claude/
+  - agents/
+  - commands/
+  - skills/
+  - rules/
+  - knowledge/
+  - templates/
+  - docs/
+  - memory/
+  - changelog/
+  - context-ledger/
+
+optional_dirs:
+  - pm/
+  - dashboard/  # opcional — algunos paquetes pueden no tener interfaz local
+
+# ============================================
+# Agentes supervisores QA requeridos
+# (Cada paquete los hereda del package-template)
+# ============================================
+required_supervisors:
+  - age-sup-auditor
+  - age-sup-evaluator
+  - age-sup-optimizer
+  - age-sup-cynic
+  - age-sup-boundary-walker
+
+# ============================================
+# Comandos genéricos heredados que todo paquete debe tener
+# ============================================
+required_generic_commands:
+  - save.md
+  - docs.md
+  - learned.md
+  - challenge.md
+  - unknown-unknowns.md
+  - hotfix.md
+  - code-review.md
+  - adversarial.md
+
+# ============================================
+# Skills, rules, knowledge genéricos heredados
+# ============================================
+required_skills:
+  - ski-plan-mode
+  - ski-doc-updater
+  - ski-project-docs
+  - ski-unknown-unknowns
+  - ski-context-ledger
+  - ski-compression
+
+required_rules:
+  - rul-naming-conventions
+  - rul-git-branch-management
+  - rul-spanish-orthography
+  - rul-llm-coding-discipline
+  - rul-prompt-override
+  - rul-scope-boundaries
+  - rul-lazy-loading
+
+required_knowledge:
+  - kno-mom-test
+  - kno-strategic-thinking
+  - kno-elicitation-methods
+  - kno-mcp-integration
+
+# ============================================
+# Convenciones de naming
+# ============================================
+naming:
+  # Cada paquete tiene un prefix de 2-4 letras (ej: pm, news, mkt, arc, hr)
+  prefix:
+    min_length: 2
+    max_length: 4
+    pattern: "^[a-z]+$"  # solo minúsculas, no guiones, no números
+    reserved: [arc]  # arc está reservado para el arquitecto
+
+  # Agentes específicos del paquete deben usar el prefix
+  agents:
+    specialist_pattern: "^age-spe-{prefix}-[a-z-]+$"
+    supervisor_pattern: "^age-sup-(auditor|evaluator|optimizer|cynic|boundary-walker)$"  # supervisores heredados, sin prefix
+    # Si un paquete crea supervisores propios:
+    custom_supervisor_pattern: "^age-sup-{prefix}-[a-z-]+$"
+
+  # Comandos específicos del paquete deben usar el prefix
+  commands:
+    specific_pattern: "^{prefix}-[a-z-]+\\.md$"
+    # Comandos genéricos heredados (sin prefix):
+    generic_allowed: [save, docs, learned, challenge, unknown-unknowns, hotfix, code-review, adversarial]
+
+# ============================================
+# agent.yaml del paquete: campos mínimos
+# ============================================
+agent_yaml_required_fields:
+  - spec_version
+  - name
+  - version
+  - description
+  - model
+  - agents
+  - skills
+  - rules
+  - knowledge
+  - workflows
+  - runtime
+  - qa
+  - tags
+  - metadata
+
+agent_yaml_required_metadata:
+  - entity_type        # debe ser "package"
+  - domain
+  - prefix
+  - parent_system      # debe ser "agent-architect"
+  - generated_at
+
+# ============================================
+# dashboard-section.yaml del paquete: campos mínimos
+# ============================================
+dashboard_section_required_fields:
+  - tab_id
+  - tab_label
+  - sections          # lista de secciones renderizables
+
+# ============================================
+# Detección de drift legítimo
+# ============================================
+# Si un paquete tiene divergencias respecto al template, el auditor las flagea.
+# Si la divergencia está DOCUMENTADA en context-ledger/ del paquete como
+# intencional, el auditor la respeta (no la marca como drift accidental).
+drift_documentation_markers:
+  - "DIVERGENCE:"
+  - "INTENTIONAL_DRIFT:"
+  - "PACKAGE_SPECIFIC:"
+
+# ============================================
+# Estado de salud (heurísticas para el cataloger)
+# ============================================
+health_thresholds:
+  vivo:
+    last_commit_days_max: 14
+    requires_ledger_entries: true
+  latente:
+    last_commit_days_max: 90
+  inactivo:
+    last_commit_days_min: 90
+  recien_creado:
+    age_days_max: 7
+
+# ============================================
+# Modo de cumplimiento
+# ============================================
+enforcement_mode: advisory
+# advisory: el sistema avisa pero el PM decide. NO bloquea.
+# strict: bloquea operaciones que violen convenciones (no implementado todavía).
