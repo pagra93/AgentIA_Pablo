@@ -24,6 +24,7 @@ to_packages:
     - skills/ski-unknown-unknowns/
     - skills/ski-context-ledger/
     - skills/ski-compression/
+    - skills/ski-mini-discovery/
 
   # Rules genéricas
   rules:

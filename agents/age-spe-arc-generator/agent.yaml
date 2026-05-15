@@ -19,6 +19,7 @@ model:
 tools: [Read, Write, Edit, Bash, Glob, Grep]
 
 skills:
+  - ski-mini-discovery
   - ski-plan-mode
   - ski-context-ledger
   - kno-elicitation-methods

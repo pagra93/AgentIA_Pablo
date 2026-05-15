@@ -84,7 +84,7 @@ agents:
       mode: explicit
       triggers: [arc_adversarial_command]
 
-# --- Skills (6 total: 4 heredados de PM x10 + 2 nuevos inspirados en luisdomarco) ---
+# --- Skills (7 total: 4 heredados de PM x10 + 3 inspirados en luisdomarco) ---
 skills:
   - ski-plan-mode           # planning estructurado para tareas no triviales
   - ski-doc-updater         # mantenimiento de docs/PROJECT_KNOWLEDGE.md
@@ -92,6 +92,7 @@ skills:
   - ski-unknown-unknowns    # detector de riesgos en 8 dimensiones
   - ski-context-ledger      # log append-only por sesion (NUEVO)
   - ski-compression         # distillates de docs largos (NUEVO)
+  - ski-mini-discovery      # entrevista 5 preguntas para crear paquetes/features (NUEVO, inspirado en ski-process-interviewer)
 
 # --- Rules (7 total: 5 heredados de PM x10 + 2 nuevos inspirados en luisdomarco) ---
 rules:

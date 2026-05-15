@@ -75,106 +75,37 @@ Leo solo:
 
 NO precargo skills/knowledge — solo cuando las necesite.
 
-### 8.2 — Mini-discovery (5 preguntas, una por una)
+### 8.2 — Mini-discovery (vía `ski-mini-discovery`)
 
-```
-PREGUNTA 1 / 5
+Invocar `ski-mini-discovery` (skill propia, precargada). Recibe contexto:
 
-¿Cuál será el nombre del paquete?
-
-Convención: kebab-case, descriptivo. Ejemplos: `newsletter-system`, `marketing-system`, `hr-system`.
-
-[espera respuesta del PM]
-```
-
-**Validación**: nombre kebab-case válido, único en `exports/`, no reservado (`template`, `arc`).
-
-Si nombre ya existe → ofrecer alternativas:
-- `<nombre>-v2`
-- `<nombre>-<YYYYMMDD>`
-- "Otro nombre"
-
-```
-PREGUNTA 2 / 5
-
-¿Cuál es el dominio y propósito del paquete en una frase?
-
-Esto define qué hace el paquete a alto nivel. Va a CLAUDE.md, SOUL.md, agent.yaml.
-
-Ejemplos:
-- "Pipeline editorial para crear newsletters semanales"
-- "Sistema de campañas de marketing multicanal"
-- "Reclutamiento y onboarding de candidatos técnicos"
-
-[espera respuesta]
+```yaml
+invocador: age-spe-arc-generator
+artefacto: package
+destino_raiz: exports/
+reservados: [template, arc]
+prefijos_existentes: <leídos de exports/*/agent.yaml campo metadata.prefix>
 ```
 
-**Sub-pregunta implícita**: a partir del nombre + dominio, **propongo un prefix** de 2-4 letras y pido confirmación.
+La skill ejecuta las 5 preguntas, valida cada respuesta, propone sub-preguntas (prefix, domain_folder), aplica `kno-elicitation-methods` para clarificar ambigüedades, hace checkpoint final y devuelve:
 
-```
-Propongo prefix: `<prefix>` (deducido de "<dominio>").
-Los agentes serán `age-spe-<prefix>-*` y los comandos `/<prefix>-*`.
-
-Confirmar (A) Sí · (B) Otro prefix: ___ · (C) Saltar
-```
-
-**Sub-pregunta implícita**: propongo `domain_folder` para `docs/<folder>/` en proyectos clientes.
-
-```
-Propongo domain folder: `<folder>` (carpeta en docs/ del proyecto cliente).
-Confirmar (A) Sí · (B) Otro: ___
-```
-
-```
-PREGUNTA 3 / 5
-
-¿Cuáles son las etapas principales del flujo del paquete?
-
-Define la cadena de trabajo. Va al `system-overview.md` y guía la generación de stubs.
-
-Ejemplos:
-- "research → outline → draft → edit → publish"
-- "ideation → brief → diseño → produccion → analytics"
-- "intake → screening → entrevista → oferta → onboarding"
-
-[espera respuesta]
+```yaml
+discovery_result:
+  name: "<nombre>"
+  domain: "<dominio + propósito>"
+  prefix: "<2-4 letras confirmadas>"
+  domain_folder: "<carpeta confirmada>"
+  stages: "<flujo principal>"
+  expected_agents:
+    - name: "<agente-1>"
+      responsibility: "<una línea>"
+  outputs: "<artefactos>"
 ```
 
-**Validación**: al menos 2 etapas. Si solo 1, advertir y preguntar si es realmente lineal o iterativo.
+Si la skill devuelve `cancelled` (PM eligió C en algún checkpoint): aborto sin efectos.
+Si devuelve `result`: paso al siguiente sub-paso (8.3 — Checkpoint del plan de generación).
 
-```
-PREGUNTA 4 / 5
-
-¿Qué agentes principales prevés? Lista informal con nombre + responsabilidad de una línea.
-
-Convención: el generator creará `age-spe-<prefix>-<nombre>/` por cada uno, con DUTIES.md
-inicial marcando `TODO: implementar`.
-
-Ejemplos:
-- topic-researcher: investiga tema del número
-- content-curator: selecciona fuentes
-- outline-architect: estructura el draft
-- ...
-
-[espera respuesta]
-```
-
-**Validación**: al menos 1 agente. Si más de 10, advertir (¿realmente necesarios? muchos sistemas funcionan con 3-6).
-
-```
-PREGUNTA 5 / 5
-
-¿Qué outputs/artefactos principales produce el paquete?
-
-Define los productos canónicos (lo que el paquete genera/entrega).
-
-Ejemplos:
-- "número de newsletter en .md y .html, métricas de envío"
-- "campañas (.md), assets (jpg/mp4), informe de performance"
-- "ofertas firmadas, expedientes, métricas de tiempo a contratación"
-
-[espera respuesta]
-```
+Ver `skills/ski-mini-discovery/SKILL.md` para el protocolo completo de las 5 preguntas, validaciones y sub-preguntas. Esa skill es reutilizable por cualquier otro agente que necesite mini-entrevistas en el futuro (ej. un PM de paquete que cree sub-features mayores).
 
 ### 8.3 — Checkpoint (plan resumido)
 

@@ -80,6 +80,7 @@ required_skills:
   - ski-unknown-unknowns
   - ski-context-ledger
   - ski-compression
+  - ski-mini-discovery
 
 required_rules:
   - rul-naming-conventions
