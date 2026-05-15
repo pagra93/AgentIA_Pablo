@@ -232,23 +232,21 @@ for skill_dir in "$SCRIPT_DIR/skills"/*/; do
         fi
     fi
 done
-# Mismo para rules y knowledge especificos del paquete
-for rule_file in "$SCRIPT_DIR/rules"/rul-${PREFIX}-*.md 2>/dev/null; do
-    if [ -f "$rule_file" ]; then
-        rule_name=$(basename "$rule_file" .md)
-        rule_dest="$TARGET_DIR/skills/$rule_name"
-        mkdir -p "$rule_dest"
-        safe_copy "$rule_file" "$rule_dest/SKILL.md"
-    fi
+# Mismo para rules y knowledge especificos del paquete (con prefix)
+shopt -s nullglob
+for rule_file in "$SCRIPT_DIR/rules"/rul-${PREFIX}-*.md; do
+    rule_name=$(basename "$rule_file" .md)
+    rule_dest="$TARGET_DIR/skills/$rule_name"
+    mkdir -p "$rule_dest"
+    safe_copy "$rule_file" "$rule_dest/SKILL.md"
 done
-for kno_file in "$SCRIPT_DIR/knowledge"/kno-${PREFIX}-*.md 2>/dev/null; do
-    if [ -f "$kno_file" ]; then
-        kno_name=$(basename "$kno_file" .md)
-        kno_dest="$TARGET_DIR/skills/$kno_name"
-        mkdir -p "$kno_dest"
-        safe_copy "$kno_file" "$kno_dest/SKILL.md"
-    fi
+for kno_file in "$SCRIPT_DIR/knowledge"/kno-${PREFIX}-*.md; do
+    kno_name=$(basename "$kno_file" .md)
+    kno_dest="$TARGET_DIR/skills/$kno_name"
+    mkdir -p "$kno_dest"
+    safe_copy "$kno_file" "$kno_dest/SKILL.md"
 done
+shopt -u nullglob
 echo ""
 
 # ============================================

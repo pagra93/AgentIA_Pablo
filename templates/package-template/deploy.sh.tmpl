@@ -109,30 +109,31 @@ if [ ! -d "$TARGET_PROJECT/dashboard" ] || [ ! -d "$TARGET_PROJECT/pm" ]; then
     done
     do_action "Crear docs/" mkdir -p "$TARGET_PROJECT/docs"
 
-    # Copiar archivos del project-template (sin .tmpl)
-    if [ -f "$PROJECT_TEMPLATE_DIR/.claude/CLAUDE.md.tmpl" ]; then
-        do_action "Materializar .claude/CLAUDE.md" \
-            cp "$PROJECT_TEMPLATE_DIR/.claude/CLAUDE.md.tmpl" "$TARGET_PROJECT/.claude/CLAUDE.md"
-    fi
-    if [ -f "$PROJECT_TEMPLATE_DIR/pm/config.json.tmpl" ]; then
-        # Sustituir placeholders simples
-        project_name=$(basename "$TARGET_PROJECT")
-        today=$(date +%Y-%m-%d)
-        if [ "$DRY_RUN" = false ]; then
-            sed "s|{{PROJECT_NAME}}|$project_name|g; s|{{DATE}}|$today|g" \
-                "$PROJECT_TEMPLATE_DIR/pm/config.json.tmpl" > "$TARGET_PROJECT/pm/config.json"
-            echo -e "  ${GREEN}[done]${NC} Materializar pm/config.json"
-        else
-            echo -e "  ${YELLOW}[dry-run]${NC} Materializar pm/config.json"
+    # Materializar archivos del project-template con sustitucion de placeholders runtime
+    # Nota: project-template usa __PROJECT_NAME__ / __DATE__ (no {{...}}) para
+    # evitar colision con generacion de paquetes desde package-template.
+    project_name=$(basename "$TARGET_PROJECT")
+    today=$(date +%Y-%m-%d)
+
+    materialize_tmpl() {
+        local src="$1"
+        local dest="$2"
+        if [ -f "$src" ]; then
+            if [ "$DRY_RUN" = false ]; then
+                sed "s|__PROJECT_NAME__|$project_name|g; s|__DATE__|$today|g" "$src" > "$dest"
+                echo -e "  ${GREEN}[done]${NC} Materializar $(basename "$dest")"
+            else
+                echo -e "  ${YELLOW}[dry-run]${NC} Materializar $(basename "$dest")"
+            fi
         fi
-    fi
-    if [ -f "$PROJECT_TEMPLATE_DIR/pm/tasks.json.tmpl" ]; then
-        do_action "Materializar pm/tasks.json" \
-            cp "$PROJECT_TEMPLATE_DIR/pm/tasks.json.tmpl" "$TARGET_PROJECT/pm/tasks.json"
-    fi
-    if [ -f "$PROJECT_TEMPLATE_DIR/memory/MEMORY.md.tmpl" ]; then
-        do_action "Materializar memory/MEMORY.md" \
-            cp "$PROJECT_TEMPLATE_DIR/memory/MEMORY.md.tmpl" "$TARGET_PROJECT/memory/MEMORY.md"
+    }
+
+    materialize_tmpl "$PROJECT_TEMPLATE_DIR/.claude/CLAUDE.md.tmpl" "$TARGET_PROJECT/.claude/CLAUDE.md"
+    materialize_tmpl "$PROJECT_TEMPLATE_DIR/pm/config.json.tmpl"    "$TARGET_PROJECT/pm/config.json"
+    materialize_tmpl "$PROJECT_TEMPLATE_DIR/pm/tasks.json.tmpl"     "$TARGET_PROJECT/pm/tasks.json"
+    materialize_tmpl "$PROJECT_TEMPLATE_DIR/memory/MEMORY.md.tmpl"  "$TARGET_PROJECT/memory/MEMORY.md"
+    if [ -f "$PROJECT_TEMPLATE_DIR/README.md.tmpl" ] && [ ! -f "$TARGET_PROJECT/README.md" ]; then
+        materialize_tmpl "$PROJECT_TEMPLATE_DIR/README.md.tmpl" "$TARGET_PROJECT/README.md"
     fi
 
     # Copiar codigo del dashboard (4 archivos canonicos)
