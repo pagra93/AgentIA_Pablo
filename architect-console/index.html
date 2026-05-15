@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architect Console</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-title">
+      <h1>Architect Console</h1>
+      <span class="header-meta">Meta-system dashboard</span>
+    </div>
+    <div class="header-actions">
+      <button id="btn-refresh" title="Refrescar">↻ Refrescar</button>
+      <a href="/api/packages" target="_blank">{ } JSON</a>
+    </div>
+  </div>
+</header>
+
+<nav id="nav" class="nav">
+  <div class="nav-inner">
+    <button class="nav-item active" data-view="packages">Paquetes <span class="nav-count" id="count-packages">0</span></button>
+    <button class="nav-item" data-view="propagations">Propagaciones <span class="nav-count" id="count-propagations">0</span></button>
+    <button class="nav-item" data-view="audits">Auditorías <span class="nav-count" id="count-audits">0</span></button>
+  </div>
+</nav>
+
+<main id="content">
+  <div class="content-loading">Cargando…</div>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <span id="footer-info"></span>
+    <span class="footer-build">architect-console v0.1.0</span>
+  </div>
+</footer>
+
+<script src="/app.js"></script>
+</body>
+</html>
