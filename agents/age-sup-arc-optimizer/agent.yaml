@@ -1,0 +1,43 @@
+spec_version: "1.0.0"
+name: age-sup-arc-optimizer
+version: 1.0.0
+description: >
+  Arquitecto Optimizer — lee historial de auditorias, scorecards y propagaciones,
+  detecta patrones recurrentes en cambios y propone mejoras priorizadas al meta-sistema.
+  SUPERVISOR read-only. Escribe a docs/architect/lessons.md y memory/MEMORY.md del arquitecto.
+  Co-invocado tras /arc-evaluate o tras /arc-audit (auto-chain).
+  Adaptado de age-sup-optimizer de PM x10 con scope cross-package en lugar de intra-feature.
+  Trigger: /arc-optimize (futuro) o auto tras evaluation_complete.
+
+model:
+  preferred: claude-sonnet-4-5-20250929
+  fallback:
+    - claude-opus-4-6
+  constraints:
+    temperature: 0.3
+    max_tokens: 16384
+
+tools: [Read, Glob, Grep, Write]
+
+skills:
+  - rul-scope-boundaries
+  - rul-lazy-loading
+  - rul-spanish-orthography
+  - rul-prompt-override
+  - kno-strategic-thinking
+
+delegation:
+  mode: auto
+  triggers: [arc_evaluation_complete]
+
+runtime:
+  max_turns: 20
+  timeout: 240
+
+tags: [qa, optimization, patterns, lessons, supervisor, meta-system]
+metadata:
+  entity_type: supervisor
+  phase: meta-qa
+  color: white
+  scope: cross-package
+  adapted_from: "age-sup-optimizer de PM x10"

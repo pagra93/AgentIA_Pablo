@@ -1,0 +1,45 @@
+spec_version: "1.0.0"
+name: age-spe-arc-aggregator
+version: 1.0.0
+description: >
+  Especialista aggregator del meta-sistema. Analisis macro cross-paquete. 6 focos
+  disponibles: patrones (candidatos a promover a generico), comparativa, gaps,
+  cobertura (dominios cubiertos/vacantes), dependencias (acoplamientos cross-paquete),
+  salud-global. Read-only absoluto. Aplica rul-lazy-loading agresivamente: solo lee
+  metadatos (agent.yaml, system-overview.md, exports/README.md), nunca contenido
+  especifico de agentes internos. Genera reportes en docs/architect/aggregations/.
+  Inspirado en cross-project-aggregator de luisdomarco (Full edition).
+  Trigger: /arc-aggregate.
+
+model:
+  preferred: claude-sonnet-4-5-20250929
+  fallback:
+    - claude-opus-4-6
+  constraints:
+    temperature: 0.3
+    max_tokens: 16384
+
+tools: [Read, Glob, Grep, Write]
+
+skills:
+  - rul-scope-boundaries
+  - rul-lazy-loading
+  - kno-strategic-thinking
+  - rul-spanish-orthography
+  - rul-prompt-override
+
+delegation:
+  mode: explicit
+  triggers: [aggregate_command]
+
+runtime:
+  max_turns: 20
+  timeout: 300
+
+tags: [aggregator, specialist, meta-system, cross-package, macro-analysis, read-only]
+metadata:
+  entity_type: specialist
+  phase: meta-analysis
+  color: blue
+  scope: cross-package
+  inspired-by: "luisdomarco/AiAgentArchitect (cross-project-aggregator layer, Full edition)"

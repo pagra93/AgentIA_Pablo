@@ -26,24 +26,63 @@ model:
 # Fase 8 (criticos): generator, cataloger, auditor — IMPLEMENTADOS
 # Fase 9 (resto): propagator, aggregator, evaluator, optimizer, cynic, boundary-walker — pendiente
 agents:
+  # --- 4 ESPECIALISTAS (age-spe-arc-*) ---
   age-spe-arc-generator:
     path: agents/age-spe-arc-generator/
     description: "Crea paquetes desplegables via mini-discovery de 5 preguntas + stubs honestos. Trigger: /arc-new-package"
     delegation:
       mode: explicit
       triggers: [new_package_command]
+  age-spe-arc-propagator:
+    path: agents/age-spe-arc-propagator/
+    description: "Distribuye cambios genericos (skill, rule, knowledge, command, dashboard, supervisor-qa, template) a paquetes y proyectos clientes. Idempotente, dry-run por defecto. Trigger: /arc-propagate"
+    delegation:
+      mode: explicit
+      triggers: [propagate_command]
   age-spe-arc-cataloger:
     path: agents/age-spe-arc-cataloger/
     description: "Mantiene exports/README.md como indice vivo. Auto-invocado tras generator/propagator. Trigger: /arc-catalog"
     delegation:
       mode: auto
       triggers: [package_generated, propagation_complete, catalog_command]
+  age-spe-arc-aggregator:
+    path: agents/age-spe-arc-aggregator/
+    description: "Analisis macro cross-paquete (6 focos: patrones, comparativa, gaps, cobertura, dependencias, salud-global). Read-only. Inspirado en cross-project-aggregator de luisdomarco. Trigger: /arc-aggregate"
+    delegation:
+      mode: explicit
+      triggers: [aggregate_command]
+
+  # --- 5 SUPERVISORES (age-sup-arc-*) READ-ONLY ---
   age-sup-arc-auditor:
     path: agents/age-sup-arc-auditor/
     description: "Verifica conformidad estructural de paquetes contra conventions.yaml. Read-only. Trigger: /arc-audit"
     delegation:
       mode: explicit
       triggers: [audit_command, after_propagate]
+  age-sup-arc-evaluator:
+    path: agents/age-sup-arc-evaluator/
+    description: "Puntua el estado del meta-sistema y paquetes en 4D ponderadas. Co-invocado tras audit. Adaptado de age-sup-evaluator de PM x10."
+    delegation:
+      mode: auto
+      triggers: [arc_audit_complete]
+  age-sup-arc-optimizer:
+    path: agents/age-sup-arc-optimizer/
+    description: "Lee historial de audits/scorecards/propagaciones, detecta patrones recurrentes, propone mejoras priorizadas. Co-invocado tras evaluator. Adaptado de age-sup-optimizer de PM x10."
+    delegation:
+      mode: auto
+      triggers: [arc_evaluation_complete]
+  age-sup-arc-cynic:
+    path: agents/age-sup-arc-cynic/
+    description: "Adversarial — desafia premisas (Socratic, Devil's Advocate, Five Whys). Read-only. Co-invocado con boundary-walker. Inspirado en adversarial-review de luisdomarco. Trigger: /arc-adversarial"
+    delegation:
+      mode: explicit
+      triggers: [arc_adversarial_command]
+  age-sup-arc-boundary-walker:
+    path: agents/age-sup-arc-boundary-walker/
+    description: "Adversarial — explora bordes y casos extremos (Pre-Mortem, Inversion, Reverse Assumption). Read-only. Co-invocado con cynic. Trigger: /arc-adversarial"
+    delegation:
+      mode: explicit
+      triggers: [arc_adversarial_command]
 
 # --- Skills (6 total: 4 heredados de PM x10 + 2 nuevos inspirados en luisdomarco) ---
 skills:

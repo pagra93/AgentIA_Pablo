@@ -1,0 +1,40 @@
+spec_version: "1.0.0"
+name: age-sup-arc-cynic
+version: 1.0.0
+description: >
+  Adversarial Cynic del meta-sistema — desafia premisas de decisiones del arquitecto
+  o del diseno de paquetes con tecnicas de elicitation (Socratic, Devil's Advocate,
+  Five Whys). SUPERVISOR read-only. Genera reportes en docs/architect/adversarial/
+  con preguntas incomodas y argumentos contrarios. Co-invocado con boundary-walker
+  via /arc-adversarial. Scope cross-package.
+
+model:
+  preferred: claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.3
+    max_tokens: 8192
+
+tools: [Read, Glob, Grep, Write]
+
+skills:
+  - kno-elicitation-methods
+  - kno-strategic-thinking
+  - rul-spanish-orthography
+  - rul-prompt-override
+  - rul-scope-boundaries
+
+delegation:
+  mode: explicit
+  triggers: [arc_adversarial_command]
+
+runtime:
+  max_turns: 15
+  timeout: 120
+
+tags: [adversarial, supervisor, elicitation, cynic, meta-system]
+metadata:
+  entity_type: supervisor
+  phase: meta-review
+  color: red
+  scope: cross-package
+  inspired-by: "luisdomarco/AiAgentArchitect (adversarial-review layer, Full edition)"
