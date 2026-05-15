@@ -1,0 +1,162 @@
+#!/usr/bin/env bash
+# arc — wrapper de operaciones del meta-sistema AgentArchitect
+#
+# Generado por install.sh — NO editar manualmente, se sobreescribe en cada install.
+# Para personalizar, edita scripts/arc.template en el repo y vuelve a instalar.
+
+set -euo pipefail
+
+SYSTEM_REPO="{{SYSTEM_REPO}}"
+SCRIPTS_DIR="$SYSTEM_REPO/scripts"
+PACKAGES_LIST="$HOME/.claude/packages-registry.txt"
+PROJECTS_LIST="$HOME/.claude/projects-registry.txt"
+
+GREEN=$'\033[0;32m'
+YELLOW=$'\033[1;33m'
+CYAN=$'\033[0;36m'
+RED=$'\033[0;31m'
+NC=$'\033[0m'
+
+# Sanity check
+if [ ! -d "$SYSTEM_REPO" ]; then
+    echo -e "${RED}Error:${NC} repo del arquitecto no encontrado en $SYSTEM_REPO"
+    echo "Reinstala con: bash <ruta-real-del-repo>/install.sh"
+    exit 1
+fi
+
+cmd="${1:-help}"
+
+case "$cmd" in
+    help|--help|-h)
+        cat <<EOF
+${GREEN}arc — AgentArchitect CLI${NC}
+
+Uso: arc <comando> [argumentos]
+
+${CYAN}Comandos disponibles:${NC}
+
+  ${YELLOW}help${NC}                    Muestra esta ayuda
+  ${YELLOW}info${NC}                    Info del arquitecto + paquetes registrados
+  ${YELLOW}list${NC}                    Lista paquetes en exports/
+  ${YELLOW}projects${NC}                Lista proyectos clientes con paquetes desplegados
+  ${YELLOW}console${NC}                 Arranca architect-console (UI del arquitecto)
+  ${YELLOW}audit${NC}                   Atajo: scripts/audit-drift.sh
+  ${YELLOW}propagate <scope>${NC}       Atajo: scripts/propagate-update.sh <scope>
+  ${YELLOW}new-package <nombre>${NC}    Atajo: scripts/new-package.sh <nombre>
+  ${YELLOW}clone-exports${NC}           Atajo: scripts/clone-all-exports.sh
+  ${YELLOW}path${NC}                    Muestra ruta del repo del arquitecto
+  ${YELLOW}reinstall${NC}               Re-ejecuta install.sh del arquitecto
+
+${CYAN}Notas:${NC}
+  - Para comandos interactivos (mini-discovery, propagaciones con prompts),
+    usar los slash commands directamente en Claude Code: /arc-new-package, etc.
+  - Este wrapper es para operaciones rapidas desde terminal.
+
+${CYAN}Repo:${NC} $SYSTEM_REPO
+${CYAN}Guia HTML:${NC} $SYSTEM_REPO/architect-guia-de-uso.html
+
+EOF
+        ;;
+
+    info)
+        echo -e "${GREEN}AgentArchitect${NC}"
+        echo "  Repo:     $SYSTEM_REPO"
+        echo "  Guia:     $SYSTEM_REPO/architect-guia-de-uso.html"
+        echo ""
+        if [ -f "$PACKAGES_LIST" ]; then
+            echo -e "${CYAN}Paquetes registrados:${NC}"
+            cat "$PACKAGES_LIST" | awk -F'|' '{printf "  %-30s prefix:%-6s  ruta:%s\n", $1, $2, $3}'
+        else
+            echo -e "${YELLOW}No hay paquetes registrados todavia.${NC}"
+        fi
+        echo ""
+        if [ -f "$PROJECTS_LIST" ]; then
+            echo -e "${CYAN}Proyectos clientes con paquetes desplegados:${NC}"
+            cat "$PROJECTS_LIST" | awk -F'|' '{printf "  %-50s paquete:%s\n", $1, $2}'
+        else
+            echo -e "${YELLOW}No hay proyectos clientes con paquetes desplegados todavia.${NC}"
+        fi
+        ;;
+
+    list)
+        echo -e "${CYAN}Paquetes en exports/:${NC}"
+        if [ -d "$SYSTEM_REPO/exports" ]; then
+            for d in "$SYSTEM_REPO/exports"/*/; do
+                [ -d "$d" ] || continue
+                name=$(basename "$d")
+                [ "$name" = "template" ] && continue
+                if [ -f "$d/agent.yaml" ]; then
+                    version=$(grep '^version:' "$d/agent.yaml" | head -1 | sed 's/version: *//')
+                    echo "  - $name (v$version)"
+                else
+                    echo "  - $name (sin agent.yaml)"
+                fi
+            done
+        fi
+        ;;
+
+    projects)
+        if [ -f "$PROJECTS_LIST" ]; then
+            cat "$PROJECTS_LIST" | awk -F'|' '{printf "%-50s paquete: %-25s desplegado: %s\n", $1, $2, $3}'
+        else
+            echo -e "${YELLOW}Sin proyectos clientes registrados.${NC}"
+        fi
+        ;;
+
+    console)
+        if [ -f "$SYSTEM_REPO/architect-console/bridge.py" ]; then
+            echo -e "${CYAN}Arrancando architect-console en puerto 7710...${NC}"
+            python3 "$SYSTEM_REPO/architect-console/bridge.py"
+        else
+            echo -e "${RED}architect-console no encontrado.${NC}"
+            exit 1
+        fi
+        ;;
+
+    audit)
+        if [ -x "$SCRIPTS_DIR/audit-drift.sh" ]; then
+            bash "$SCRIPTS_DIR/audit-drift.sh" "${@:2}"
+        else
+            echo -e "${YELLOW}scripts/audit-drift.sh no instalado. Invoca /arc-audit desde Claude Code en su lugar.${NC}"
+        fi
+        ;;
+
+    propagate)
+        if [ -x "$SCRIPTS_DIR/propagate-update.sh" ]; then
+            bash "$SCRIPTS_DIR/propagate-update.sh" "${@:2}"
+        else
+            echo -e "${YELLOW}scripts/propagate-update.sh no instalado. Invoca /arc-propagate desde Claude Code en su lugar.${NC}"
+        fi
+        ;;
+
+    new-package)
+        if [ -x "$SCRIPTS_DIR/new-package.sh" ]; then
+            bash "$SCRIPTS_DIR/new-package.sh" "${@:2}"
+        else
+            echo -e "${YELLOW}scripts/new-package.sh no instalado. Invoca /arc-new-package desde Claude Code en su lugar.${NC}"
+        fi
+        ;;
+
+    clone-exports)
+        if [ -x "$SCRIPTS_DIR/clone-all-exports.sh" ]; then
+            bash "$SCRIPTS_DIR/clone-all-exports.sh" "${@:2}"
+        else
+            echo -e "${YELLOW}scripts/clone-all-exports.sh no instalado.${NC}"
+        fi
+        ;;
+
+    path)
+        echo "$SYSTEM_REPO"
+        ;;
+
+    reinstall)
+        echo -e "${CYAN}Re-ejecutando install.sh del arquitecto...${NC}"
+        bash "$SYSTEM_REPO/install.sh"
+        ;;
+
+    *)
+        echo -e "${RED}Comando desconocido:${NC} $cmd"
+        echo "Use 'arc help' para ver comandos disponibles."
+        exit 1
+        ;;
+esac
