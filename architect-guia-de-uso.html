@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentArchitect — Guía operativa</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ═══════════════ Design Tokens ═══════════════ */
+  :root {
+    --bg:           oklch(15% 0.01 50);
+    --surface:      oklch(18% 0.015 50);
+    --surface-2:    oklch(22% 0.02 50);
+    --surface-3:    oklch(26% 0.025 50);
+
+    --accent:       oklch(67% 0.15 50);
+    --accent-soft:  color-mix(in oklch, var(--accent) 12%, transparent);
+    --accent-edge:  color-mix(in oklch, var(--accent) 35%, transparent);
+
+    --text:    oklch(96% 0.005 50);
+    --text-2:  oklch(74% 0.01 50);
+    --text-3:  oklch(58% 0.01 50);
+
+    --success: oklch(70% 0.13 145);
+    --warning: oklch(78% 0.13 80);
+    --danger:  oklch(66% 0.18 25);
+    --info:    oklch(70% 0.12 240);
+
+    --border:        color-mix(in oklch, var(--text) 6%, transparent);
+    --border-strong: color-mix(in oklch, var(--text) 14%, transparent);
+
+    --sans: 'DM Sans', system-ui, sans-serif;
+    --mono: 'DM Mono', ui-monospace, monospace;
+
+    --t-xs:   clamp(11px, 0.72vw, 12px);
+    --t-sm:   clamp(12.5px, 0.82vw, 13.5px);
+    --t-base: clamp(14.5px, 0.95vw, 16px);
+    --t-lg:   clamp(17px, 1.2vw, 20px);
+    --t-xl:   clamp(22px, 2vw, 30px);
+    --t-2xl:  clamp(30px, 3vw, 44px);
+    --t-3xl:  clamp(40px, 4.2vw, 60px);
+
+    --s-1: clamp(4px, 0.4vw, 6px);
+    --s-2: clamp(8px, 0.8vw, 12px);
+    --s-3: clamp(12px, 1.2vw, 18px);
+    --s-4: clamp(18px, 1.8vw, 26px);
+    --s-5: clamp(28px, 3vw, 44px);
+    --s-6: clamp(40px, 5vw, 72px);
+
+    --r-sm: 4px;
+    --r-md: 8px;
+    --r-lg: 14px;
+    --r-xl: 20px;
+  }
+
+  /* ═══════════════ Reset & Base ═══════════════ */
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; padding: 0; }
+
+  html {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: var(--t-base);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background: var(--bg);
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+  }
+
+  @media (max-width: 900px) {
+    body { grid-template-columns: 1fr; }
+    nav.sidebar { display: none; }
+  }
+
+  /* ═══════════════ Sidebar ═══════════════ */
+  nav.sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--surface);
+    border-right: 1px solid var(--border-strong);
+    padding: var(--s-4);
+  }
+
+  nav.sidebar h2 {
+    font-size: var(--t-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin: 0 0 var(--s-3);
+    font-weight: 600;
+  }
+
+  nav.sidebar ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  nav.sidebar li {
+    margin: 0;
+  }
+
+  nav.sidebar a {
+    display: block;
+    padding: 0.4em 0.6em;
+    color: var(--text-2);
+    text-decoration: none;
+    font-size: var(--t-sm);
+    border-radius: var(--r-sm);
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+  }
+
+  nav.sidebar a:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-left-color: var(--accent-edge);
+  }
+
+  nav.sidebar .nav-section {
+    margin-top: var(--s-4);
+  }
+
+  nav.sidebar .nav-section:first-of-type {
+    margin-top: 0;
+  }
+
+  nav.sidebar .build {
+    margin-top: var(--s-5);
+    padding-top: var(--s-3);
+    border-top: 1px solid var(--border);
+    color: var(--text-3);
+    font-size: var(--t-xs);
+    font-family: var(--mono);
+  }
+
+  /* ═══════════════ Main content ═══════════════ */
+  main {
+    padding: var(--s-5) var(--s-6);
+    max-width: 1100px;
+    width: 100%;
+  }
+
+  section {
+    margin-bottom: var(--s-6);
+    scroll-margin-top: var(--s-3);
+  }
+
+  h1 {
+    font-size: var(--t-3xl);
+    font-weight: 900;
+    line-height: 1.1;
+    margin: 0 0 var(--s-3);
+    letter-spacing: -0.02em;
+  }
+
+  h1 .accent { color: var(--accent); }
+
+  h2 {
+    font-size: var(--t-2xl);
+    font-weight: 700;
+    margin: var(--s-5) 0 var(--s-3);
+    padding-bottom: var(--s-2);
+    border-bottom: 1px solid var(--border-strong);
+    letter-spacing: -0.015em;
+  }
+
+  h3 {
+    font-size: var(--t-xl);
+    font-weight: 600;
+    margin: var(--s-4) 0 var(--s-2);
+    color: var(--accent);
+  }
+
+  h4 {
+    font-size: var(--t-lg);
+    font-weight: 600;
+    margin: var(--s-3) 0 var(--s-2);
+  }
+
+  p { margin: var(--s-2) 0; color: var(--text-2); }
+  p.lead { font-size: var(--t-lg); color: var(--text); }
+
+  ul, ol { color: var(--text-2); margin: var(--s-2) 0 var(--s-3); padding-left: 1.5em; }
+  li { margin: 0.3em 0; }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  strong { color: var(--text); font-weight: 600; }
+  em { color: var(--text); font-style: italic; }
+
+  /* ═══════════════ Code & pre ═══════════════ */
+  code {
+    font-family: var(--mono);
+    font-size: 0.9em;
+    background: var(--surface-2);
+    padding: 0.15em 0.45em;
+    border-radius: var(--r-sm);
+    color: var(--accent);
+  }
+
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--r-md);
+    padding: var(--s-3);
+    overflow-x: auto;
+    font-size: var(--t-sm);
+    line-height: 1.55;
+    margin: var(--s-3) 0;
+  }
+
+  pre code {
+    background: none;
+    padding: 0;
+    color: var(--text);
+    font-size: inherit;
+  }
+
+  pre.diagram {
+    border-left-color: var(--info);
+    font-family: var(--mono);
+    color: var(--text-2);
+    white-space: pre;
+  }
+
+  /* ═══════════════ Hero ═══════════════ */
+  .hero {
+    padding: var(--s-5) 0;
+    border-bottom: 1px solid var(--border-strong);
+    margin-bottom: var(--s-4);
+  }
+
+  .hero .eyebrow {
+    color: var(--accent);
+    font-size: var(--t-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+    margin-bottom: var(--s-2);
+  }
+
+  .hero .meta {
+    display: flex;
+    gap: var(--s-3);
+    flex-wrap: wrap;
+    margin-top: var(--s-3);
+    color: var(--text-3);
+    font-size: var(--t-sm);
+  }
+
+  .hero .meta span {
+    background: var(--surface);
+    padding: 0.4em 0.8em;
+    border-radius: var(--r-sm);
+    font-family: var(--mono);
+  }
+
+  /* ═══════════════ Callout / Note boxes ═══════════════ */
+  .callout {
+    background: var(--surface);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--r-md) var(--r-md) 0;
+    padding: var(--s-3) var(--s-4);
+    margin: var(--s-3) 0;
+  }
+
+  .callout.info { border-left-color: var(--info); }
+  .callout.success { border-left-color: var(--success); }
+  .callout.warning { border-left-color: var(--warning); }
+  .callout.danger { border-left-color: var(--danger); }
+
+  .callout-title {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: var(--s-1);
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* ═══════════════ Tables ═══════════════ */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: var(--s-3) 0;
+    font-size: var(--t-sm);
+    background: var(--surface);
+    border-radius: var(--r-md);
+    overflow: hidden;
+  }
+
+  th {
+    background: var(--surface-2);
+    color: var(--accent);
+    font-weight: 600;
+    text-align: left;
+    padding: var(--s-2) var(--s-3);
+    border-bottom: 1px solid var(--border-strong);
+    font-size: var(--t-sm);
+  }
+
+  td {
+    padding: var(--s-2) var(--s-3);
+    border-bottom: 1px solid var(--border);
+    color: var(--text-2);
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface-2); color: var(--text); }
+
+  /* ═══════════════ Cards ═══════════════ */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--s-3);
+    margin: var(--s-3) 0;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: var(--s-3) var(--s-4);
+    transition: border-color 0.15s;
+  }
+
+  .card:hover { border-color: var(--accent-edge); }
+
+  .card h4 {
+    margin-top: 0;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: var(--t-base);
+  }
+
+  .card .role {
+    display: inline-block;
+    font-size: var(--t-xs);
+    padding: 0.15em 0.55em;
+    border-radius: var(--r-sm);
+    background: var(--surface-2);
+    color: var(--text-3);
+    font-family: var(--mono);
+    margin-right: 0.4em;
+  }
+
+  .card .role.spe { color: var(--info); }
+  .card .role.sup { color: var(--warning); }
+
+  .card p { margin: var(--s-2) 0; font-size: var(--t-sm); }
+
+  .card .trigger {
+    margin-top: var(--s-2);
+    color: var(--text-3);
+    font-size: var(--t-xs);
+    font-family: var(--mono);
+  }
+
+  /* ═══════════════ Badges ═══════════════ */
+  .badge {
+    display: inline-block;
+    padding: 0.15em 0.55em;
+    font-size: var(--t-xs);
+    border-radius: var(--r-sm);
+    background: var(--surface-2);
+    color: var(--text-3);
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+  }
+
+  .badge.accent { background: var(--accent-soft); color: var(--accent); }
+  .badge.success { background: color-mix(in oklch, var(--success) 12%, transparent); color: var(--success); }
+  .badge.warning { background: color-mix(in oklch, var(--warning) 12%, transparent); color: var(--warning); }
+  .badge.danger { background: color-mix(in oklch, var(--danger) 12%, transparent); color: var(--danger); }
+  .badge.info { background: color-mix(in oklch, var(--info) 12%, transparent); color: var(--info); }
+
+  /* ═══════════════ TOC / hr ═══════════════ */
+  hr {
+    border: none;
+    height: 1px;
+    background: var(--border);
+    margin: var(--s-4) 0;
+  }
+
+  /* Anchor link */
+  .anchor-link {
+    color: var(--text-3);
+    margin-left: 0.4em;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  h2:hover .anchor-link, h3:hover .anchor-link { opacity: 1; }
+
+  /* ═══════════════ Footer ═══════════════ */
+  footer {
+    margin-top: var(--s-6);
+    padding-top: var(--s-3);
+    border-top: 1px solid var(--border);
+    color: var(--text-3);
+    font-size: var(--t-sm);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<nav class="sidebar">
+  <h2>Índice</h2>
+  <div class="nav-section">
+    <ol>
+      <li><a href="#que-es">1. ¿Qué es AgentArchitect?</a></li>
+      <li><a href="#por-que">2. ¿Por qué existe?</a></li>
+      <li><a href="#modelo">3. Modelo conceptual</a></li>
+      <li><a href="#arquitectura">4. Arquitectura</a></li>
+    </ol>
+  </div>
+  <div class="nav-section">
+    <h2>Componentes</h2>
+    <ol>
+      <li><a href="#agentes">5. Los 9 agentes</a></li>
+      <li><a href="#comandos">6. Los 6 comandos <code>/arc-*</code></a></li>
+      <li><a href="#skills">7. Skills, rules, knowledge</a></li>
+      <li><a href="#config">8. Configuración</a></li>
+    </ol>
+  </div>
+  <div class="nav-section">
+    <h2>Flujos</h2>
+    <ol>
+      <li><a href="#flujo-crear">9. Crear paquete nuevo</a></li>
+      <li><a href="#flujo-deploy">10. Desplegar en cliente</a></li>
+      <li><a href="#flujo-propagar">11. Propagar mejoras</a></li>
+      <li><a href="#flujo-auditar">12. Auditar conformidad</a></li>
+      <li><a href="#flujo-aggregate">13. Análisis macro</a></li>
+      <li><a href="#flujo-adversarial">14. Revisión adversarial</a></li>
+    </ol>
+  </div>
+  <div class="nav-section">
+    <h2>UI</h2>
+    <ol>
+      <li><a href="#dashboards">15. Consolas y dashboards</a></li>
+    </ol>
+  </div>
+  <div class="nav-section">
+    <h2>Contexto</h2>
+    <ol>
+      <li><a href="#relacion-pm">16. Relación con PM x10</a></li>
+      <li><a href="#relacion-luisdomarco">17. Relación con luisdomarco</a></li>
+      <li><a href="#faq">18. FAQ</a></li>
+      <li><a href="#glosario">19. Glosario</a></li>
+    </ol>
+  </div>
+  <div class="build">v0.1.0 · 2026-05-15</div>
+</nav>
+
+<!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+<main>
+
+<div class="hero">
+  <div class="eyebrow">Meta-system</div>
+  <h1>Agent<span class="accent">Architect</span></h1>
+  <p class="lead">El meta-sistema que mantiene paquetes desplegables de agentes Claude Code. Lo genérico vive en un solo sitio. Lo específico vive en cada paquete. La propagación es explícita, auditable y reversible.</p>
+  <div class="meta">
+    <span>9 agentes</span>
+    <span>6 comandos <code>/arc-*</code></span>
+    <span>7 skills genéricas</span>
+    <span>7 rules</span>
+    <span>4 knowledge</span>
+    <span>Multi-paquete</span>
+  </div>
+</div>
+
+<!-- ════════ 1. Qué es ════════ -->
+<section id="que-es">
+  <h2>1. ¿Qué es AgentArchitect?</h2>
+  <p><strong>AgentArchitect es un meta-sistema</strong>. No produce software, no diseña features, no edita contenido. Su trabajo es <strong>construir y mantener otros sistemas de agentes</strong> (paquetes desplegables como PM x10, Newsletter, Marketing) y garantizar que comparten lo genérico sin duplicación.</p>
+
+  <p>Mientras un sistema convencional de agentes (como PM x10) opera <em>dentro</em> de un dominio (producto, marketing, etc.), el arquitecto opera <em>encima</em>: en el plano meta.</p>
+
+  <div class="cards">
+    <div class="card">
+      <h4>Lo que <strong>SÍ</strong> hace</h4>
+      <ul>
+        <li>Crea paquetes nuevos vía mini-discovery</li>
+        <li>Propaga mejoras genéricas a todos los paquetes</li>
+        <li>Audita conformidad estructural</li>
+        <li>Análisis macro cross-paquete</li>
+        <li>Revisión adversarial del propio diseño</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Lo que <strong>NO</strong> hace</h4>
+      <ul>
+        <li>Diseñar features de producto, marketing, etc.</li>
+        <li>Editar contenido de los paquetes</li>
+        <li>Triple-platform (.agents/.codex/.claude — solo Claude Code)</li>
+        <li>Reescribir sistemas existentes (como PM x10)</li>
+        <li>Imponer un dominio sobre otro</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 2. Por qué ════════ -->
+<section id="por-que">
+  <h2>2. ¿Por qué existe?</h2>
+  <p>Imagina que tienes 3 sistemas de agentes: <code>pmx-product</code>, <code>newsletter-system</code>, <code>marketing-system</code>. Cada uno usa las mismas skills genéricas (planning, doc-updater), las mismas rules (naming conventions, spanish-orthography), el mismo código de dashboard.</p>
+
+  <p>Cuando quieres <strong>mejorar el sistema de memoria en todos</strong> tienes dos opciones:</p>
+
+  <ol>
+    <li><strong>Editar 3 veces a mano</strong>: error humano garantizado, drift inevitable, mantenimiento doloroso.</li>
+    <li><strong>Tener un meta-sistema que lo haga por ti</strong>: editas una vez, el arquitecto propaga. Esto es lo que AgentArchitect hace.</li>
+  </ol>
+
+  <div class="callout">
+    <div class="callout-title">Principio núcleo</div>
+    <p>Lo genérico vive en un solo sitio (el arquitecto). Lo específico vive en cada paquete. La propagación es explícita, auditable y reversible.</p>
+  </div>
+
+  <p>El arquitecto resuelve dos problemas que aparecen cuando tienes más de un sistema de agentes:</p>
+
+  <ul>
+    <li><strong>Divergencia silenciosa</strong>: cambias algo en uno, olvidas en los otros. El propagator + el auditor lo detectan y corrigen.</li>
+    <li><strong>Blank-page paralysis al crear sistemas nuevos</strong>: el generator con mini-discovery te entrega un esqueleto con stubs útiles, no una carpeta vacía.</li>
+  </ul>
+</section>
+
+<!-- ════════ 3. Modelo conceptual ════════ -->
+<section id="modelo">
+  <h2>3. Modelo conceptual</h2>
+  <p>Tres planos jerárquicos:</p>
+
+  <pre class="diagram">
+┌─────────────────────────────────────────────────────────────┐
+│  PLANO META — AgentArchitect/                                │
+│                                                              │
+│  Lo genérico (skills, rules, knowledge, dashboard genérico,  │
+│  comandos transversales, supervisores QA, templates)         │
+│                                                              │
+│  9 agentes meta: generator, propagator, cataloger,           │
+│  aggregator, auditor, evaluator, optimizer, cynic,           │
+│  boundary-walker.                                            │
+└─────────────────────────────────────────────────────────────┘
+                          ↓ genera + propaga
+┌─────────────────────────────────────────────────────────────┐
+│  PLANO PAQUETE — AgentArchitect/exports/&lt;paquete&gt;/           │
+│                                                              │
+│  Lo específico del dominio (agentes age-spe-&lt;prefix&gt;-*,      │
+│  comandos /&lt;prefix&gt;-*, skills/rules/knowledge propios)       │
+│                                                              │
+│  Hereda lo genérico del arquitecto vía propagación.          │
+│  Aporta dashboard-section.yaml al desplegarse.               │
+└─────────────────────────────────────────────────────────────┘
+                          ↓ despliega
+┌─────────────────────────────────────────────────────────────┐
+│  PLANO CLIENTE — /Users/pablo/Trabajos/MiCliente/            │
+│                                                              │
+│  Espacio donde el usuario trabaja. Tiene una pestaña en el   │
+│  dashboard por cada paquete desplegado.                      │
+│                                                              │
+│  Lo local: pm/config.json, dashboard/sections/, docs/.       │
+│  El código del dashboard viene del arquitecto (propagable).  │
+└─────────────────────────────────────────────────────────────┘
+  </pre>
+
+  <p>Cada plano tiene <strong>su scope estricto</strong>. El arquitecto NUNCA entra al contenido específico de un paquete. El paquete NUNCA toca proyectos clientes sin pasar por <code>deploy.sh</code>. El cliente NUNCA modifica el código del dashboard (eso lo propaga el arquitecto).</p>
+
+  <div class="callout info">
+    <div class="callout-title">Regla <code>rul-scope-boundaries</code></div>
+    <p>El arquitecto solo lee <code>templates/</code>, <code>exports/README.md</code> y archivos listados en <code>config/core-manifest.yaml</code>. Inspirado en <a href="https://github.com/luisdomarco/AiAgentArchitect" target="_blank">luisdomarco/AiAgentArchitect</a> y adaptado al formato PM x10.</p>
+  </div>
+</section>
+
+<!-- ════════ 4. Arquitectura ════════ -->
+<section id="arquitectura">
+  <h2>4. Arquitectura</h2>
+  <p>Estructura del repo del arquitecto:</p>
+
+  <pre class="diagram">
+AgentArchitect/
+├── .claude/settings.local.json        # config Claude Code
+├── CLAUDE.md, SOUL.md, DUTIES.md,     # identidad raíz
+│   RULES.md, agent.yaml, README.md
+│
+├── agents/                            # 9 AGENTES del arquitecto
+│   ├── age-spe-arc-generator/         # crea paquetes
+│   ├── age-spe-arc-propagator/        # distribuye cambios
+│   ├── age-spe-arc-cataloger/         # mantiene índice
+│   ├── age-spe-arc-aggregator/        # análisis macro
+│   ├── age-sup-arc-auditor/           # conformidad (read-only)
+│   ├── age-sup-arc-evaluator/         # scoring 4D (read-only)
+│   ├── age-sup-arc-optimizer/         # patrones (read-only)
+│   ├── age-sup-arc-cynic/             # adversarial (read-only)
+│   └── age-sup-arc-boundary-walker/   # adversarial bordes (read-only)
+│
+├── commands/                          # 6 comandos /arc-*
+│   ├── arc-new-package.md
+│   ├── arc-propagate.md
+│   ├── arc-audit.md
+│   ├── arc-catalog.md
+│   ├── arc-aggregate.md
+│   └── arc-adversarial.md
+│
+├── skills/                            # 7 skills genéricas heredables
+├── rules/                             # 7 rules transversales
+├── knowledge/                         # 4 knowledge bases
+│
+├── templates/
+│   ├── package-template/              # esqueleto canónico de un paquete
+│   └── project-template/              # esqueleto + dashboard multi-pestaña
+│
+├── exports/                           # PAQUETES desplegables (sub-repos Git)
+│   ├── README.md                      # catálogo (mantenido por cataloger)
+│   └── &lt;paquete&gt;/                     # un paquete por carpeta
+│
+├── architect-console/                 # UI del arquitecto
+│   ├── bridge.py, index.html,
+│   ├── styles.css, app.js
+│
+├── config/
+│   ├── conventions.yaml               # qué debe cumplir un paquete
+│   └── core-manifest.yaml             # qué se propaga
+│
+├── docs/
+│   ├── architect/                     # reportes (audits, evaluations, etc.)
+│   └── general/
+│
+├── memory/MEMORY.md
+├── changelog/propagations.md          # log de propagaciones
+├── scripts/                           # CLI utilities
+├── architect-guia-de-uso.html         # esta guía
+└── install.sh                         # compila a ~/.claude/
+  </pre>
+</section>
+
+<!-- ════════ 5. Los 9 agentes ════════ -->
+<section id="agentes">
+  <h2>5. Los 9 agentes</h2>
+  <p>El arquitecto tiene <strong>4 especialistas</strong> (modifican el ecosistema) y <strong>5 supervisores</strong> (read-only, observan y reportan).</p>
+
+  <h3>Especialistas (<code>age-spe-arc-*</code>)</h3>
+  <div class="cards">
+    <div class="card">
+      <span class="role spe">specialist</span>
+      <h4>age-spe-arc-generator</h4>
+      <p>Crea paquetes nuevos vía mini-discovery de 5 preguntas. Copia <code>templates/package-template/</code>, sustituye placeholders, genera stubs honestos de agentes previstos, <code>git init</code>, log inicial.</p>
+      <div class="trigger">Trigger: <code>/arc-new-package</code></div>
+    </div>
+    <div class="card">
+      <span class="role spe">specialist</span>
+      <h4>age-spe-arc-propagator</h4>
+      <p>Distribuye cambios genéricos a paquetes existentes y a proyectos clientes. Idempotente por checksums SHA256, dry-run por defecto, estrategia de conflictos configurable.</p>
+      <div class="trigger">Trigger: <code>/arc-propagate</code></div>
+    </div>
+    <div class="card">
+      <span class="role spe">specialist</span>
+      <h4>age-spe-arc-cataloger</h4>
+      <p>Mantiene <code>exports/README.md</code> como índice vivo: nombre, prefix, dominio, versión, último commit, salud. Auto-invocado tras generator/propagator.</p>
+      <div class="trigger">Trigger: <code>/arc-catalog</code> (o auto)</div>
+    </div>
+    <div class="card">
+      <span class="role spe">specialist</span>
+      <h4>age-spe-arc-aggregator</h4>
+      <p>Análisis macro cross-paquete: 6 focos (patrones, comparativa, gaps, cobertura, dependencias, salud-global). Read-only, lazy loading agresivo (solo metadatos).</p>
+      <div class="trigger">Trigger: <code>/arc-aggregate</code></div>
+    </div>
+  </div>
+
+  <h3>Supervisores (<code>age-sup-arc-*</code>) — READ-ONLY</h3>
+  <div class="cards">
+    <div class="card">
+      <span class="role sup">supervisor</span>
+      <h4>age-sup-arc-auditor</h4>
+      <p>Verifica conformidad estructural binaria de paquetes contra <code>conventions.yaml</code>: archivos requeridos, supervisores QA, naming, checksums core-files, scope-boundaries.</p>
+      <div class="trigger">Trigger: <code>/arc-audit</code></div>
+    </div>
+    <div class="card">
+      <span class="role sup">supervisor</span>
+      <h4>age-sup-arc-evaluator</h4>
+      <p>Puntúa estado del meta-sistema en 4D ponderadas (Completeness, Quality, Compliance, Efficiency). Adaptado de PM x10. Auto-invocado tras auditor.</p>
+      <div class="trigger">Auto-chain: tras audit</div>
+    </div>
+    <div class="card">
+      <span class="role sup">supervisor</span>
+      <h4>age-sup-arc-optimizer</h4>
+      <p>Lee historial completo (audits, scorecards, propagations), detecta patrones recurrentes, propone mejoras priorizadas. Auto-invocado tras evaluator.</p>
+      <div class="trigger">Auto-chain: tras evaluator</div>
+    </div>
+    <div class="card">
+      <span class="role sup">supervisor</span>
+      <h4>age-sup-arc-cynic</h4>
+      <p>Adversarial: desafía premisas con Socratic, Devil's Advocate, Five Whys. Inspirado en adversarial-review de luisdomarco.</p>
+      <div class="trigger">Trigger: <code>/arc-adversarial</code></div>
+    </div>
+    <div class="card">
+      <span class="role sup">supervisor</span>
+      <h4>age-sup-arc-boundary-walker</h4>
+      <p>Adversarial: explora bordes y casos extremos con Pre-Mortem, Inversion, Reverse Assumption. Co-invocado con cynic.</p>
+      <div class="trigger">Trigger: <code>/arc-adversarial</code></div>
+    </div>
+  </div>
+
+  <h4>Cadena automática QA</h4>
+  <pre><code>/arc-audit → auditor (sync) → arc_audit_complete
+            → evaluator (auto) → arc_evaluation_complete
+            → optimizer (auto) → reporte final</code></pre>
+  <p>Una sola invocación de <code>/arc-audit</code> dispara los 3 supervisores QA secuencialmente. El PM recibe un único reporte consolidado.</p>
+</section>
+
+<!-- ════════ 6. Comandos ════════ -->
+<section id="comandos">
+  <h2>6. Los 6 comandos <code>/arc-*</code></h2>
+  <p>Todos los comandos están disponibles globalmente en Claude Code después de ejecutar <code>./install.sh</code> del arquitecto.</p>
+
+  <table>
+    <thead>
+      <tr><th>Comando</th><th>Invoca</th><th>Para qué</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>/arc-new-package</code></td>
+        <td>generator</td>
+        <td>Crear paquete vía mini-discovery</td>
+      </tr>
+      <tr>
+        <td><code>/arc-propagate</code></td>
+        <td>propagator</td>
+        <td>Propagar mejora genérica</td>
+      </tr>
+      <tr>
+        <td><code>/arc-audit</code></td>
+        <td>auditor (+ chain QA)</td>
+        <td>Auditar conformidad de paquetes</td>
+      </tr>
+      <tr>
+        <td><code>/arc-catalog</code></td>
+        <td>cataloger</td>
+        <td>Refrescar <code>exports/README.md</code></td>
+      </tr>
+      <tr>
+        <td><code>/arc-aggregate</code></td>
+        <td>aggregator</td>
+        <td>Análisis macro cross-paquete</td>
+      </tr>
+      <tr>
+        <td><code>/arc-adversarial</code></td>
+        <td>cynic + boundary-walker</td>
+        <td>Revisión adversarial del diseño</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Cada comando vive en <code>commands/arc-*.md</code> con frontmatter (description) y secciones de sintaxis, modos, reglas, limitaciones.</p>
+</section>
+
+<!-- ════════ 7. Skills, rules, knowledge ════════ -->
+<section id="skills">
+  <h2>7. Skills, rules, knowledge</h2>
+  <p>Recursos genéricos que el arquitecto mantiene y propaga a los paquetes.</p>
+
+  <h3>Skills (7)</h3>
+  <table>
+    <thead><tr><th>Skill</th><th>Para qué</th><th>Origen</th></tr></thead>
+    <tbody>
+      <tr><td><code>ski-plan-mode</code></td><td>Planning estructurado para tareas no triviales</td><td><span class="badge">PM x10</span></td></tr>
+      <tr><td><code>ski-doc-updater</code></td><td>Mantener <code>docs/PROJECT_KNOWLEDGE.md</code></td><td><span class="badge">PM x10</span></td></tr>
+      <tr><td><code>ski-project-docs</code></td><td>Generar documentación exportable</td><td><span class="badge">PM x10</span></td></tr>
+      <tr><td><code>ski-unknown-unknowns</code></td><td>Detector de riesgos en 8 dimensiones</td><td><span class="badge">PM x10</span></td></tr>
+      <tr><td><code>ski-context-ledger</code></td><td>Log append-only por sesión (input/output/razonamiento)</td><td><span class="badge accent">luisdomarco</span></td></tr>
+      <tr><td><code>ski-compression</code></td><td>Comprimir docs largos en distillates token-efficient</td><td><span class="badge accent">luisdomarco</span></td></tr>
+      <tr><td><code>ski-mini-discovery</code></td><td>Entrevista 5 preguntas estructurada</td><td><span class="badge accent">luisdomarco</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Rules (7)</h3>
+  <table>
+    <thead><tr><th>Rule</th><th>Para qué</th><th>Origen</th></tr></thead>
+    <tbody>
+      <tr><td><code>rul-naming-conventions</code></td><td>Prefijos, kebab-case, character limits</td><td><span class="badge">PM x10</span></td></tr>
+      <tr><td><code>rul-git-branch-management</code></td><td>Flujo Git/GitHub universal</td><td><span class="badge">PM x10</span></td></tr>
+      <tr><td><code>rul-spanish-orthography</code></td><td>Ortografía española obligatoria (á, é, í, ó, ú, ñ, ¿, ¡)</td><td><span class="badge">PM x10</span></td></tr>
+      <tr><td><code>rul-llm-coding-discipline</code></td><td>4 principios anti-antipatterns LLM</td><td><span class="badge">PM x10</span></td></tr>
+      <tr><td><code>rul-prompt-override</code></td><td>Respeto de <code>prompt_override</code> en HU/Epic</td><td><span class="badge">PM x10</span></td></tr>
+      <tr><td><code>rul-scope-boundaries</code></td><td>Aislamiento estricto arquitecto/paquetes</td><td><span class="badge accent">luisdomarco</span></td></tr>
+      <tr><td><code>rul-lazy-loading</code></td><td>Cargar solo lo necesario (no precargar)</td><td><span class="badge accent">luisdomarco</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Knowledge (4)</h3>
+  <table>
+    <thead><tr><th>Knowledge</th><th>Para qué</th><th>Origen</th></tr></thead>
+    <tbody>
+      <tr><td><code>kno-mom-test</code></td><td>Mom Test methodology (Rob Fitzpatrick)</td><td><span class="badge">PM x10</span></td></tr>
+      <tr><td><code>kno-strategic-thinking</code></td><td>Frameworks de pensamiento estratégico</td><td><span class="badge">PM x10</span></td></tr>
+      <tr><td><code>kno-elicitation-methods</code></td><td>Socratic, Pre-Mortem, Red-Team, Five Whys, Inversion, Devil's Advocate, Reverse Assumption</td><td><span class="badge accent">luisdomarco</span></td></tr>
+      <tr><td><code>kno-mcp-integration</code></td><td>Cómo añadir y usar servidores MCP</td><td><span class="badge accent">luisdomarco</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <div class="callout-title">Origen y propagación</div>
+    <p>Las marcadas como <span class="badge">PM x10</span> son herencias literales (formato y contenido). Las <span class="badge accent">luisdomarco</span> son inspiraciones — el concepto viene de su Lite edition, pero la implementación está adaptada al formato PM x10 (DUTIES + SOUL + agent.yaml separados, frontmatter compatible con install.sh de PM x10).</p>
+  </div>
+</section>
+
+<!-- ════════ 8. Configuración ════════ -->
+<section id="config">
+  <h2>8. Configuración del arquitecto</h2>
+  <p>Dos archivos en <code>config/</code> definen el comportamiento del meta-sistema:</p>
+
+  <h3><code>conventions.yaml</code></h3>
+  <p>Define la <strong>convención canónica</strong> que sigue todo paquete generado. Lo usa el auditor para verificar conformidad. Contiene:</p>
+  <ul>
+    <li><strong>required_root_files</strong> (12): CLAUDE.md, SOUL.md, agent.yaml, install.sh, deploy.sh, dashboard-section.yaml, etc.</li>
+    <li><strong>required_dirs</strong>: agents/, commands/, skills/, rules/, knowledge/, docs/, memory/, context-ledger/, etc.</li>
+    <li><strong>required_supervisors</strong> (5): auditor, evaluator, optimizer, cynic, boundary-walker</li>
+    <li><strong>required_generic_commands</strong> (8): save, docs, learned, challenge, unknown-unknowns, hotfix, code-review, adversarial</li>
+    <li><strong>required_skills/rules/knowledge</strong>: los heredables del arquitecto</li>
+    <li><strong>naming conventions</strong>: prefix <code>^[a-z]{2,4}$</code>, reservado <code>arc</code>, patrones para agentes y comandos</li>
+    <li><strong>health_thresholds</strong>: para clasificar paquetes (vivo &lt; 14d, latente &lt; 90d, etc.)</li>
+    <li><strong>drift_documentation_markers</strong>: <code>DIVERGENCE:</code>, <code>INTENTIONAL_DRIFT:</code>, <code>PACKAGE_SPECIFIC:</code></li>
+    <li><strong>enforcement_mode</strong>: advisory (no bloquea, solo reporta)</li>
+  </ul>
+
+  <h3><code>core-manifest.yaml</code></h3>
+  <p>Define <strong>qué se propaga y a dónde</strong>. Lo usa el propagator. Contiene:</p>
+  <ul>
+    <li><strong>to_packages</strong>: skills, rules, knowledge, comandos del template, supervisores QA</li>
+    <li><strong>to_template_package</strong>: <code>mirror_from_root: true</code> (sync automático del arquitecto al template)</li>
+    <li><strong>to_client_projects</strong>: solo el código del dashboard (bridge.py, index.html, styles.css, app.js)</li>
+    <li><strong>never_propagate</strong>: guia-de-uso.html, dashboard-section.yaml, agent.yaml del paquete, SOUL/DUTIES/RULES, context-ledger, memory, docs</li>
+    <li><strong>conflict_strategy</strong>: default <code>prompt</code>; options <code>overwrite</code>, <code>preserve</code>, <code>log</code></li>
+    <li><strong>checksum_method</strong>: <code>sha256</code> (no timestamp)</li>
+  </ul>
+
+  <div class="callout warning">
+    <div class="callout-title">Cambiar el manifest es decisión consciente</div>
+    <p>Si quieres propagar algo nuevo, primero edita <code>core-manifest.yaml</code>. El propagator NO propaga nada fuera de esta lista. Esto evita propagaciones accidentales.</p>
+  </div>
+</section>
+
+<!-- ════════ 9. Flujo: crear paquete ════════ -->
+<section id="flujo-crear">
+  <h2>9. Crear un paquete nuevo</h2>
+
+  <pre><code>cd AgentArchitect/
+# En Claude Code:
+/arc-new-package</code></pre>
+
+  <p>El generator arranca un mini-discovery de 5 preguntas (skill <code>ski-mini-discovery</code>):</p>
+
+  <ol>
+    <li><strong>Nombre</strong> del paquete (ej: <code>newsletter-system</code>)</li>
+    <li><strong>Dominio y propósito</strong> en una frase</li>
+    <li><strong>Etapas del flujo</strong> (ej: <code>research → outline → draft → edit → publish</code>)</li>
+    <li><strong>Agentes principales previstos</strong> (nombre + responsabilidad de una línea)</li>
+    <li><strong>Outputs canónicos</strong> que produce</li>
+  </ol>
+
+  <p>Sub-preguntas implícitas: el agente <strong>propone</strong> un prefix (ej: <code>news</code>) y un <code>domain_folder</code> (ej: <code>newsletter</code>); el PM confirma o ajusta.</p>
+
+  <p>Tras el checkpoint final, el generator:</p>
+
+  <ol>
+    <li>Copia <code>templates/package-template/</code> → <code>exports/&lt;nombre&gt;/</code></li>
+    <li>Sustituye placeholders en <code>.tmpl</code> con valores reales</li>
+    <li>Genera stubs honestos de los agentes previstos (DUTIES con <code>TODO: implementar</code>)</li>
+    <li>Hace <code>chmod +x</code> a install.sh y deploy.sh</li>
+    <li>Ejecuta <code>git init</code> + primer commit dentro del paquete</li>
+    <li>Escribe primera entrada en <code>exports/&lt;nombre&gt;/context-ledger/</code></li>
+    <li>Anota en <code>changelog/propagations.md</code></li>
+    <li>Invoca al cataloger para actualizar <code>exports/README.md</code></li>
+  </ol>
+
+  <div class="callout success">
+    <div class="callout-title">Resultado: paquete operativo (con stubs)</div>
+    <p>El paquete está <strong>desplegable inmediatamente</strong> (install.sh + deploy.sh funcionan), pero los stubs de agentes están vacíos. La implementación real de cada stub es trabajo aparte del PM dentro del paquete.</p>
+  </div>
+</section>
+
+<!-- ════════ 10. Flujo: desplegar ════════ -->
+<section id="flujo-deploy">
+  <h2>10. Desplegar un paquete en proyecto cliente</h2>
+
+  <pre><code>bash AgentArchitect/exports/newsletter-system/deploy.sh /ruta/MiCliente</code></pre>
+
+  <p>El <code>deploy.sh</code> del paquete:</p>
+
+  <ol>
+    <li>Si <code>MiCliente</code> no tiene <code>dashboard/</code> todavía: materializa estructura desde <code>templates/project-template/</code> (crea <code>.claude/CLAUDE.md</code>, <code>pm/config.json</code>, <code>memory/MEMORY.md</code>, <code>dashboard/{bridge.py,index.html,...}</code>).</li>
+    <li>Crea <code>docs/&lt;DOMAIN_FOLDER&gt;/</code> con README base del dominio.</li>
+    <li>Añade el paquete a <code>pm/config.json &gt; deployed_packages</code> (vía Python para preservar formato JSON).</li>
+    <li>Copia <code>dashboard-section.yaml</code> → <code>&lt;cliente&gt;/dashboard/sections/&lt;paquete&gt;-section.yaml</code>.</li>
+    <li>Registra el despliegue en <code>~/.claude/projects-registry.txt</code>.</li>
+  </ol>
+
+  <p>Tras el deploy:</p>
+
+  <pre><code>cd /ruta/MiCliente
+python3 dashboard/bridge.py
+# Abre http://localhost:7700 → ver pestaña "Newsletter" en el dashboard</code></pre>
+
+  <div class="callout info">
+    <div class="callout-title">Multi-paquete: el dashboard suma pestañas</div>
+    <p>Si despliegas otro paquete en el mismo cliente (<code>bash &lt;otro&gt;/deploy.sh /ruta/MiCliente</code>), el dashboard <strong>suma su pestaña</strong> sin pisar las demás. <code>pm/config.json</code> acumula <code>deployed_packages</code>; <code>dashboard/sections/</code> acumula configs.</p>
+  </div>
+
+  <p>Flags útiles:</p>
+  <ul>
+    <li><code>--dry-run</code>: muestra lo que haría sin tocar nada</li>
+    <li><code>--force-update</code>: actualiza incluso si el paquete ya está desplegado</li>
+  </ul>
+</section>
+
+<!-- ════════ 11. Flujo: propagar ════════ -->
+<section id="flujo-propagar">
+  <h2>11. Propagar mejoras genéricas</h2>
+
+  <p>Escenario: has mejorado <code>skills/ski-plan-mode/SKILL.md</code> en el arquitecto. Quieres que todos los paquetes la reciban.</p>
+
+  <pre><code>cd AgentArchitect/
+/arc-propagate skill --dry-run</code></pre>
+
+  <p>El propagator:</p>
+  <ol>
+    <li>Lee <code>config/core-manifest.yaml</code> para saber qué archivos son propagables.</li>
+    <li>Identifica destinos (paquetes en <code>exports/*/</code> + <code>templates/package-template/</code> para que paquetes futuros hereden).</li>
+    <li>Calcula checksums SHA256 fuente vs destino. Marca <code>[identical]</code>, <code>[would update]</code>, <code>[conflict]</code>.</li>
+    <li>Muestra plan de dry-run completo.</li>
+  </ol>
+
+  <p>Tras revisión: <code>/arc-propagate skill --apply</code>.</p>
+
+  <h3>Scopes válidos</h3>
+  <table>
+    <thead><tr><th>Scope</th><th>Qué propaga</th><th>Destinos</th></tr></thead>
+    <tbody>
+      <tr><td><code>skill</code></td><td>Una skill genérica (carpeta <code>skills/&lt;X&gt;/</code>)</td><td>Todos los paquetes + template</td></tr>
+      <tr><td><code>rule</code></td><td>Una rule (archivo <code>rules/&lt;X&gt;.md</code>)</td><td>Todos los paquetes + template</td></tr>
+      <tr><td><code>knowledge</code></td><td>Un knowledge (archivo <code>knowledge/&lt;X&gt;.md</code>)</td><td>Todos los paquetes + template</td></tr>
+      <tr><td><code>command</code></td><td>Comando transversal (en <code>templates/package-template/commands/</code>)</td><td>Todos los paquetes</td></tr>
+      <tr><td><code>supervisor-qa</code></td><td>Supervisor QA (en <code>templates/package-template/agents/age-sup-*/</code>)</td><td>Todos los paquetes</td></tr>
+      <tr><td><code>dashboard</code></td><td>Código del dashboard (4 archivos en <code>templates/project-template/dashboard/</code>)</td><td>Todos los proyectos clientes registrados</td></tr>
+      <tr><td><code>template</code></td><td>Cambios estructurales en <code>templates/package-template/</code></td><td>Paquetes (requiere confirmación extra)</td></tr>
+      <tr><td><code>all-core</code></td><td>Todo lo del manifest</td><td>Todo (cuidado)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Conflictos</h3>
+  <p>Si un archivo en un paquete fue modificado localmente y diverge del template canónico, el propagator detecta conflicto. Estrategias (<code>conventions.yaml &gt; conflict_strategy</code>):</p>
+  <ul>
+    <li><code>prompt</code> (default): muestra diff, pregunta al PM caso por caso</li>
+    <li><code>overwrite</code>: sobreescribe sin preguntar (solo con <code>--force</code>)</li>
+    <li><code>preserve</code>: nunca toca lo modificado localmente</li>
+    <li><code>log</code>: marca como pendiente en <code>changelog/propagations.md</code> y sigue</li>
+  </ul>
+
+  <div class="callout warning">
+    <div class="callout-title">Conservación de configs locales</div>
+    <p>Cuando propaga al dashboard de un proyecto cliente, el propagator <strong>NUNCA toca</strong>: <code>pm/config.json</code>, <code>dashboard/sections/*.yaml</code>, <code>memory/MEMORY.md</code>, <code>docs/&lt;dominio&gt;/*</code>. Solo el código del dashboard (4 archivos).</p>
+  </div>
+</section>
+
+<!-- ════════ 12. Flujo: auditar ════════ -->
+<section id="flujo-auditar">
+  <h2>12. Auditar conformidad</h2>
+
+  <pre><code>cd AgentArchitect/
+/arc-audit</code></pre>
+
+  <p>El auditor (read-only) ejecuta 8 checks por cada paquete:</p>
+  <ol>
+    <li>Archivos requeridos en raíz</li>
+    <li>Carpetas requeridas</li>
+    <li>Supervisores QA requeridos (5)</li>
+    <li>Comandos genéricos requeridos (8)</li>
+    <li>Skills/rules/knowledge heredados</li>
+    <li>Naming conventions (prefix válido, patrones <code>age-spe-&lt;prefix&gt;-*</code>, comandos <code>/&lt;prefix&gt;-*</code>)</li>
+    <li>Checksums core-files vs template (drift detection)</li>
+    <li>Scope-boundaries (heurístico)</li>
+  </ol>
+
+  <p>Cada hallazgo tiene tipo (<span class="badge success">OK</span>, <span class="badge danger">MISSING</span>, <span class="badge warning">DRIFT</span>) y prioridad (🔴 alta, 🟡 media, 🟢 baja).</p>
+
+  <p>El auditor genera reportes en <code>docs/architect/audits/&lt;fecha&gt;-&lt;scope&gt;.md</code>: uno por paquete + un reporte global con tabla resumen.</p>
+
+  <p>Tras el auditor, la cadena automática QA dispara <code>evaluator</code> (scoring 4D) y <code>optimizer</code> (patrones recurrentes), que producen scorecards y propuestas de mejora.</p>
+
+  <h3>Drift documentado</h3>
+  <p>Si un paquete tiene divergencia <strong>intencional</strong>, se documenta en su <code>context-ledger/</code> con un marcador:</p>
+  <ul>
+    <li><code>DIVERGENCE:</code></li>
+    <li><code>INTENTIONAL_DRIFT:</code></li>
+    <li><code>PACKAGE_SPECIFIC:</code></li>
+  </ul>
+  <p>El auditor respeta divergencias documentadas (las cita en el reporte como información, no como problema).</p>
+</section>
+
+<!-- ════════ 13. Flujo: análisis macro ════════ -->
+<section id="flujo-aggregate">
+  <h2>13. Análisis macro cross-paquete</h2>
+
+  <pre><code>/arc-aggregate</code></pre>
+
+  <p>El aggregator (read-only, lazy loading agresivo) responde preguntas que <strong>ningún agente intra-paquete puede</strong>. Tiene 6 focos:</p>
+
+  <table>
+    <thead><tr><th>Foco</th><th>Pregunta que responde</th></tr></thead>
+    <tbody>
+      <tr><td><code>patrones</code></td><td>¿Qué agentes/skills/comandos se repiten entre paquetes? (candidatos a promover a genérico)</td></tr>
+      <tr><td><code>comparativa</code></td><td>Tabla de qué tiene cada paquete y qué le falta respecto a la convención o pares</td></tr>
+      <tr><td><code>gaps</code></td><td>Qué falta en cada paquete respecto a <code>conventions.yaml</code></td></tr>
+      <tr><td><code>cobertura</code></td><td>Mapa de qué dominios cubre el ecosistema, cuáles están vacantes</td></tr>
+      <tr><td><code>dependencias</code></td><td>¿Algún paquete depende de otro? (acoplamientos no deseados)</td></tr>
+      <tr><td><code>salud-global</code></td><td>Snapshot del estado: vivos/latentes/inactivos, propagaciones recientes, auditorías</td></tr>
+    </tbody>
+  </table>
+
+  <p>Genera reportes en <code>docs/architect/aggregations/&lt;fecha&gt;-&lt;foco&gt;.md</code> con propuestas accionables (comandos concretos para ejecutar, no abstractas).</p>
+
+  <div class="callout info">
+    <div class="callout-title">Lazy loading agresivo</div>
+    <p>El aggregator solo lee <code>exports/README.md</code>, <code>exports/&lt;paquete&gt;/agent.yaml</code> y <code>system-overview.md</code>. NUNCA entra a leer DUTIES/SOUL de agentes internos del paquete (per <code>rul-scope-boundaries</code> + <code>rul-lazy-loading</code>).</p>
+  </div>
+</section>
+
+<!-- ════════ 14. Flujo: adversarial ════════ -->
+<section id="flujo-adversarial">
+  <h2>14. Revisión adversarial</h2>
+
+  <pre><code>/arc-adversarial --propuesta="migrar PM x10 a exports/pmx-product/"</code></pre>
+
+  <p>Invoca a los dos supervisores adversariales en secuencia:</p>
+
+  <ol>
+    <li><strong>cynic</strong> (Socratic, Devil's Advocate, Five Whys): desafía premisas, fuerza evidencia.</li>
+    <li><strong>boundary-walker</strong> (Pre-Mortem, Inversion, Reverse Assumption): explora bordes, casos extremos, modos de fallo.</li>
+  </ol>
+
+  <p>Output: reporte consolidado en <code>docs/architect/adversarial/&lt;fecha&gt;-&lt;objeto&gt;.md</code> con:</p>
+  <ul>
+    <li>Preguntas incómodas (cynic)</li>
+    <li>Argumentos opuestos razonables (Devil's Advocate)</li>
+    <li>Causa raíz si aplica (Five Whys)</li>
+    <li>Pre-mortem (qué fracaso plausible) (boundary-walker)</li>
+    <li>Inversión (qué garantizaría que NO funcione)</li>
+    <li>Casos extremos con riesgo asociado (🔴 / 🟡 / 🟢)</li>
+    <li>Mitigaciones concretas propuestas</li>
+  </ul>
+
+  <p>Útil antes de decisiones grandes: añadir paquete nuevo, migrar PM x10, cambiar el modelo del dashboard, propagación crítica.</p>
+</section>
+
+<!-- ════════ 15. Consolas y dashboards ════════ -->
+<section id="dashboards">
+  <h2>15. Consolas y dashboards</h2>
+
+  <p>El arquitecto tiene <strong>dos UIs distintas</strong> con propósitos separados:</p>
+
+  <h3><code>architect-console/</code> — UI del arquitecto</h3>
+  <pre><code>cd AgentArchitect/
+python3 architect-console/bridge.py
+# Abre http://localhost:7710</code></pre>
+
+  <p>3 secciones fijas:</p>
+  <ul>
+    <li><strong>Paquetes</strong>: catálogo de <code>exports/*/</code> con metadatos (nombre, prefix, dominio, versión, estado de salud)</li>
+    <li><strong>Propagaciones</strong>: entradas recientes de <code>changelog/propagations.md</code></li>
+    <li><strong>Auditorías</strong>: reportes en <code>docs/architect/audits/</code></li>
+  </ul>
+
+  <h3>Dashboard multi-pestaña — UI de proyectos clientes</h3>
+  <pre><code>cd /ruta/MiCliente
+python3 dashboard/bridge.py
+# Abre http://localhost:7700</code></pre>
+
+  <p>Renderiza dinámicamente <strong>una pestaña por cada paquete desplegado</strong>:</p>
+  <ul>
+    <li>Lee <code>pm/config.json &gt; deployed_packages</code> para saber qué paquetes están activos</li>
+    <li>Para cada paquete, lee <code>dashboard/sections/&lt;paquete&gt;-section.yaml</code></li>
+    <li>Compone <code>/api/tabs</code> y el frontend renderiza pestañas con secciones (markdown, list, kanban, tree)</li>
+  </ul>
+
+  <table>
+    <thead><tr><th>UI</th><th>Vive en</th><th>Puerto default</th><th>Para qué</th></tr></thead>
+    <tbody>
+      <tr><td>architect-console</td><td><code>AgentArchitect/</code></td><td>7710</td><td>Gestión del meta-sistema</td></tr>
+      <tr><td>dashboard multi-pestaña</td><td>Cada proyecto cliente</td><td>7700</td><td>Trabajo diario en el proyecto</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <div class="callout-title">Mejorar el dashboard de proyectos = una vez para todos</div>
+    <p>El código del dashboard (bridge.py, index.html, styles.css, app.js) vive en <code>templates/project-template/dashboard/</code>. Para mejorarlo: editar ahí, ejecutar <code>/arc-propagate dashboard</code>, el propagator distribuye a todos los proyectos clientes registrados conservando sus configs locales (<code>dashboard/sections/*.yaml</code>).</p>
+  </div>
+</section>
+
+<!-- ════════ 16. Relación con PM x10 ════════ -->
+<section id="relacion-pm">
+  <h2>16. Relación con PM x10</h2>
+
+  <p><strong>AgentArchitect se construye sobre la base conceptual de PM x10</strong>: mismas convenciones de naming (<code>age-spe-*</code>, <code>age-sup-*</code>, <code>ski-*</code>, <code>rul-*</code>, <code>kno-*</code>), mismo formato de agentes (DUTIES + SOUL + agent.yaml separados), mismo sistema de memoria, mismo modelo de install.sh, mismo dashboard como base.</p>
+
+  <p>PM x10 sigue siendo el sistema vivo principal. <strong>NO está integrado al arquitecto en este momento</strong> — funciona idéntico a antes:</p>
+
+  <ul>
+    <li>Vive en <code>Proyectos/Agente IA/</code> (intacto)</li>
+    <li>Sus 18 agentes están instalados en <code>~/.claude/agents/</code> sin prefix</li>
+    <li>Sus 16 comandos están en <code>~/.claude/commands/</code> sin prefix</li>
+    <li>Sigue compilándose con su propio <code>install.sh</code></li>
+    <li>NO recibe propagación automática del arquitecto</li>
+  </ul>
+
+  <h3>Migración opcional (futura)</h3>
+  <p>Si más adelante decides migrar PM x10 a <code>AgentArchitect/exports/pmx-product/</code>:</p>
+  <ol>
+    <li><code>git mv Proyectos/"Agente IA"/* Proyectos/AgentArchitect/exports/pmx-product/</code></li>
+    <li>Sustituir 15 paths absolutos en <code>pm-agent-system-guia-de-uso.html</code> + <code>scripts/README.md</code></li>
+    <li>Re-ejecutar <code>install.sh</code> desde nueva ubicación (regenera <code>~/.claude/pmx10</code> wrapper)</li>
+    <li>(Opcional) Renombrar agentes/comandos a prefix <code>pm-</code> para consistencia con la convención del arquitecto</li>
+  </ol>
+
+  <p>Es una decisión <strong>opcional, reversible</strong> (un <code>mv</code> de vuelta y todo igual). No urgente.</p>
+</section>
+
+<!-- ════════ 17. Relación con luisdomarco ════════ -->
+<section id="relacion-luisdomarco">
+  <h2>17. Relación con AiAgentArchitect (luisdomarco)</h2>
+
+  <p><a href="https://github.com/luisdomarco/AiAgentArchitect" target="_blank">AiAgentArchitect</a> de luisdomarco es la <strong>inspiración conceptual principal</strong> del meta-sistema. De ahí venimos del concepto <code>exports/</code> autocontenidos, las reglas críticas (<code>rul-scope-boundaries</code>, <code>rul-lazy-loading</code>) y skills/knowledge como <code>ski-context-ledger</code>, <code>ski-compression</code>, <code>ski-mini-discovery</code>, <code>kno-elicitation-methods</code>.</p>
+
+  <h3>Lo que tomamos</h3>
+  <ul>
+    <li>Concepto del meta-sistema + carpeta <code>exports/</code></li>
+    <li>Aislamiento estricto entre arquitecto y exports (<code>rul-scope-boundaries</code>)</li>
+    <li>Lazy loading como principio operativo</li>
+    <li>Mini-discovery como skill reutilizable (inspirado en <code>ski-process-interviewer</code> de su Lite edition)</li>
+    <li>Catálogo de elicitation methods (Socratic, Pre-Mortem, etc.)</li>
+    <li>Concepto adversarial-review (cynic + boundary-walker)</li>
+    <li>Concepto cross-project-aggregator</li>
+    <li>Context-ledger por sistema</li>
+  </ul>
+
+  <h3>Lo que NO tomamos (deliberadamente)</h3>
+  <ul>
+    <li><strong>Triple-platform</strong>: solo Claude Code (sin <code>.agents/</code> Antigravity ni <code>.codex/</code>)</li>
+    <li><strong>Sistema de layers como plugins activables</strong>: lo que es útil se incorpora directamente como skill/agente</li>
+    <li><strong>Workflow generativo de 3 pasos</strong> (Discovery → Architecture → Implementation): demasiado pesado; usamos mini-discovery acotado</li>
+    <li><strong>Convención de prefijos de 10 tipos</strong>: usamos solo <code>age-spe-/age-sup-/ski-/rul-/kno-</code> (de PM x10)</li>
+    <li>Reescribir PM x10 a su convención</li>
+  </ul>
+
+  <h3>Adaptaciones al modelo PM x10</h3>
+  <p>Todo lo tomado de luisdomarco se reescribió al formato PM x10:</p>
+  <ul>
+    <li>Agentes con <strong>DUTIES + SOUL + agent.yaml separados</strong> (luisdomarco los mete en un único <code>.md</code>)</li>
+    <li>install.sh compatible con el patrón "compila a <code>~/.claude/</code>" de PM x10</li>
+    <li>Sin scripts de sync-dual / build-codex (no aplican sin triple-platform)</li>
+  </ul>
+</section>
+
+<!-- ════════ 18. FAQ ════════ -->
+<section id="faq">
+  <h2>18. Preguntas frecuentes</h2>
+
+  <h3>¿Necesito instalar el arquitecto si solo tengo PM x10?</h3>
+  <p>No. El arquitecto es opcional. Si tienes un solo sistema, no aporta nada (lo "genérico" de PM x10 es solo suyo). El arquitecto se vuelve valioso cuando tienes 2+ sistemas y quieres mantenerlos sincronizados.</p>
+
+  <h3>¿Qué pasa si edito directamente un archivo en un paquete?</h3>
+  <p>Depende. Si editas un archivo <strong>NO propagable</strong> (DUTIES.md de un agente específico, agent.yaml del paquete, dashboard-section.yaml), tu cambio se mantiene — es contenido del paquete. Si editas un archivo <strong>propagable</strong> (una skill genérica, una rule), la próxima propagación lo detectará como drift y te preguntará qué hacer.</p>
+
+  <h3>¿Cómo añado una skill nueva genérica?</h3>
+  <ol>
+    <li>Crear <code>skills/&lt;ski-name&gt;/SKILL.md</code> en el arquitecto</li>
+    <li>Añadir a la lista de <code>skills:</code> en <code>agent.yaml</code> raíz</li>
+    <li>Añadir a <code>config/conventions.yaml &gt; required_skills</code> (si es obligatoria)</li>
+    <li>Añadir a <code>config/core-manifest.yaml &gt; to_packages.skills</code></li>
+    <li>Ejecutar <code>/arc-propagate skill --skill=&lt;ski-name&gt;</code></li>
+  </ol>
+
+  <h3>¿Puedo tener paquetes que NO sigan la convención?</h3>
+  <p>Técnicamente sí (el enforcement es <code>advisory</code>, no <code>strict</code>). El auditor los marcará con drift no documentado. Para legitimar la divergencia: añade entrada en <code>context-ledger/</code> del paquete con marcador <code>INTENTIONAL_DRIFT: &lt;razón&gt;</code>. El auditor la respetará.</p>
+
+  <h3>¿Qué hago si una propagación rompe un paquete?</h3>
+  <p>Como cada paquete es su propio repo Git anidado, puedes hacer <code>git checkout</code> del archivo problemático en el paquete y luego documentar la divergencia con marcador. La propagación quedará registrada en <code>changelog/propagations.md</code> y el paquete específico mantiene su versión local.</p>
+
+  <h3>¿Cómo desinstalo un paquete?</h3>
+  <p>Tres niveles:</p>
+  <ol>
+    <li><strong>Eliminar del arquitecto</strong>: <code>rm -rf exports/&lt;paquete&gt;/</code> + ejecutar <code>/arc-catalog</code> para refrescar el índice.</li>
+    <li><strong>Eliminar de <code>~/.claude/</code></strong>: borrar manualmente los agentes/comandos compilados con prefix correspondiente.</li>
+    <li><strong>Eliminar de un proyecto cliente</strong>: borrar la entrada en <code>pm/config.json &gt; deployed_packages</code>, borrar <code>dashboard/sections/&lt;paquete&gt;-section.yaml</code>, borrar <code>docs/&lt;dominio&gt;/</code> si quieres (o conservar si tiene valor histórico).</li>
+  </ol>
+
+  <h3>¿Por qué el arquitecto tiene su propia consola y los proyectos otra?</h3>
+  <p>Porque sus dominios son distintos. La <strong>architect-console</strong> muestra <strong>el ecosistema</strong> (paquetes, propagaciones, auditorías). El <strong>dashboard del proyecto</strong> muestra <strong>el trabajo</strong> (inbox, pipeline, lessons del dominio). Mezclarlos sería confuso.</p>
+</section>
+
+<!-- ════════ 19. Glosario ════════ -->
+<section id="glosario">
+  <h2>19. Glosario</h2>
+
+  <dl>
+    <p><strong>Paquete (package)</strong>: sistema de agentes desplegable que vive en <code>AgentArchitect/exports/&lt;nombre&gt;/</code>. Tiene su propio repo Git anidado, prefix (2-4 letras), dominio y conjunto de agentes/comandos específicos.</p>
+
+    <p><strong>Proyecto cliente</strong>: carpeta del usuario (ej. <code>/Users/pablo/Trabajos/MiCliente/</code>) donde se han desplegado uno o varios paquetes. Tiene un dashboard multi-pestaña.</p>
+
+    <p><strong>Instalar (install.sh)</strong>: compilar agentes y comandos de un paquete a <code>~/.claude/agents/</code> y <code>~/.claude/commands/</code> para que estén disponibles globalmente en Claude Code.</p>
+
+    <p><strong>Desplegar (deploy.sh)</strong>: crear estructura del paquete dentro de un proyecto cliente (carpeta <code>docs/&lt;dominio&gt;/</code>, sección en el dashboard, entrada en <code>pm/config.json</code>).</p>
+
+    <p><strong>Propagar</strong>: distribuir un cambio genérico (skill, rule, knowledge, comando, código del dashboard) desde el arquitecto a todos los paquetes/proyectos que lo deberían recibir.</p>
+
+    <p><strong>Drift</strong>: divergencia entre un archivo en un paquete y la versión canónica del template/arquitecto. Puede ser intencional (documentada con marcador) o accidental (a corregir con propagación).</p>
+
+    <p><strong>Prefix</strong>: 2-4 letras que identifican un paquete (ej. <code>pm</code>, <code>news</code>, <code>mkt</code>). Sus agentes son <code>age-spe-&lt;prefix&gt;-*</code>, sus comandos <code>/&lt;prefix&gt;-*</code>. <code>arc</code> está reservado para el arquitecto.</p>
+
+    <p><strong>Stub</strong>: agente generado por el mini-discovery con <code>DUTIES.md</code> marcando <code>TODO: implementar</code>. El paquete es desplegable pero el agente todavía no hace nada útil.</p>
+
+    <p><strong>Mini-discovery</strong>: entrevista estructurada de 5 preguntas (nombre, dominio, etapas, agentes, outputs) que el generator ejecuta antes de crear un paquete. Implementada como <code>ski-mini-discovery</code>.</p>
+
+    <p><strong>Context-ledger</strong>: log append-only por sesión (un archivo por timestamp+agente) en cada paquete y en el arquitecto. Captura pasos significativos para reanudar trabajo entre sesiones.</p>
+
+    <p><strong>Core-manifest</strong>: archivo <code>config/core-manifest.yaml</code> que define qué archivos son propagables y a dónde. Es la "ley" del propagator.</p>
+
+    <p><strong>Conventions</strong>: archivo <code>config/conventions.yaml</code> que define la convención canónica de un paquete. Es la "ley" del auditor.</p>
+
+    <p><strong>Cadena automática QA</strong>: <code>auditor → evaluator → optimizer</code>, disparada automáticamente tras <code>/arc-audit</code> mediante triggers <code>arc_audit_complete → arc_evaluation_complete</code>.</p>
+  </dl>
+</section>
+
+<footer>
+  <p>AgentArchitect v0.1.0 — Generado el 2026-05-15</p>
+  <p>Construido sobre PM x10 (formato, convenciones, filosofía) e inspirado en <a href="https://github.com/luisdomarco/AiAgentArchitect" target="_blank">AiAgentArchitect</a> de luisdomarco (concepto meta-sistema + exports).</p>
+</footer>
+
+</main>
+
+</body>
+</html>
