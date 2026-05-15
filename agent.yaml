@@ -23,8 +23,27 @@ model:
 # --- Agents (9 total: 4 specialists + 5 supervisors) ---
 # Especialistas: generator, propagator, cataloger, aggregator
 # Supervisores: auditor, evaluator, optimizer, cynic, boundary-walker (todos READ-ONLY)
-# Vacio en Fase 1; se rellena progresivamente en Fases 8 y 9.
-agents: {}
+# Fase 8 (criticos): generator, cataloger, auditor — IMPLEMENTADOS
+# Fase 9 (resto): propagator, aggregator, evaluator, optimizer, cynic, boundary-walker — pendiente
+agents:
+  age-spe-arc-generator:
+    path: agents/age-spe-arc-generator/
+    description: "Crea paquetes desplegables via mini-discovery de 5 preguntas + stubs honestos. Trigger: /arc-new-package"
+    delegation:
+      mode: explicit
+      triggers: [new_package_command]
+  age-spe-arc-cataloger:
+    path: agents/age-spe-arc-cataloger/
+    description: "Mantiene exports/README.md como indice vivo. Auto-invocado tras generator/propagator. Trigger: /arc-catalog"
+    delegation:
+      mode: auto
+      triggers: [package_generated, propagation_complete, catalog_command]
+  age-sup-arc-auditor:
+    path: agents/age-sup-arc-auditor/
+    description: "Verifica conformidad estructural de paquetes contra conventions.yaml. Read-only. Trigger: /arc-audit"
+    delegation:
+      mode: explicit
+      triggers: [audit_command, after_propagate]
 
 # --- Skills (6 total: 4 heredados de PM x10 + 2 nuevos inspirados en luisdomarco) ---
 skills:

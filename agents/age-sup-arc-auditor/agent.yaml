@@ -1,0 +1,42 @@
+spec_version: "1.0.0"
+name: age-sup-arc-auditor
+version: 1.0.0
+description: >
+  Supervisor Auditor del meta-sistema arquitecto (read-only). Verifica conformidad
+  estructural de cada paquete en exports/ contra config/conventions.yaml: archivos
+  requeridos, carpetas, supervisores QA heredados, comandos genericos, skills/rules/
+  knowledge minimos, naming conventions, checksums de core-files contra template,
+  scope-boundaries. Respeta drift documentado (con marcadores DIVERGENCE: en context-
+  ledger). Genera reporte estructurado priorizado en docs/architect/audits/.
+  Trigger: /arc-audit.
+
+model:
+  preferred: claude-haiku-4-5-20251001
+  fallback:
+    - claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.0
+    max_tokens: 8192
+
+tools: [Read, Write, Glob, Grep, Bash]
+
+skills:
+  - rul-scope-boundaries
+  - rul-lazy-loading
+  - rul-spanish-orthography
+  - rul-prompt-override
+
+delegation:
+  mode: explicit
+  triggers: [audit_command, after_propagate]
+
+runtime:
+  max_turns: 30
+  timeout: 300
+
+tags: [auditor, supervisor, meta-system, compliance, conformity, read-only]
+metadata:
+  entity_type: supervisor
+  phase: meta-qa
+  color: white
+  scope: cross-package

@@ -1,0 +1,43 @@
+spec_version: "1.0.0"
+name: age-spe-arc-generator
+version: 1.0.0
+description: >
+  Especialista generador del meta-sistema arquitecto. Crea paquetes nuevos
+  desplegables desde templates/package-template/ via mini-discovery de 5 preguntas.
+  Genera stubs honestos de los agentes previstos por el PM, git init, registra
+  en exports/README.md (via cataloger) y deja primera entrada en context-ledger.
+  Trigger: /arc-new-package.
+
+model:
+  preferred: claude-opus-4-6
+  fallback:
+    - claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.3
+    max_tokens: 16384
+
+tools: [Read, Write, Edit, Bash, Glob, Grep]
+
+skills:
+  - ski-plan-mode
+  - ski-context-ledger
+  - kno-elicitation-methods
+  - rul-naming-conventions
+  - rul-scope-boundaries
+  - rul-spanish-orthography
+  - rul-prompt-override
+
+delegation:
+  mode: explicit
+  triggers: [new_package_command]
+
+runtime:
+  max_turns: 30
+  timeout: 600
+
+tags: [generator, specialist, meta-system, package-creation, discovery]
+metadata:
+  entity_type: specialist
+  phase: meta-creation
+  color: orange
+  inspired-by: "luisdomarco/AiAgentArchitect (age-spe-entity-builder + wor-agentic-architect)"
