@@ -764,7 +764,7 @@ docs/general/wiki/
 
       <h5>Migración desde V1 (estados viejos)</h5>
       <p>Proyectos creados antes de V2.0 tenían los 8 estados viejos (<code>en_definicion</code>, <code>en_build</code>, etc.). Para migrar:</p>
-      <pre class="diagram">bash "$HOME/Desktop/PABLO/Proyectos/Agente IA/scripts/migrate-states-v2.sh" "/ruta/proyecto" --apply</pre>
+      <pre class="diagram">bash "$HOME/Desktop/PABLO/Proyectos/AgentArchitect/exports/pmx-product/scripts/migrate-states-v2.sh" "/ruta/proyecto" --apply</pre>
       <p>El script:</p>
       <ul>
         <li>Re-mapea <code>status</code> de cada tarea en <code>pm/tasks.json</code> y en frontmatter de stories.md</li>
@@ -851,7 +851,7 @@ docs/general/wiki/
 
       <h5>Migración de PRDs legacy</h5>
       <p>Para proyectos con PRDs antiguos sin marcadores AUTO (ej. PRDs creados antes de V3.3 por <code>/design-to-prd</code> legacy):</p>
-      <pre class="diagram">bash "$HOME/Desktop/PABLO/Proyectos/Agente IA/scripts/migrate-prd-to-auto-markers.sh" "/ruta/proyecto" --apply</pre>
+      <pre class="diagram">bash "$HOME/Desktop/PABLO/Proyectos/AgentArchitect/exports/pmx-product/scripts/migrate-prd-to-auto-markers.sh" "/ruta/proyecto" --apply</pre>
       <p>El script:</p>
       <ul>
         <li>Detecta las 6-7 secciones canónicas por heading (Problema, Métricas, AS-IS/TO-BE, Actores, Scope, Diseño técnico, User Stories)</li>
@@ -1089,7 +1089,7 @@ cd /ruta/proyecto && python3 dashboard/bridge.py
 
     <p><strong>Importante:</strong> ejecuta esto en una <strong>terminal</strong> (Warp, iTerm, Terminal.app), <strong>no</strong> dentro de Claude Code.</p>
 
-    <pre class="diagram">bash "$HOME/Desktop/PABLO/Proyectos/Agente IA/install.sh"</pre>
+    <pre class="diagram">bash "$HOME/Desktop/PABLO/Proyectos/AgentArchitect/exports/pmx-product/install.sh"</pre>
 
     <p>El script:</p>
     <ul>
@@ -1104,7 +1104,7 @@ cd /ruta/proyecto && python3 dashboard/bridge.py
     <h3 id="operar-upgrade">Actualizar el sistema global</h3>
     <p>Cuando el repo PM x10 cambia (nueva regla, nuevo agente, nuevo command, nuevo template), actualizas tu sistema global <code>~/.claude/</code>. Esto es lo que Claude Code lee al ejecutar comandos.</p>
 
-    <pre class="diagram">bash "$HOME/Desktop/PABLO/Proyectos/Agente IA/install.sh"</pre>
+    <pre class="diagram">bash "$HOME/Desktop/PABLO/Proyectos/AgentArchitect/exports/pmx-product/install.sh"</pre>
 
     <p>El script recompila los 18 agentes (inlineando skills declaradas), copia commands, skills, rules, knowledge, templates y el dashboard-template. <strong>Idempotente</strong>: si todo dice <code>[identical]</code>, ya estaba al día.</p>
 
@@ -1119,10 +1119,10 @@ cd /ruta/proyecto && python3 dashboard/bridge.py
 
     <h4>2. Dashboard local del proyecto</h4>
     <p>Cada proyecto tiene su <strong>copia local</strong> del dashboard (<code>bridge.py</code>, <code>index.html</code>, <code>styles.css</code>, <code>app.js</code>). NO se actualiza automáticamente. Para sincronizarlo:</p>
-    <pre class="diagram">bash "$HOME/Desktop/PABLO/Proyectos/Agente IA/scripts/update-dashboards.sh" --apply "/ruta/a/tu/proyecto"
+    <pre class="diagram">bash "$HOME/Desktop/PABLO/Proyectos/AgentArchitect/exports/pmx-product/scripts/update-dashboards.sh" --apply "/ruta/a/tu/proyecto"
 
 <span class="em">// múltiples a la vez:</span>
-bash "$HOME/Desktop/PABLO/Proyectos/Agente IA/scripts/update-dashboards.sh" --apply "/ruta/proyecto1" "/ruta/proyecto2"
+bash "$HOME/Desktop/PABLO/Proyectos/AgentArchitect/exports/pmx-product/scripts/update-dashboards.sh" --apply "/ruta/proyecto1" "/ruta/proyecto2"
 
 <span class="em">// sin --apply hace dry-run (solo muestra qué cambiaría)</span></pre>
 
@@ -1139,7 +1139,7 @@ bash "$HOME/Desktop/PABLO/Proyectos/Agente IA/scripts/update-dashboards.sh" --ap
     <h4>4. (V3.1) Regenerar Feature Dossiers retroactivos</h4>
     <p>Si tu proyecto tiene features ya creadas antes de V3.1, no tienen <code>_dossier.md</code>. Crea esqueletos vacíos y luego los llenas:</p>
     <pre class="diagram"><span class="em">// 1. Crea esqueletos (idempotente: no toca dossiers existentes)</span>
-bash "$HOME/Desktop/PABLO/Proyectos/Agente IA/scripts/regenerate-dossiers.sh" "/ruta/a/tu/proyecto" --apply
+bash "$HOME/Desktop/PABLO/Proyectos/AgentArchitect/exports/pmx-product/scripts/regenerate-dossiers.sh" "/ruta/a/tu/proyecto" --apply
 
 <span class="em">// 2. Llena los esqueletos con info real (en Claude Code del proyecto):</span>
 /pm dossier all</pre>
@@ -1179,7 +1179,7 @@ python3 dashboard/bridge.py
     <p>Detecta CLAUDE.md existente y solo añade lo que falta. Es el mismo comando del paso 3 de la sección anterior.</p>
 
     <h4>Camino B (proyectos más complejos)</h4>
-    <pre class="diagram">bash "$HOME/Desktop/PABLO/Proyectos/Agente IA/scripts/migrate-to-v3.sh" "/ruta/a/tu/proyecto"</pre>
+    <pre class="diagram">bash "$HOME/Desktop/PABLO/Proyectos/AgentArchitect/exports/pmx-product/scripts/migrate-to-v3.sh" "/ruta/a/tu/proyecto"</pre>
     <p>Hace backup automático antes de tocar. Si algo falla, los archivos originales están en <code>.backup-YYYYMMDD/</code> del proyecto.</p>
 
     <h3 id="operar-dashboard">Dashboard local</h3>
@@ -1205,7 +1205,7 @@ python3 dashboard/bridge.py
     <table>
       <thead><tr><th>Síntoma</th><th>Probable causa</th><th>Fix</th></tr></thead>
       <tbody>
-        <tr><td>Claude Code no encuentra <code>/wiki</code> o <code>/pm</code></td><td>install.sh no se ejecutó o está desactualizado</td><td><code>bash "$HOME/Desktop/PABLO/Proyectos/Agente IA/install.sh"</code></td></tr>
+        <tr><td>Claude Code no encuentra <code>/wiki</code> o <code>/pm</code></td><td>install.sh no se ejecutó o está desactualizado</td><td><code>bash "$HOME/Desktop/PABLO/Proyectos/AgentArchitect/exports/pmx-product/install.sh"</code></td></tr>
         <tr><td>Agente no carga una skill (ej. ortografía sin acentos)</td><td>install.sh ejecutado antes de añadir skill al <code>agent.yaml</code></td><td>Re-ejecuta install.sh para recompilar</td></tr>
         <tr><td>Dashboard "Cannot connect" en localhost:7700</td><td>Bridge no corriendo o puerto ocupado</td><td><code>python3 dashboard/bridge.py</code> o <code>lsof -i :7700</code> para ver qué bloquea</td></tr>
         <tr><td>Dashboard 409 al guardar</td><td>El .md cambió fuera mientras editabas</td><td>Recarga el archivo en el dashboard, vuelve a editar</td></tr>

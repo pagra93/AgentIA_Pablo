@@ -40,11 +40,11 @@ bash /ruta/al/sistema/scripts/upgrade-project.sh --apply --no-backup --root .
 
 ```bash
 # 1. Asegurar el sistema actualizado en ~/.claude/ (una vez)
-cd "/Users/pablogranados/Desktop/PABLO/Proyectos/Agente IA"
+cd "/Users/pablogranados/Desktop/PABLO/Proyectos/AgentArchitect/exports/pmx-product"
 bash install.sh
 
 # 2. Para CADA proyecto vivo:
-SISTEMA="/Users/pablogranados/Desktop/PABLO/Proyectos/Agente IA"
+SISTEMA="/Users/pablogranados/Desktop/PABLO/Proyectos/AgentArchitect/exports/pmx-product"
 
 # Dry-run primero
 bash "$SISTEMA/scripts/upgrade-project.sh" --root /ruta/a/proyecto
