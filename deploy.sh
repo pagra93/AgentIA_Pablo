@@ -1,41 +1,34 @@
 #!/usr/bin/env bash
-# pmx-product (PM x10) — Deploy
+# pmx-product (PM x10) — Deploy COMPLETO
 #
-# Despliega PM x10 en un proyecto cliente como pestaña del dashboard multi-paquete
-# del arquitecto. Equivalente "first-class" al /new-project clásico de PM x10.
+# Despliega PM x10 ENTERO en un proyecto cliente. NO es un esqueleto minimal:
+# replica exactamente lo que /new-project crea (estructura V3 completa con
+# todas las carpetas, configs y templates).
 #
-# NOTA: PM x10 tiene un flow tradicional via /new-project (desde Claude Code) que
-# crea la estructura COMPLETA de PM x10 con su dashboard original. Este deploy.sh
-# es para el modelo MULTI-PAQUETE del arquitecto: añade una pestaña 'Producto' al
-# dashboard multi-paquete del proyecto sin tocar lo demás. Si quieres el flow
-# completo de PM x10, ejecuta /new-project después.
-#
-# Que hace este script:
-# 1. Si el proyecto NO tiene estructura todavia: la materializa desde
-#    templates/project-template/ del arquitecto (dashboard multi-paquete, pm/config.json, etc.)
-# 2. Crea docs/producto/ con la estructura del dominio
-# 3. Anade 'pmx-product' a pm/config.json (deployed_packages)
-# 4. Copia dashboard-section.yaml -> proyecto/dashboard/sections/pmx-product-section.yaml
-# 5. Registra el deployment en ~/.claude/projects-registry.txt
+# El dashboard que se instala ES el dashboard oficial de PM x10 (los 4 archivos
+# de dashboard-template/ del paquete). Este dashboard es el dashboard ESTANDAR
+# del ecosistema del arquitecto: cuando otros paquetes (newsletter, marketing, etc.)
+# se despliegan después, simplemente AÑADEN su area a pm/config.json > areas y
+# el mismo dashboard renderiza la nueva area en el sidebar.
 #
 # Idempotente: ejecutar dos veces no rompe nada ni duplica.
+# No interactivo: si un campo es stack-especifico (descripcion, framework), se
+# deja con placeholder TODO que el usuario edita despues (o ejecuta /new-project
+# desde Claude Code para entrevistarse y rellenarlos).
 #
 # Usage:
 #   bash deploy.sh /ruta/al/proyecto-cliente
 #   bash deploy.sh /ruta/al/proyecto-cliente --dry-run
 #   bash deploy.sh /ruta/al/proyecto-cliente --force-update
+#   bash deploy.sh .                                              # cwd actual
 
 set -euo pipefail
 
 PACKAGE_NAME="pmx-product"
-PREFIX="pmx"
-DOMAIN="product-management"
-DOMAIN_FOLDER="producto"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# El package esta en .../AgentArchitect/exports/<paquete>/, asi que el arquitecto es ../..
-ARCHITECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
-PROJECT_TEMPLATE_DIR="$ARCHITECT_DIR/templates/project-template"
+TEMPLATES_DIR="$SCRIPT_DIR/templates"
+DASHBOARD_TEMPLATE_DIR="$SCRIPT_DIR/dashboard-template"
 
 GREEN=$'\033[0;32m'
 YELLOW=$'\033[1;33m'
@@ -57,189 +50,401 @@ done
 if [ -z "$TARGET_PROJECT" ]; then
     echo -e "${RED}Error:${NC} falta ruta del proyecto cliente."
     echo "Usage: bash deploy.sh /ruta/al/proyecto-cliente [--dry-run] [--force-update]"
-    echo ""
-    echo "Tip: si quieres el flow completo de PM x10 (dashboard original, estructura PM),"
-    echo "ejecuta /new-project desde Claude Code en el proyecto cliente en lugar de este script."
+    echo "       bash deploy.sh . [--dry-run] [--force-update]   # cwd actual"
     exit 1
 fi
 
-# Validacion: ruta no peligrosa
-if [[ "$TARGET_PROJECT" == *".."* ]] || [[ "$TARGET_PROJECT" == "/" ]] || [[ "$TARGET_PROJECT" == "$HOME" ]]; then
+# Validacion ruta peligrosa
+if [[ "$TARGET_PROJECT" == *".."* ]] || [ "$TARGET_PROJECT" = "/" ] || [ "$TARGET_PROJECT" = "$HOME" ]; then
     echo -e "${RED}Error:${NC} ruta no permitida: $TARGET_PROJECT"
     exit 1
 fi
 
-if [ -d "$TARGET_PROJECT" ]; then
-    TARGET_PROJECT="$(cd "$TARGET_PROJECT" && pwd)"
-else
-    echo -e "${RED}Error:${NC} la ruta no existe o no es directorio: $TARGET_PROJECT"
+if [ ! -d "$TARGET_PROJECT" ]; then
+    echo -e "${CYAN}La ruta '$TARGET_PROJECT' no existe. Creandola...${NC}"
+    mkdir -p "$TARGET_PROJECT"
+fi
+TARGET_PROJECT="$(cd "$TARGET_PROJECT" && pwd)"
+
+# Sanity check fuentes
+if [ ! -d "$TEMPLATES_DIR" ]; then
+    echo -e "${RED}Error:${NC} no se encuentra templates/ en $TEMPLATES_DIR"
+    exit 1
+fi
+if [ ! -d "$DASHBOARD_TEMPLATE_DIR" ]; then
+    echo -e "${RED}Error:${NC} no se encuentra dashboard-template/ en $DASHBOARD_TEMPLATE_DIR"
     exit 1
 fi
 
-if [ ! -d "$PROJECT_TEMPLATE_DIR" ]; then
-    echo -e "${RED}Error:${NC} no se encuentra templates/project-template/ del arquitecto en $PROJECT_TEMPLATE_DIR"
-    echo "Este paquete debe vivir bajo AgentArchitect/exports/ para que deploy.sh funcione."
-    exit 1
-fi
+PROJECT_NAME=$(basename "$TARGET_PROJECT")
+TODAY=$(date +%Y-%m-%d)
+TODAY_ISO=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
 echo ""
-echo -e "${GREEN}pmx-product (PM x10) — Deploy${NC}"
-echo "================================"
-echo "Source:           $SCRIPT_DIR"
-echo "Target proyecto:  $TARGET_PROJECT"
-echo "Project template: $PROJECT_TEMPLATE_DIR"
-echo "Domain folder:    $DOMAIN_FOLDER"
-echo "Dry-run:          $DRY_RUN"
+echo -e "${GREEN}pmx-product (PM x10) — Deploy COMPLETO${NC}"
+echo "============================================"
+echo "Source paquete:    $SCRIPT_DIR"
+echo "Target proyecto:   $TARGET_PROJECT"
+echo "Project name:      $PROJECT_NAME"
+echo "Dry-run:           $DRY_RUN"
+echo "Force-update:      $FORCE_UPDATE"
 echo ""
 
-# Helper
+# --- Helpers ---
 do_action() {
-    local action_desc="$1"
+    local desc="$1"
     shift
     if [ "$DRY_RUN" = true ]; then
-        echo -e "  ${YELLOW}[dry-run]${NC} $action_desc"
+        echo -e "  ${YELLOW}[dry-run]${NC} $desc"
     else
-        "$@" && echo -e "  ${GREEN}[done]${NC} $action_desc"
+        "$@" && echo -e "  ${GREEN}[done]${NC} $desc"
     fi
 }
 
+materialize_tmpl() {
+    local src="$1"
+    local dest="$2"
+    local label="${3:-$(basename "$dest")}"
+
+    if [ ! -f "$src" ]; then
+        echo -e "  ${YELLOW}[skip]${NC} template no encontrado: $src"
+        return 0
+    fi
+    if [ -f "$dest" ] && [ "$FORCE_UPDATE" = false ]; then
+        echo -e "  ${YELLOW}[exists]${NC} $label (use --force-update para refrescar)"
+        return 0
+    fi
+    if [ "$DRY_RUN" = true ]; then
+        echo -e "  ${YELLOW}[dry-run]${NC} Materializar $label"
+        return 0
+    fi
+
+    sed \
+        -e "s|{{PROJECT_NAME}}|$PROJECT_NAME|g" \
+        -e "s|{{DATE}}|$TODAY|g" \
+        -e "s|{{LAST_UPDATED_ISO}}|$TODAY_ISO|g" \
+        -e "s|{{CREATED_AT}}|$TODAY_ISO|g" \
+        -e "s|{{PROJECT_DESCRIPTION}}|TODO: describe el proyecto en 1-2 frases (edita .claude/CLAUDE.md o ejecuta /new-project desde Claude Code para entrevistarte)|g" \
+        -e "s|{{TECH_STACK}}|TODO: define el stack tecnologico (ej: Next.js + PostgreSQL + Supabase)|g" \
+        -e "s|{{TEST_FRAMEWORK}}|TODO: define test framework (ej: Vitest, Jest, Pytest)|g" \
+        -e "s|{{TEST_FILE_LOCATION}}|TODO: define ubicacion de tests (ej: co-located __tests__/, tests/)|g" \
+        -e "s|{{TEST_COMMAND}}|TODO: define test command (ej: npm test, pytest)|g" \
+        -e "s|{{COVERAGE_COMMAND}}|TODO: define coverage command (ej: npm test -- --coverage)|g" \
+        -e "s|{{TEST_DATA_STRATEGY}}|TODO: define data strategy (ej: factories con faker, MSW para mocking)|g" \
+        -e "s|{{CODING_STANDARDS}}|TODO: define coding standards apropiados para el stack|g" \
+        "$src" > "$dest"
+    echo -e "  ${GREEN}[done]${NC} Materializar $label"
+}
+
+ensure_file() {
+    local dest="$1"
+    local content="$2"
+    local label="${3:-$(basename "$dest")}"
+
+    if [ -f "$dest" ] && [ "$FORCE_UPDATE" = false ]; then
+        echo -e "  ${YELLOW}[exists]${NC} $label"
+        return 0
+    fi
+    if [ "$DRY_RUN" = true ]; then
+        echo -e "  ${YELLOW}[dry-run]${NC} Crear $label"
+        return 0
+    fi
+    printf '%s\n' "$content" > "$dest"
+    echo -e "  ${GREEN}[done]${NC} Crear $label"
+}
+
+copy_file() {
+    local src="$1"
+    local dest="$2"
+    local label="${3:-$(basename "$dest")}"
+
+    if [ ! -f "$src" ]; then
+        echo -e "  ${YELLOW}[skip]${NC} source no encontrado: $src"
+        return 0
+    fi
+    if [ -f "$dest" ] && [ "$FORCE_UPDATE" = false ]; then
+        echo -e "  ${YELLOW}[exists]${NC} $label"
+        return 0
+    fi
+    if [ "$DRY_RUN" = true ]; then
+        echo -e "  ${YELLOW}[dry-run]${NC} Copiar $label"
+        return 0
+    fi
+    cp "$src" "$dest"
+    echo -e "  ${GREEN}[done]${NC} Copiar $label"
+}
+
 # ============================================
-# 1. MATERIALIZAR PROYECTO SI NO EXISTE
+# 1. CREAR ESTRUCTURA V3 DE CARPETAS
 # ============================================
-PROJECT_INITIALIZED=false
-if [ ! -d "$TARGET_PROJECT/dashboard" ] || [ ! -d "$TARGET_PROJECT/pm" ]; then
-    echo -e "${CYAN}Proyecto no inicializado todavia. Materializando estructura desde project-template...${NC}"
-    PROJECT_INITIALIZED=true
+echo -e "${CYAN}1. Crear estructura V3 de carpetas...${NC}"
+DIRS=(
+    .claude
+    pm
+    memory
+    docs/general
+    docs/general/wiki
+    docs/producto
+    docs/producto/features
+    docs/marketing
+    docs/rrhh
+    docs/operaciones
+    raw
+    dashboard
+)
+for d in "${DIRS[@]}"; do
+    if [ ! -d "$TARGET_PROJECT/$d" ]; then
+        do_action "Crear $d/" mkdir -p "$TARGET_PROJECT/$d"
+    fi
+done
 
-    for subdir in .claude pm memory dashboard; do
-        if [ ! -d "$TARGET_PROJECT/$subdir" ]; then
-            do_action "Crear $subdir/" mkdir -p "$TARGET_PROJECT/$subdir"
-        fi
-    done
-    do_action "Crear docs/" mkdir -p "$TARGET_PROJECT/docs"
+# ============================================
+# 2. MATERIALIZAR TEMPLATES CORE DE PM X10
+# ============================================
+echo ""
+echo -e "${CYAN}2. Materializar templates core de PM x10...${NC}"
 
-    # Materializar archivos del project-template con sustitucion de placeholders runtime
-    # Nota: project-template usa __PROJECT_NAME__ / __DATE__ (no {{...}}).
-    project_name=$(basename "$TARGET_PROJECT")
-    today=$(date +%Y-%m-%d)
+materialize_tmpl "$TEMPLATES_DIR/CLAUDE-template.md"        "$TARGET_PROJECT/.claude/CLAUDE.md"        ".claude/CLAUDE.md"
+materialize_tmpl "$TEMPLATES_DIR/config-template.json"       "$TARGET_PROJECT/pm/config.json"           "pm/config.json"
+materialize_tmpl "$TEMPLATES_DIR/tasks-template.json"        "$TARGET_PROJECT/pm/tasks.json"            "pm/tasks.json"
+materialize_tmpl "$TEMPLATES_DIR/id-counters-template.json"  "$TARGET_PROJECT/pm/id-counters.json"      "pm/id-counters.json"
+materialize_tmpl "$TEMPLATES_DIR/inbox-template.md"          "$TARGET_PROJECT/docs/producto/inbox.md"   "docs/producto/inbox.md"
 
-    materialize_tmpl() {
-        local src="$1"
-        local dest="$2"
-        if [ -f "$src" ]; then
-            if [ "$DRY_RUN" = false ]; then
-                sed "s|__PROJECT_NAME__|$project_name|g; s|__DATE__|$today|g" "$src" > "$dest"
-                echo -e "  ${GREEN}[done]${NC} Materializar $(basename "$dest")"
-            else
-                echo -e "  ${YELLOW}[dry-run]${NC} Materializar $(basename "$dest")"
-            fi
-        fi
-    }
-
-    materialize_tmpl "$PROJECT_TEMPLATE_DIR/.claude/CLAUDE.md.tmpl" "$TARGET_PROJECT/.claude/CLAUDE.md"
-    materialize_tmpl "$PROJECT_TEMPLATE_DIR/pm/config.json.tmpl"    "$TARGET_PROJECT/pm/config.json"
-    materialize_tmpl "$PROJECT_TEMPLATE_DIR/pm/tasks.json.tmpl"     "$TARGET_PROJECT/pm/tasks.json"
-    materialize_tmpl "$PROJECT_TEMPLATE_DIR/memory/MEMORY.md.tmpl"  "$TARGET_PROJECT/memory/MEMORY.md"
-
-    # Copiar codigo del dashboard multi-paquete (4 archivos canonicos)
-    for dashfile in bridge.py index.html styles.css app.js; do
-        if [ -f "$PROJECT_TEMPLATE_DIR/dashboard/$dashfile" ]; then
-            do_action "Copiar dashboard/$dashfile" \
-                cp "$PROJECT_TEMPLATE_DIR/dashboard/$dashfile" "$TARGET_PROJECT/dashboard/$dashfile"
-        fi
-    done
-    do_action "Crear dashboard/sections/" mkdir -p "$TARGET_PROJECT/dashboard/sections"
+# pm/events.jsonl: archivo vacio
+if [ ! -f "$TARGET_PROJECT/pm/events.jsonl" ]; then
+    do_action "Crear pm/events.jsonl (vacio)" touch "$TARGET_PROJECT/pm/events.jsonl"
 fi
 
 # ============================================
-# 2. CREAR docs/producto/ DEL PAQUETE
+# 3. CREAR ARCHIVOS CANONICOS QUE NO TIENEN TEMPLATE
 # ============================================
-DOMAIN_DOCS_DIR="$TARGET_PROJECT/docs/$DOMAIN_FOLDER"
-if [ ! -d "$DOMAIN_DOCS_DIR" ]; then
-    echo -e "${CYAN}Creando docs/${DOMAIN_FOLDER}/ en el proyecto...${NC}"
-    do_action "Crear docs/$DOMAIN_FOLDER/" mkdir -p "$DOMAIN_DOCS_DIR"
+echo ""
+echo -e "${CYAN}3. Crear archivos canonicos de PM x10 (sprint, lessons, qa, knowledge, registry)...${NC}"
 
-    if [ "$DRY_RUN" = false ]; then
-        cat > "$DOMAIN_DOCS_DIR/README.md" <<EOF
-# ${DOMAIN_FOLDER}/
+ensure_file "$TARGET_PROJECT/memory/MEMORY.md" "# Memory — $PROJECT_NAME
 
-Documentos del paquete **${PACKAGE_NAME}** (dominio: ${DOMAIN}).
+Persistent working memory across sessions. Agents read this at the start of each session.
 
-Estructura tipica de un proyecto PM x10:
-- inbox.md          ← buzon de ideas/peticiones
-- sprint.md         ← sprint actual (kanban de stories)
-- lessons.md        ← lecciones aprendidas
-- features/         ← una carpeta por feature
-    - <feature-name>/
-        - stories.md
-        - jtbds.md
-        - prd.md
-        - architecture.md
-        - research.md
+## Format
+- One entry per session or significant event
+- Use ISO timestamp: YYYY-MM-DD
+- Sections: Patterns, Decisions, Observations, References
 
-Si prefieres el flow completo de PM x10 con dashboard original (no multi-paquete),
-ejecuta \`/new-project\` desde Claude Code en este proyecto.
-EOF
-        echo -e "  ${GREEN}[done]${NC} Crear docs/$DOMAIN_FOLDER/README.md"
-    fi
-fi
+## Patterns
+
+(No patterns recorded yet.)
+
+## Decisions
+
+(No decisions recorded yet.)
+
+## References
+
+(No references recorded yet.)
+" "memory/MEMORY.md"
+
+ensure_file "$TARGET_PROJECT/docs/producto/sprint.md" "# Sprint actual — $PROJECT_NAME
+
+Last updated: $TODAY
+
+## Goal
+TODO: define el objetivo del sprint en una frase.
+
+## Stories
+
+(No stories en el sprint todavia. Usa /story para crear una desde una idea, o /define para procesar JTBDs y crear stories.)
+
+## Done
+
+(Vacio)
+" "docs/producto/sprint.md"
+
+ensure_file "$TARGET_PROJECT/docs/producto/lessons.md" "# Lessons Learned — $PROJECT_NAME
+
+Registro append-only de aprendizajes. Cada vez que se resuelva un bug tricky, se descubra algo, se cometa un error que valga la pena recordar — añade aqui.
+
+## Format
+
+\`\`\`
+## YYYY-MM-DD — Titulo breve
+**Contexto**: Que estabamos haciendo
+**Leccion**: Que aprendimos
+**Aplicacion**: Como evitarlo / replicarlo
+\`\`\`
+
+## Aprendizajes
+
+(Sin entradas todavia. Usa /learned desde Claude Code para añadir una.)
+" "docs/producto/lessons.md"
+
+ensure_file "$TARGET_PROJECT/docs/producto/qa.md" "# QA Audit Trail — $PROJECT_NAME
+
+Append-only. Cada /review deja una entrada aqui.
+
+## Format
+
+\`\`\`
+## YYYY-MM-DD — Feature/Story revisada
+**Tests**: pass/fail
+**Code review**: notas
+**Audit**: cumplimiento de rules
+**Evaluator score**: X/10 en 4 dimensiones
+**Action items**: que hay que arreglar
+\`\`\`
+
+## Reviews
+
+(Sin reviews todavia.)
+" "docs/producto/qa.md"
+
+ensure_file "$TARGET_PROJECT/docs/general/PROJECT_KNOWLEDGE.md" "# Project Knowledge — $PROJECT_NAME
+
+Last updated: $TODAY
+
+> **Lee esto primero cuando vuelvas al proyecto despues de un tiempo.** Es la fuente de verdad sobre que hace el proyecto, como esta construido, que decisiones se han tomado.
+
+## Que hace este proyecto
+
+TODO: describe el proyecto en 1-2 parrafos.
+
+## Arquitectura
+
+TODO: rellenar despues de /plan o cuando se decida la arquitectura.
+
+## Features implementadas
+
+| Feature | Fecha | Status | Notas |
+|---------|-------|--------|-------|
+
+## Decisiones clave
+
+| Decision | Fecha | Por que |
+|----------|-------|---------|
+
+## Como funcionan las cosas
+
+(Sirve para explicar flujos: como se autentica el usuario, como se procesan los pagos, etc. Se rellena a medida que se construye.)
+
+## Issues conocidos / tech debt
+
+| Issue | Prioridad | Notas |
+|-------|-----------|-------|
+" "docs/general/PROJECT_KNOWLEDGE.md"
+
+ensure_file "$TARGET_PROJECT/docs/general/project-registry.md" "# Project Registry — $PROJECT_NAME
+
+Last updated: $TODAY
+Total assets: 0
+
+Inventario tecnico del proyecto. Una fila = un asset (funcion, endpoint, componente, tabla DB).
+
+## Reglas
+
+- **Granularidad**: una fila por asset, no agrupar
+- **Inventario puro**: solo hechos, no decisiones
+- **Categorias base obligatorias**: las 6 categorias base nunca se eliminan, se dejan vacias si no aplican
+
+## Quick Reference
+<!-- SUMMARY -->
+**DB**: (none yet)
+**API**: (none yet)
+**Components**: (none yet)
+**Services**: (none yet)
+**Types**: (none yet)
+**Integrations**: (none yet)
+<!-- /SUMMARY -->
+
+## DB Models
+<!-- CATEGORY:db -->
+| Table | Key Fields | Relations | Feature | Story | Status |
+|-------|-----------|-----------|---------|-------|--------|
+
+## API Endpoints
+<!-- CATEGORY:api -->
+| Method | Path | Auth | Feature | Story | Status |
+|--------|------|------|---------|-------|--------|
+
+## Shared Components
+<!-- CATEGORY:components -->
+| Component | Path | Props/Interface | Feature | Story | Status |
+|-----------|------|----------------|---------|-------|--------|
+
+## Services & Utilities
+<!-- CATEGORY:services -->
+| Service | Path | Key Exports | Feature | Story | Status |
+|---------|------|-------------|---------|-------|--------|
+
+## Types & Interfaces
+<!-- CATEGORY:types -->
+| Type | Path | Key Fields | Feature | Story | Status |
+|------|------|-----------|---------|-------|--------|
+
+## External Integrations
+<!-- CATEGORY:integrations -->
+| Integration | Purpose | Auth Method | Feature | Story | Status |
+|-------------|---------|-------------|---------|-------|--------|
+" "docs/general/project-registry.md"
+
+# README de areas extras (marketing, rrhh, operaciones)
+for area in marketing rrhh operaciones; do
+    AREA_LABEL=$(echo "$area" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
+    ensure_file "$TARGET_PROJECT/docs/$area/README.md" "# $AREA_LABEL — $PROJECT_NAME
+
+Carpeta del area **$area**. Documentos, notas y artefactos viven aqui.
+
+Esta area esta declarada en pm/config.json > areas.$area y aparece como pestaña en el sidebar del dashboard.
+
+Para añadir contenido: crea archivos .md aqui. El dashboard los renderiza dinamicamente.
+" "docs/$area/README.md"
+done
+
+# Wiki + raw
+ensure_file "$TARGET_PROJECT/docs/general/wiki/README.md" "# Wiki — $PROJECT_NAME
+
+Sintesis derivada (entidades, conceptos, topics) extraidas desde raw/ por el wiki-curator.
+
+NO editar manualmente: estos archivos los regenera /wiki.
+
+- index.md — indice de entidades y conceptos
+- log.md — cronologia de cambios
+- tags.md — etiquetas
+- entities/ — una pagina por entidad
+- concepts/ — una pagina por concepto
+- topics/ — temas trasversales
+" "docs/general/wiki/README.md"
+
+ensure_file "$TARGET_PROJECT/raw/README.md" "# Raw Sources — $PROJECT_NAME
+
+Fuente de verdad de la wiki. Aqui van los artefactos crudos sin procesar:
+
+- **Articulos**: raw/articles/YYYY-MM-DD-slug.md (con frontmatter)
+- **Reuniones**: raw/meetings/YYYY-MM-DD-slug.md
+- **Notas**: raw/notes/YYYY-MM-DD-slug.md
+
+Ejecuta /wiki ingestar desde Claude Code para procesarlos y derivar entidades/conceptos en docs/general/wiki/.
+
+Templates disponibles en el paquete: raw-article-template.md, raw-meeting-template.md, raw-note-template.md.
+" "raw/README.md"
 
 # ============================================
-# 3. ANADIR PAQUETE A pm/config.json DEL PROYECTO
+# 4. INSTALAR EL DASHBOARD OFICIAL DE PM X10
 # ============================================
-CONFIG_JSON="$TARGET_PROJECT/pm/config.json"
-if [ -f "$CONFIG_JSON" ]; then
-    if grep -q "\"$PACKAGE_NAME\"" "$CONFIG_JSON"; then
-        if [ "$FORCE_UPDATE" = false ]; then
-            echo -e "${YELLOW}Paquete ya desplegado segun pm/config.json. Use --force-update para refrescar.${NC}"
-        fi
-    else
-        echo -e "${CYAN}Anadiendo ${PACKAGE_NAME} a deployed_packages en pm/config.json...${NC}"
-        if [ "$DRY_RUN" = false ]; then
-            python3 - <<PYTHON_SCRIPT
-import json
-path = "$CONFIG_JSON"
-package_name = "$PACKAGE_NAME"
-with open(path, "r") as f:
-    data = json.load(f)
-if package_name not in data.get("deployed_packages", []):
-    data.setdefault("deployed_packages", []).append(package_name)
-    with open(path, "w") as f:
-        json.dump(data, f, indent=2)
-PYTHON_SCRIPT
-            echo -e "  ${GREEN}[done]${NC} Anadido a pm/config.json"
-        else
-            echo -e "  ${YELLOW}[dry-run]${NC} Anadir a pm/config.json"
-        fi
-    fi
-fi
+echo ""
+echo -e "${CYAN}4. Instalar dashboard oficial de PM x10 (extensible via pm/config.json > areas)...${NC}"
+
+copy_file "$DASHBOARD_TEMPLATE_DIR/bridge.py"  "$TARGET_PROJECT/dashboard/bridge.py"  "dashboard/bridge.py"
+copy_file "$DASHBOARD_TEMPLATE_DIR/index.html" "$TARGET_PROJECT/dashboard/index.html" "dashboard/index.html"
+copy_file "$DASHBOARD_TEMPLATE_DIR/styles.css" "$TARGET_PROJECT/dashboard/styles.css" "dashboard/styles.css"
+copy_file "$DASHBOARD_TEMPLATE_DIR/app.js"     "$TARGET_PROJECT/dashboard/app.js"     "dashboard/app.js"
 
 # ============================================
-# 4. COPIAR DASHBOARD-SECTION.YAML
-# ============================================
-SECTIONS_DIR="$TARGET_PROJECT/dashboard/sections"
-SECTION_DEST="$SECTIONS_DIR/${PACKAGE_NAME}-section.yaml"
-if [ -f "$SCRIPT_DIR/dashboard-section.yaml" ]; then
-    if [ ! -d "$SECTIONS_DIR" ]; then
-        do_action "Crear dashboard/sections/" mkdir -p "$SECTIONS_DIR"
-    fi
-    if [ -f "$SECTION_DEST" ] && [ "$FORCE_UPDATE" = false ]; then
-        echo -e "${YELLOW}dashboard/sections/${PACKAGE_NAME}-section.yaml ya existe. Use --force-update para refrescar.${NC}"
-    else
-        do_action "Copiar dashboard-section.yaml a $SECTION_DEST" \
-            cp "$SCRIPT_DIR/dashboard-section.yaml" "$SECTION_DEST"
-    fi
-else
-    echo -e "${YELLOW}Warning:${NC} dashboard-section.yaml no encontrado en el paquete."
-fi
-
-# ============================================
-# 5. REGISTRAR DEPLOYMENT EN ~/.claude/projects-registry.txt
+# 5. REGISTRAR EN ~/.claude/projects-registry.txt
 # ============================================
 PROJECTS_REGISTRY="$HOME/.claude/projects-registry.txt"
 if [ "$DRY_RUN" = false ]; then
     if ! grep -q "^${TARGET_PROJECT}|${PACKAGE_NAME}|" "$PROJECTS_REGISTRY" 2>/dev/null; then
         echo "${TARGET_PROJECT}|${PACKAGE_NAME}|$(date -u +%Y-%m-%dT%H:%M:%S%z)" >> "$PROJECTS_REGISTRY"
+        echo ""
         echo -e "${CYAN}Registrado en ~/.claude/projects-registry.txt${NC}"
     fi
 fi
@@ -248,26 +453,29 @@ fi
 # SUMMARY
 # ============================================
 echo ""
-echo "================================"
-echo -e "${GREEN}Deploy ${PACKAGE_NAME} en ${TARGET_PROJECT}: complete!${NC}"
+echo "============================================"
+echo -e "${GREEN}Deploy ${PACKAGE_NAME} en ${TARGET_PROJECT}: COMPLETO${NC}"
 echo ""
-
-if [ "$PROJECT_INITIALIZED" = true ]; then
-    echo -e "${CYAN}Proyecto inicializado desde project-template (multi-paquete).${NC}"
-fi
-
 echo -e "${CYAN}Que tienes ahora:${NC}"
-echo "  - docs/${DOMAIN_FOLDER}/        (carpeta para artefactos del dominio ${DOMAIN})"
-echo "  - dashboard/sections/${PACKAGE_NAME}-section.yaml (pestaña 'Producto' del dashboard)"
-echo "  - pm/config.json incluye '${PACKAGE_NAME}' en deployed_packages"
+echo "  - Estructura V3 completa de PM x10 (.claude/, pm/, memory/, docs/, raw/, dashboard/)"
+echo "  - Dashboard oficial de PM x10 instalado (extensible: otros paquetes añaden su area)"
+echo "  - 18 agentes y 17 comandos disponibles (instalados globalmente via install.sh)"
+echo "  - pm/config.json con areas 'general' y 'producto' activas"
 echo ""
-echo -e "${CYAN}Proximos pasos:${NC}"
-echo "  1. Arrancar el dashboard multi-paquete del proyecto:"
-echo "     cd '$TARGET_PROJECT' && python3 dashboard/bridge.py"
-echo "  2. Usar los comandos /pm, /define, /build, etc. del paquete PM x10 desde Claude Code"
-echo "  3. Empezar a trabajar en docs/${DOMAIN_FOLDER}/"
+echo -e "${CYAN}Para personalizar el stack tecnologico:${NC}"
+echo "  abre el proyecto en Claude Code y ejecuta /new-project"
+echo "  (te entrevista 6 preguntas y rellena los placeholders TODO en CLAUDE.md)"
 echo ""
-echo -e "${YELLOW}Nota:${NC} este deploy crea estructura minima compatible con el modelo multi-paquete."
-echo "Si quieres el flow original de PM x10 (dashboard ORIGINAL, estructura completa con templates,"
-echo "tasks/, qa/, etc.), ejecuta /new-project desde Claude Code en este proyecto."
+echo -e "${CYAN}Para arrancar el dashboard:${NC}"
+echo "  cd '$TARGET_PROJECT'"
+echo "  python3 dashboard/bridge.py"
+echo ""
+echo -e "${CYAN}Para empezar a trabajar:${NC}"
+echo "  abre Claude Code en este proyecto y ejecuta:"
+echo "    /pm sync       (PM de Producto: indice + buzon)"
+echo "    /story         (story autonomo desde una idea)"
+echo "    /analyze       (evaluar problema/PRD)"
+echo ""
+echo -e "${YELLOW}Nota multi-paquete:${NC} si despues despliegas otro paquete (newsletter, marketing,...),"
+echo "se añadira su area a pm/config.json y aparecera como pestaña en el sidebar del MISMO dashboard."
 echo ""
