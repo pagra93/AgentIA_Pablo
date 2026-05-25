@@ -40,6 +40,7 @@ ${CYAN}Comandos disponibles:${NC}
   ${YELLOW}list${NC}                    Lista paquetes en exports/
   ${YELLOW}projects${NC}                Lista proyectos clientes con paquetes desplegados
   ${YELLOW}console${NC}                 Arranca architect-console (UI del arquitecto)
+  ${YELLOW}deploy <paquete> <ruta>${NC}  Despliega <paquete> en <ruta> (use '.' para cwd)
   ${YELLOW}audit${NC}                   Atajo: scripts/audit-drift.sh
   ${YELLOW}propagate <scope>${NC}       Atajo: scripts/propagate-update.sh <scope>
   ${YELLOW}new-package <nombre>${NC}    Atajo: scripts/new-package.sh <nombre>
@@ -111,6 +112,57 @@ EOF
             echo -e "${RED}architect-console no encontrado.${NC}"
             exit 1
         fi
+        ;;
+
+    deploy)
+        # Uso: arc deploy <paquete> <ruta-proyecto>
+        package_name="${2:-}"
+        project_path="${3:-}"
+        if [ -z "$package_name" ] || [ -z "$project_path" ]; then
+            echo -e "${RED}Error:${NC} faltan argumentos."
+            echo "Uso: arc deploy <paquete> <ruta-proyecto>"
+            echo ""
+            echo "Ejemplos:"
+            echo "  arc deploy pmx-product .                      (despliega en cwd actual)"
+            echo "  arc deploy newsletter-system /ruta/MiCliente   (ruta absoluta)"
+            echo ""
+            echo "Paquetes disponibles:"
+            if [ -d "$SYSTEM_REPO/exports" ]; then
+                for d in "$SYSTEM_REPO/exports"/*/; do
+                    [ -d "$d" ] || continue
+                    name=$(basename "$d")
+                    [ "$name" = "template" ] && continue
+                    [ -x "$d/deploy.sh" ] && echo "  - $name"
+                done
+            fi
+            exit 1
+        fi
+        package_dir="$SYSTEM_REPO/exports/$package_name"
+        if [ ! -d "$package_dir" ]; then
+            echo -e "${RED}Error:${NC} paquete '$package_name' no encontrado en $SYSTEM_REPO/exports/"
+            echo "Paquetes disponibles: $(ls "$SYSTEM_REPO/exports/" 2>/dev/null | tr '\n' ' ')"
+            exit 1
+        fi
+        if [ ! -x "$package_dir/deploy.sh" ]; then
+            echo -e "${RED}Error:${NC} el paquete '$package_name' no tiene deploy.sh ejecutable."
+            echo "Ruta esperada: $package_dir/deploy.sh"
+            exit 1
+        fi
+        # Resolver ruta del proyecto a absoluta (mkdir -p si no existe)
+        if [ ! -d "$project_path" ]; then
+            echo -e "${CYAN}La ruta '$project_path' no existe. Creandola...${NC}"
+            mkdir -p "$project_path"
+        fi
+        project_path="$(cd "$project_path" && pwd)"
+        # Validacion paranoia: ruta peligrosa
+        if [ "$project_path" = "$HOME" ] || [ "$project_path" = "/" ]; then
+            echo -e "${RED}Error:${NC} ruta no permitida: $project_path"
+            exit 1
+        fi
+        echo -e "${GREEN}Desplegando $package_name en $project_path${NC}"
+        echo "Ejecutando: $package_dir/deploy.sh \"$project_path\" ${@:4}"
+        echo ""
+        bash "$package_dir/deploy.sh" "$project_path" "${@:4}"
         ;;
 
     audit)

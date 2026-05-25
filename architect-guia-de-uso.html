@@ -436,7 +436,7 @@
     <h2>Componentes</h2>
     <ol>
       <li><a href="#agentes">5. Los 9 agentes</a></li>
-      <li><a href="#comandos">6. Los 6 comandos <code>/arc-*</code></a></li>
+      <li><a href="#comandos">6. Los 7 comandos <code>/arc-*</code></a></li>
       <li><a href="#skills">7. Skills, rules, knowledge</a></li>
       <li><a href="#config">8. Configuración</a></li>
     </ol>
@@ -479,7 +479,7 @@
   <p class="lead">El meta-sistema que mantiene paquetes desplegables de agentes Claude Code. Lo genérico vive en un solo sitio. Lo específico vive en cada paquete. La propagación es explícita, auditable y reversible.</p>
   <div class="meta">
     <span>9 agentes</span>
-    <span>6 comandos <code>/arc-*</code></span>
+    <span>7 comandos <code>/arc-*</code></span>
     <span>7 skills genéricas</span>
     <span>7 rules</span>
     <span>4 knowledge</span>
@@ -611,8 +611,9 @@ AgentArchitect/
 │   ├── age-sup-arc-cynic/             # adversarial (read-only)
 │   └── age-sup-arc-boundary-walker/   # adversarial bordes (read-only)
 │
-├── commands/                          # 6 comandos /arc-*
+├── commands/                          # 7 comandos /arc-*
 │   ├── arc-new-package.md
+│   ├── arc-deploy.md
 │   ├── arc-propagate.md
 │   ├── arc-audit.md
 │   ├── arc-catalog.md
@@ -727,7 +728,7 @@ AgentArchitect/
 
 <!-- ════════ 6. Comandos ════════ -->
 <section id="comandos">
-  <h2>6. Los 6 comandos <code>/arc-*</code></h2>
+  <h2>6. Los 7 comandos <code>/arc-*</code></h2>
   <p>Todos los comandos están disponibles globalmente en Claude Code después de ejecutar <code>./install.sh</code> del arquitecto.</p>
 
   <table>
@@ -739,6 +740,11 @@ AgentArchitect/
         <td><code>/arc-new-package</code></td>
         <td>generator</td>
         <td>Crear paquete vía mini-discovery</td>
+      </tr>
+      <tr>
+        <td><code>/arc-deploy</code></td>
+        <td>(orquesta <code>deploy.sh</code>)</td>
+        <td>Desplegar paquete en proyecto cliente (atajo corto, sin escribir rutas)</td>
       </tr>
       <tr>
         <td><code>/arc-propagate</code></td>
@@ -900,34 +906,81 @@ AgentArchitect/
 <section id="flujo-deploy">
   <h2>10. Desplegar un paquete en proyecto cliente</h2>
 
-  <pre><code>bash AgentArchitect/exports/newsletter-system/deploy.sh /ruta/MiCliente</code></pre>
+  <p>Tres formas equivalentes — usa la que más te convenga:</p>
 
-  <p>El <code>deploy.sh</code> del paquete:</p>
+  <h3>Forma A — Slash command desde Claude Code (la más cómoda)</h3>
+  <p>Abre Claude Code dentro del proyecto cliente y ejecuta:</p>
+  <pre><code>/arc-deploy newsletter-system</code></pre>
+  <p>Detecta el <code>cwd</code> automáticamente y orquesta el <code>deploy.sh</code> del paquete. Sin escribir rutas.</p>
 
+  <h3>Forma B — Wrapper CLI desde terminal</h3>
+  <pre><code>cd /ruta/MiCliente
+arc deploy newsletter-system .          # "." = cwd actual
+
+# o con ruta explícita
+arc deploy pmx-product /ruta/MiCliente</code></pre>
+  <p>Equivalente, pero desde terminal (sin necesidad de Claude Code). El wrapper <code>arc</code> tiene más subcomandos útiles: <code>arc help</code>, <code>arc list</code>, <code>arc projects</code>, <code>arc info</code>, <code>arc audit</code>, <code>arc propagate</code>.</p>
+
+  <div class="callout info">
+    <div class="callout-title">¿No funciona <code>arc</code> directamente?</div>
+    <p>Si tu shell no reconoce <code>arc</code>, créa el alias una vez:</p>
+    <pre><code>echo 'alias arc="bash $HOME/.claude/arc"' &gt;&gt; ~/.zshrc
+source ~/.zshrc</code></pre>
+    <p>Alternativa sin alias: <code>bash ~/.claude/arc deploy &lt;paquete&gt; &lt;ruta&gt;</code>.</p>
+  </div>
+
+  <h3>Forma C — bash directo (bajo el capó)</h3>
+  <pre><code>bash AgentArchitect/exports/pmx-product/deploy.sh /ruta/MiCliente</code></pre>
+  <p>Las formas A y B simplemente orquestan esto por debajo. Útil si necesitas ver el comando exacto que se ejecuta (debugging, scripts).</p>
+
+  <div class="callout warn">
+    <div class="callout-title">IMPORTANTE: <code>pmx-product</code> primero</div>
+    <p>El <strong>primer paquete que se despliega en un proyecto debe ser <code>pmx-product</code></strong>. PM x10 aporta el dashboard estándar del arquitecto y la estructura V3 (<code>pm/</code>, <code>memory/</code>, <code>docs/{general,producto,marketing,rrhh,operaciones}</code>, <code>raw/</code>). Los demás paquetes (<code>newsletter-system</code>, <code>marketing-system</code>, ...) asumen esta estructura y solo <strong>añaden su área</strong> a <code>pm/config.json &gt; areas</code>.</p>
+  </div>
+
+  <h3>Qué hace el <code>deploy.sh</code> de pmx-product</h3>
   <ol>
-    <li>Si <code>MiCliente</code> no tiene <code>dashboard/</code> todavía: materializa estructura desde <code>templates/project-template/</code> (crea <code>.claude/CLAUDE.md</code>, <code>pm/config.json</code>, <code>memory/MEMORY.md</code>, <code>dashboard/{bridge.py,index.html,...}</code>).</li>
-    <li>Crea <code>docs/&lt;DOMAIN_FOLDER&gt;/</code> con README base del dominio.</li>
-    <li>Añade el paquete a <code>pm/config.json &gt; deployed_packages</code> (vía Python para preservar formato JSON).</li>
-    <li>Copia <code>dashboard-section.yaml</code> → <code>&lt;cliente&gt;/dashboard/sections/&lt;paquete&gt;-section.yaml</code>.</li>
+    <li>Crea la estructura V3 completa de PM x10 (<code>.claude/</code>, <code>pm/</code>, <code>memory/</code>, <code>docs/{general,producto,marketing,rrhh,operaciones}</code>, <code>raw/</code>, <code>dashboard/</code>).</li>
+    <li>Materializa los templates core de PM x10 con sustitución de placeholders (<code>{{PROJECT_NAME}}</code>, <code>{{DATE}}</code>): <code>.claude/CLAUDE.md</code>, <code>pm/config.json</code>, <code>pm/tasks.json</code>, <code>pm/id-counters.json</code>, <code>docs/producto/inbox.md</code>.</li>
+    <li>Crea archivos canónicos (<code>sprint.md</code>, <code>lessons.md</code>, <code>qa.md</code>, <code>PROJECT_KNOWLEDGE.md</code>, <code>project-registry.md</code>, READMEs de cada área).</li>
+    <li><strong>Copia el dashboard OFICIAL de PM x10</strong> (los 4 archivos de <code>dashboard-template/</code>: <code>bridge.py</code> 62KB, <code>app.js</code> 125KB, <code>index.html</code>, <code>styles.css</code>). Este es el dashboard estándar del arquitecto; NO hay dashboard genérico paralelo.</li>
     <li>Registra el despliegue en <code>~/.claude/projects-registry.txt</code>.</li>
   </ol>
 
-  <p>Tras el deploy:</p>
+  <h3>Qué hace el <code>deploy.sh</code> de cualquier OTRO paquete (newsletter, marketing, …)</h3>
+  <ol>
+    <li>Verifica que el dashboard de PM x10 ya está instalado (aborta con error claro si no).</li>
+    <li>Crea <code>docs/&lt;dominio&gt;/</code> (ej. <code>docs/newsletter/</code>) con README del dominio.</li>
+    <li>Añade su área a <code>pm/config.json &gt; areas</code> (ej. <code>{"newsletter": {"label": "Newsletter", "active": true, "paths": ["docs/newsletter"]}}</code>).</li>
+    <li>Registra el despliegue.</li>
+  </ol>
+
+  <p>El mismo dashboard de PM x10 renderiza la nueva área automáticamente en el sidebar — sin reescribir nada del dashboard.</p>
+
+  <p>Tras cualquier deploy:</p>
 
   <pre><code>cd /ruta/MiCliente
 python3 dashboard/bridge.py
-# Abre http://localhost:7700 → ver pestaña "Newsletter" en el dashboard</code></pre>
+# Abre http://localhost:7700 → ver TODAS las áreas (producto, newsletter, marketing,...)
+# en el sidebar de PM x10</code></pre>
 
-  <div class="callout info">
-    <div class="callout-title">Multi-paquete: el dashboard suma pestañas</div>
-    <p>Si despliegas otro paquete en el mismo cliente (<code>bash &lt;otro&gt;/deploy.sh /ruta/MiCliente</code>), el dashboard <strong>suma su pestaña</strong> sin pisar las demás. <code>pm/config.json</code> acumula <code>deployed_packages</code>; <code>dashboard/sections/</code> acumula configs.</p>
-  </div>
+  <h3>Flujo desde 0 (proyecto vacío)</h3>
+  <pre><code>mkdir -p ~/Desktop/PABLO/Proyectos/MiClienteNuevo
+cd ~/Desktop/PABLO/Proyectos/MiClienteNuevo
+arc deploy pmx-product .             # PRIMERO: aporta dashboard + estructura V3
+arc deploy newsletter-system .       # añade area "newsletter" a pm/config.json
+python3 dashboard/bridge.py          # arranca el dashboard de PM x10 con ambas areas</code></pre>
 
-  <p>Flags útiles:</p>
+  <p>Flags útiles (válidos en las 3 formas):</p>
   <ul>
     <li><code>--dry-run</code>: muestra lo que haría sin tocar nada</li>
     <li><code>--force-update</code>: actualiza incluso si el paquete ya está desplegado</li>
   </ul>
+
+  <div class="callout info">
+    <div class="callout-title">/new-project: opcional para personalizar el stack</div>
+    <p><code>/new-project</code> NO es alternativa a <code>/arc-deploy</code>. Es un comando complementario, opcional, que <strong>se ejecuta desde Claude Code DESPUÉS</strong> del deploy. Te entrevista 6 preguntas (project name, descripción, tech stack, platform, team context, test setup) y rellena los placeholders TODO que quedaron en <code>.claude/CLAUDE.md</code>, <code>PROJECT_KNOWLEDGE.md</code>, etc. Es solo personalización: el proyecto ya funciona sin esto.</p>
+  </div>
 </section>
 
 <!-- ════════ 11. Flujo: propagar ════════ -->
