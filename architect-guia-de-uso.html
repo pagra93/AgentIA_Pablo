@@ -567,17 +567,19 @@
 │  comandos /&lt;prefix&gt;-*, skills/rules/knowledge propios)       │
 │                                                              │
 │  Hereda lo genérico del arquitecto vía propagación.          │
-│  Aporta dashboard-section.yaml al desplegarse.               │
+│  - pmx-product: aporta el dashboard estándar + estructura V3 │
+│  - Otros paquetes: añaden su área a pm/config.json &gt; areas  │
 └─────────────────────────────────────────────────────────────┘
                           ↓ despliega
 ┌─────────────────────────────────────────────────────────────┐
 │  PLANO CLIENTE — /Users/pablo/Trabajos/MiCliente/            │
 │                                                              │
-│  Espacio donde el usuario trabaja. Tiene una pestaña en el   │
-│  dashboard por cada paquete desplegado.                      │
+│  Espacio donde el usuario trabaja. UN dashboard (el de       │
+│  PM x10) con una pestaña por área registrada.                │
 │                                                              │
-│  Lo local: pm/config.json, dashboard/sections/, docs/.       │
-│  El código del dashboard viene del arquitecto (propagable).  │
+│  Lo local: pm/config.json (con areas.*), docs/&lt;area&gt;/,      │
+│  memory/, raw/. El código del dashboard vive en              │
+│  exports/pmx-product/dashboard-template/ (propagable).       │
 └─────────────────────────────────────────────────────────────┘
   </pre>
 
@@ -835,7 +837,7 @@ AgentArchitect/
   <h3><code>conventions.yaml</code></h3>
   <p>Define la <strong>convención canónica</strong> que sigue todo paquete generado. Lo usa el auditor para verificar conformidad. Contiene:</p>
   <ul>
-    <li><strong>required_root_files</strong> (12): CLAUDE.md, SOUL.md, agent.yaml, install.sh, deploy.sh, dashboard-section.yaml, etc.</li>
+    <li><strong>required_root_files</strong>: CLAUDE.md, SOUL.md, agent.yaml, install.sh, deploy.sh, system-overview.md, etc.</li>
     <li><strong>required_dirs</strong>: agents/, commands/, skills/, rules/, knowledge/, docs/, memory/, context-ledger/, etc.</li>
     <li><strong>required_supervisors</strong> (5): auditor, evaluator, optimizer, cynic, boundary-walker</li>
     <li><strong>required_generic_commands</strong> (8): save, docs, learned, challenge, unknown-unknowns, hotfix, code-review, adversarial</li>
@@ -851,8 +853,8 @@ AgentArchitect/
   <ul>
     <li><strong>to_packages</strong>: skills, rules, knowledge, comandos del template, supervisores QA</li>
     <li><strong>to_template_package</strong>: <code>mirror_from_root: true</code> (sync automático del arquitecto al template)</li>
-    <li><strong>to_client_projects</strong>: solo el código del dashboard (bridge.py, index.html, styles.css, app.js)</li>
-    <li><strong>never_propagate</strong>: guia-de-uso.html, dashboard-section.yaml, agent.yaml del paquete, SOUL/DUTIES/RULES, context-ledger, memory, docs</li>
+    <li><strong>to_client_projects</strong>: solo el código del dashboard (bridge.py, index.html, styles.css, app.js) — la fuente vive en <code>exports/pmx-product/dashboard-template/</code>, NO en <code>templates/project-template/</code></li>
+    <li><strong>never_propagate</strong>: guia-de-uso.html, agent.yaml del paquete, SOUL/DUTIES/RULES, context-ledger, memory, docs</li>
     <li><strong>conflict_strategy</strong>: default <code>prompt</code>; options <code>overwrite</code>, <code>preserve</code>, <code>log</code></li>
     <li><strong>checksum_method</strong>: <code>sha256</code> (no timestamp)</li>
   </ul>
@@ -1011,7 +1013,7 @@ python3 dashboard/bridge.py          # arranca el dashboard de PM x10 con ambas 
       <tr><td><code>knowledge</code></td><td>Un knowledge (archivo <code>knowledge/&lt;X&gt;.md</code>)</td><td>Todos los paquetes + template</td></tr>
       <tr><td><code>command</code></td><td>Comando transversal (en <code>templates/package-template/commands/</code>)</td><td>Todos los paquetes</td></tr>
       <tr><td><code>supervisor-qa</code></td><td>Supervisor QA (en <code>templates/package-template/agents/age-sup-*/</code>)</td><td>Todos los paquetes</td></tr>
-      <tr><td><code>dashboard</code></td><td>Código del dashboard (4 archivos en <code>templates/project-template/dashboard/</code>)</td><td>Todos los proyectos clientes registrados</td></tr>
+      <tr><td><code>dashboard</code></td><td>Código del dashboard (4 archivos en <code>exports/pmx-product/dashboard-template/</code>)</td><td>Todos los proyectos clientes registrados</td></tr>
       <tr><td><code>template</code></td><td>Cambios estructurales en <code>templates/package-template/</code></td><td>Paquetes (requiere confirmación extra)</td></tr>
       <tr><td><code>all-core</code></td><td>Todo lo del manifest</td><td>Todo (cuidado)</td></tr>
     </tbody>
@@ -1140,29 +1142,32 @@ python3 architect-console/bridge.py
     <li><strong>Auditorías</strong>: reportes en <code>docs/architect/audits/</code></li>
   </ul>
 
-  <h3>Dashboard multi-pestaña — UI de proyectos clientes</h3>
+  <h3>Dashboard de proyectos clientes — el de PM x10</h3>
   <pre><code>cd /ruta/MiCliente
 python3 dashboard/bridge.py
 # Abre http://localhost:7700</code></pre>
 
-  <p>Renderiza dinámicamente <strong>una pestaña por cada paquete desplegado</strong>:</p>
+  <p>El dashboard del ecosistema es <strong>UNO solo</strong>: el de PM x10 (vive en <code>exports/pmx-product/dashboard-template/</code>, ~270 KB de código aprobado por el PM). Se instala en cada proyecto cuando se ejecuta <code>arc deploy pmx-product .</code>.</p>
+
+  <p>Renderiza dinámicamente <strong>una pestaña por cada área registrada</strong> en <code>pm/config.json &gt; areas</code>:</p>
   <ul>
-    <li>Lee <code>pm/config.json &gt; deployed_packages</code> para saber qué paquetes están activos</li>
-    <li>Para cada paquete, lee <code>dashboard/sections/&lt;paquete&gt;-section.yaml</code></li>
-    <li>Compone <code>/api/tabs</code> y el frontend renderiza pestañas con secciones (markdown, list, kanban, tree)</li>
+    <li>Lee <code>pm/config.json &gt; areas</code> (formato: <code>{"&lt;id&gt;": {"label": "...", "active": bool, "paths": [...]} }</code>)</li>
+    <li>Por defecto trae 5 áreas activas: <code>general</code>, <code>producto</code>, <code>marketing</code>, <code>rrhh</code>, <code>operaciones</code></li>
+    <li>Cuando se despliega otro paquete (newsletter, marketing-system, ...), su <code>deploy.sh</code> añade su área (ej. <code>{"newsletter": {"label": "Newsletter", ...}}</code>) y el sidebar la renderiza automáticamente</li>
+    <li>NO hay <code>dashboard/sections/*.yaml</code>, NO hay <code>deployed_packages</code>, NO hay dashboard genérico paralelo</li>
   </ul>
 
   <table>
     <thead><tr><th>UI</th><th>Vive en</th><th>Puerto default</th><th>Para qué</th></tr></thead>
     <tbody>
       <tr><td>architect-console</td><td><code>AgentArchitect/</code></td><td>7710</td><td>Gestión del meta-sistema</td></tr>
-      <tr><td>dashboard multi-pestaña</td><td>Cada proyecto cliente</td><td>7700</td><td>Trabajo diario en el proyecto</td></tr>
+      <tr><td>dashboard PM x10</td><td>Cada proyecto cliente (copiado por <code>pmx-product/deploy.sh</code>)</td><td>7700</td><td>Trabajo diario en el proyecto, una pestaña por área</td></tr>
     </tbody>
   </table>
 
   <div class="callout">
-    <div class="callout-title">Mejorar el dashboard de proyectos = una vez para todos</div>
-    <p>El código del dashboard (bridge.py, index.html, styles.css, app.js) vive en <code>templates/project-template/dashboard/</code>. Para mejorarlo: editar ahí, ejecutar <code>/arc-propagate dashboard</code>, el propagator distribuye a todos los proyectos clientes registrados conservando sus configs locales (<code>dashboard/sections/*.yaml</code>).</p>
+    <div class="callout-title">Mejorar el dashboard = una vez para todos</div>
+    <p>El código del dashboard (bridge.py, index.html, styles.css, app.js) vive en <code>exports/pmx-product/dashboard-template/</code>. Para mejorarlo: editar ahí, ejecutar <code>/arc-propagate dashboard</code>, el propagator distribuye a todos los proyectos clientes registrados conservando sus configs locales (<code>pm/config.json</code> con las áreas específicas del proyecto).</p>
   </div>
 </section>
 
@@ -1238,7 +1243,7 @@ python3 dashboard/bridge.py
   <p>No. El arquitecto es opcional. Si tienes un solo sistema, no aporta nada (lo "genérico" de PM x10 es solo suyo). El arquitecto se vuelve valioso cuando tienes 2+ sistemas y quieres mantenerlos sincronizados.</p>
 
   <h3>¿Qué pasa si edito directamente un archivo en un paquete?</h3>
-  <p>Depende. Si editas un archivo <strong>NO propagable</strong> (DUTIES.md de un agente específico, agent.yaml del paquete, dashboard-section.yaml), tu cambio se mantiene — es contenido del paquete. Si editas un archivo <strong>propagable</strong> (una skill genérica, una rule), la próxima propagación lo detectará como drift y te preguntará qué hacer.</p>
+  <p>Depende. Si editas un archivo <strong>NO propagable</strong> (DUTIES.md de un agente específico, agent.yaml del paquete, deploy.sh del paquete), tu cambio se mantiene — es contenido del paquete. Si editas un archivo <strong>propagable</strong> (una skill genérica, una rule), la próxima propagación lo detectará como drift y te preguntará qué hacer.</p>
 
   <h3>¿Cómo añado una skill nueva genérica?</h3>
   <ol>
@@ -1260,7 +1265,7 @@ python3 dashboard/bridge.py
   <ol>
     <li><strong>Eliminar del arquitecto</strong>: <code>rm -rf exports/&lt;paquete&gt;/</code> + ejecutar <code>/arc-catalog</code> para refrescar el índice.</li>
     <li><strong>Eliminar de <code>~/.claude/</code></strong>: borrar manualmente los agentes/comandos compilados con prefix correspondiente.</li>
-    <li><strong>Eliminar de un proyecto cliente</strong>: borrar la entrada en <code>pm/config.json &gt; deployed_packages</code>, borrar <code>dashboard/sections/&lt;paquete&gt;-section.yaml</code>, borrar <code>docs/&lt;dominio&gt;/</code> si quieres (o conservar si tiene valor histórico).</li>
+    <li><strong>Eliminar de un proyecto cliente</strong>: borrar la entrada en <code>pm/config.json &gt; areas.&lt;area-id&gt;</code> (o ponerla en <code>active: false</code> para ocultarla sin perder contenido), borrar <code>docs/&lt;dominio&gt;/</code> si quieres (o conservar si tiene valor histórico). El dashboard de PM x10 dejará de renderizar la pestaña automáticamente.</li>
   </ol>
 
   <h3>¿Por qué el arquitecto tiene su propia consola y los proyectos otra?</h3>
