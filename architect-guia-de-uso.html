@@ -957,7 +957,7 @@ source ~/.zshrc</code></pre>
     <li>Registra el despliegue.</li>
   </ol>
 
-  <p>El mismo dashboard de PM x10 renderiza la nueva área automáticamente en el sidebar — sin reescribir nada del dashboard.</p>
+  <p>El dashboard de PM x10 (V3.4+) detecta nuevas áreas en <code>pm/config.json &gt; areas</code> e inyecta dinámicamente botón de sidebar + section view al cargar. <strong>Importante</strong>: si el dashboard del proyecto cliente es anterior a V3.4 (instalado por una versión vieja de <code>pmx-product</code>), refresca el código del dashboard con <code>arc deploy pmx-product . --force-update</code> antes de desplegar el nuevo paquete. Solo actualiza los 4 archivos de <code>dashboard/</code>, no toca tu contenido.</p>
 
   <p>Tras cualquier deploy:</p>
 
@@ -1151,10 +1151,11 @@ python3 dashboard/bridge.py
 
   <p>Renderiza dinámicamente <strong>una pestaña por cada área registrada</strong> en <code>pm/config.json &gt; areas</code>:</p>
   <ul>
-    <li>Lee <code>pm/config.json &gt; areas</code> (formato: <code>{"&lt;id&gt;": {"label": "...", "active": bool, "paths": [...]} }</code>)</li>
-    <li>Por defecto trae 5 áreas activas: <code>general</code>, <code>producto</code>, <code>marketing</code>, <code>rrhh</code>, <code>operaciones</code></li>
-    <li>Cuando se despliega otro paquete (newsletter, marketing-system, ...), su <code>deploy.sh</code> añade su área (ej. <code>{"newsletter": {"label": "Newsletter", ...}}</code>) y el sidebar la renderiza automáticamente</li>
+    <li>Lee <code>pm/config.json &gt; areas</code> (formato: <code>{"&lt;id&gt;": {"label": "...", "active": bool, "paths": [...]} }</code>) vía <code>/api/config</code></li>
+    <li>Por defecto trae 2 áreas hardcoded (<code>general</code>, <code>producto</code>) y 3 inactivas (<code>marketing</code>, <code>rrhh</code>, <code>operaciones</code>). Áreas inactivas muestran un panel "preparada pero no activada" con instrucciones para activarla.</li>
+    <li>Cuando se despliega otro paquete (newsletter, marketing-system, ...), su <code>deploy.sh</code> añade su área (ej. <code>{"newsletter": {"label": "Newsletter", "active": true, "paths": ["docs/newsletter"]}}</code>) y el frontend del dashboard (V3.4+) <strong>inyecta dinámicamente</strong> botón de sidebar + section view (vista de docs simple con browser del primer path) sin reiniciar el bridge.</li>
     <li>NO hay <code>dashboard/sections/*.yaml</code>, NO hay <code>deployed_packages</code>, NO hay dashboard genérico paralelo</li>
+    <li><strong>Heads-up</strong>: si el dashboard del proyecto cliente es anterior a V3.4 (antes el frontend tenía áreas hardcoded), un nuevo paquete no aparecerá hasta refrescar el dashboard con <code>arc deploy pmx-product . --force-update</code>.</li>
   </ul>
 
   <table>
