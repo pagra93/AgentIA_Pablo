@@ -749,13 +749,12 @@
 
   function setSubTab(areaId, subtab) {
     state.areaSubTab[areaId] = subtab;
-    // Marcar tab activa
-    el.aTabs.forEach(t => {
+    // V3.5: querySelectorAll vivo en lugar de cache (las tabs dinamicas no estan en el cache).
+    document.querySelectorAll('.atab').forEach(t => {
       if (t.dataset.area !== areaId) return;
       t.classList.toggle('active', t.dataset.subtab === subtab);
     });
-    // Mostrar solo el contenido de esta sub-tab
-    el.aTabContents.forEach(c => {
+    document.querySelectorAll('.atab-content').forEach(c => {
       if (c.dataset.area !== areaId) return;
       c.classList.toggle('hidden', c.dataset.subtab !== subtab);
     });
@@ -770,6 +769,14 @@
     if (areaId === 'producto' && subtab === 'docs') renderTreeForArea('producto');
     if (areaId === '_system' && subtab === 'estado') renderSystemEstado();
     if (areaId === '_system' && subtab === 'files') renderTreeForArea('_system');
+
+    // V3.5: areas dinamicas activas con states declarados (kanban genérico)
+    const areaCfg = state.config?.areas?.[areaId];
+    const isHardcoded = (areaId === 'general' || areaId === 'producto' || areaId === '_system');
+    if (!isHardcoded && areaCfg && areaCfg.active === true && Array.isArray(areaCfg.states) && areaCfg.states.length > 0) {
+      if (subtab === 'kanban') renderAreaKanban(areaId, areaCfg);
+      if (subtab === 'docs') renderAreaDocsBrowser(areaId, areaCfg);
+    }
 
     // Mover el shared viewer al slot del área activa, o esconderlo
     const isDocsLike = (subtab === 'docs' || subtab === 'files');
@@ -2680,15 +2687,41 @@ Ejecuta <code>/pm sync</code> en Claude Code para crearlo y que aparezcan tareas
       section.className = 'area-view hidden';
       section.dataset.areaView = areaId;
       if (isActive) {
-        section.innerHTML = `
-          <div class="area-header">
-            <div>
-              <h1 class="area-title">${escapeHtml(label)}</h1>
-              <p class="area-subtitle">Área activa. Contenido en <code>${escapeHtml((area.paths && area.paths[0]) || 'docs/' + areaId)}</code>.</p>
+        // V3.5: si el area declara states + transitions, sub-tabs (Kanban, Docs) + containers.
+        // Si no, solo browser de docs simple.
+        const hasKanban = Array.isArray(area.states) && area.states.length > 0;
+        if (hasKanban) {
+          // Sub-tab activa por defecto: kanban
+          if (!state.areaSubTab[areaId]) state.areaSubTab[areaId] = 'kanban';
+          section.innerHTML = `
+            <div class="area-header">
+              <div>
+                <h1 class="area-title">${escapeHtml(label)}</h1>
+                <p class="area-subtitle">Área activa con pipeline propio. Estados desde <code>pm/config.json &gt; areas.${escapeHtml(areaId)}</code>.</p>
+              </div>
             </div>
-          </div>
-          <div class="dynamic-area-pane" data-area-id="${escapeHtml(areaId)}"></div>
-        `;
+            <div class="area-subtabs">
+              <button class="atab ${state.areaSubTab[areaId] === 'kanban' ? 'active' : ''}" data-area="${escapeHtml(areaId)}" data-subtab="kanban">Kanban</button>
+              <button class="atab ${state.areaSubTab[areaId] === 'docs' ? 'active' : ''}" data-area="${escapeHtml(areaId)}" data-subtab="docs">Docs</button>
+            </div>
+            <div class="atab-content ${state.areaSubTab[areaId] === 'kanban' ? '' : 'hidden'}" data-area="${escapeHtml(areaId)}" data-subtab="kanban">
+              <div class="area-kanban-board" data-area="${escapeHtml(areaId)}"></div>
+            </div>
+            <div class="atab-content ${state.areaSubTab[areaId] === 'docs' ? '' : 'hidden'}" data-area="${escapeHtml(areaId)}" data-subtab="docs">
+              <div class="dynamic-area-pane" data-area-id="${escapeHtml(areaId)}"></div>
+            </div>
+          `;
+        } else {
+          section.innerHTML = `
+            <div class="area-header">
+              <div>
+                <h1 class="area-title">${escapeHtml(label)}</h1>
+                <p class="area-subtitle">Área activa. Contenido en <code>${escapeHtml((area.paths && area.paths[0]) || 'docs/' + areaId)}</code>.</p>
+              </div>
+            </div>
+            <div class="dynamic-area-pane" data-area-id="${escapeHtml(areaId)}"></div>
+          `;
+        }
       } else {
         section.innerHTML = `
           <div class="area-header"><div><h1 class="area-title">${escapeHtml(label)}</h1><p class="area-subtitle">Área preparada pero no activada.</p></div></div>
@@ -2699,30 +2732,179 @@ Ejecuta <code>/pm sync</code> en Claude Code para crearlo y que aparezcan tareas
     }
   }
 
-  // Renderiza una vista de docs simple para un area dinamica activa.
-  // Lee el primer path del area (ej. "docs/newsletter") y muestra un browser
-  // basico del arbol de archivos.
+  // Renderiza una vista para un area dinamica activa.
+  // - Si el area tiene `states` declarados en pm/config.json: renderiza kanban con sub-tabs.
+  // - Si no: vista de browser de docs simple.
   async function renderDynamicActiveArea(areaId, areaCfg) {
-    const pane = document.querySelector(`.dynamic-area-pane[data-area-id="${areaId}"]`);
+    const hasKanban = Array.isArray(areaCfg.states) && areaCfg.states.length > 0;
+    if (hasKanban) {
+      // Sub-tab activa actual (default kanban)
+      const sub = state.areaSubTab[areaId] || 'kanban';
+      if (sub === 'kanban') {
+        await renderAreaKanban(areaId, areaCfg);
+      } else {
+        await renderAreaDocsBrowser(areaId, areaCfg);
+      }
+    } else {
+      await renderAreaDocsBrowser(areaId, areaCfg);
+    }
+  }
+
+  // Browser de docs (vista por defecto si no hay kanban / sub-tab docs si hay kanban).
+  async function renderAreaDocsBrowser(areaId, areaCfg) {
+    const pane = document.querySelector(`.atab-content[data-area="${areaId}"][data-subtab="docs"] .dynamic-area-pane[data-area-id="${areaId}"]`)
+              || document.querySelector(`.dynamic-area-pane[data-area-id="${areaId}"]`);
     if (!pane) return;
     const firstPath = (areaCfg.paths && areaCfg.paths[0]) || `docs/${areaId}`;
     pane.innerHTML = `<div class="loading">Cargando ${escapeHtml(firstPath)}...</div>`;
     try {
       const tree = await api('/api/tree');
-      // Buscar el subtree de este area en el arbol global
       const areaNode = (tree.areas || []).find(a => a.id === areaId);
       if (!areaNode || !areaNode.children || areaNode.children.length === 0) {
         pane.innerHTML = `
           <h3>Área activa pero sin contenido todavia</h3>
           <p style="color:var(--text2)">Crea archivos .md dentro de <code>${escapeHtml(firstPath)}</code> para que aparezcan aqui.</p>
-          <p style="color:var(--text3);font-size:12px;margin-top:16px">Esta vista de docs es la generica del arquitecto. Si quieres una vista custom (con su propio kanban, estados, etc.), añade en pm/config.json &gt; areas.${escapeHtml(areaId)} un set de states/transitions y crea el agente age-spe-pm-${escapeHtml(areaId)} correspondiente.</p>
         `;
         return;
       }
-      // Render basico tipo arbol
       pane.innerHTML = renderTreeListHTML(areaNode.children, firstPath);
     } catch (e) {
       pane.innerHTML = `<div class="error-message">Error cargando contenido de ${escapeHtml(firstPath)}: ${escapeHtml(e.message)}</div>`;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // V3.5 — KANBAN GENERICO POR AREA (newsletter, marketing, etc.)
+  // Independiente del renderKanban() de producto (que es mas rico: merge
+  // stories.md, sub_status, filters, polling, etc.). Esta version es la
+  // base minima viable para que otras areas tengan su pipeline.
+  // ─────────────────────────────────────────────────────────────────
+  async function renderAreaKanban(areaId, areaCfg) {
+    const board = document.querySelector(`.area-kanban-board[data-area="${areaId}"]`);
+    if (!board) return;
+    board.innerHTML = '<div class="loading">Cargando tasks...</div>';
+
+    let data;
+    try {
+      data = await api(`/api/tasks?area=${encodeURIComponent(areaId)}`);
+    } catch (e) {
+      board.innerHTML = `<div class="error-message" style="margin:20px">Error cargando tasks del area ${escapeHtml(areaId)}: ${escapeHtml(e.message)}</div>`;
+      return;
+    }
+
+    // Cache (uso futuro)
+    state.tasksDataByArea = state.tasksDataByArea || {};
+    state.tasksDataByArea[areaId] = data;
+
+    if (data._missing) {
+      board.innerHTML = `
+        <div class="error-message" style="margin:20px">
+          No se encontro <code>pm/tasks-${escapeHtml(areaId)}.json</code> en este proyecto.
+          <br><br>
+          Crea tareas para esta area (o el deploy.sh del paquete lo materializa). Estados declarados en
+          <code>pm/config.json &gt; areas.${escapeHtml(areaId)}.states</code>: ${(areaCfg.states || []).join(', ')}.
+        </div>`;
+      return;
+    }
+
+    const tasks = data.tasks || [];
+    const states = areaCfg.states || [];
+    const stateMeta = areaCfg.state_meta || {};
+
+    // Render columnas
+    board.innerHTML = '';
+    for (const st of states) {
+      const meta = stateMeta[st] || {};
+      const stTasks = tasks.filter(t => t.status === st);
+      const col = document.createElement('div');
+      col.className = 'k-column';
+      col.dataset.state = st;
+      col.innerHTML = `
+        <div class="k-column-header">
+          <span class="k-column-name">${escapeHtml(meta.label || st)}</span>
+          <span class="k-column-count">${stTasks.length}</span>
+        </div>
+        <div class="k-column-body"></div>
+      `;
+      const body = col.querySelector('.k-column-body');
+      if (stTasks.length === 0) {
+        body.innerHTML = '<div class="k-column-empty">vacio</div>';
+      } else {
+        for (const t of stTasks) {
+          body.appendChild(renderSimpleCard(t));
+        }
+      }
+      board.appendChild(col);
+    }
+
+    enableAreaDragDrop(areaId, board);
+  }
+
+  // Card simple para area kanban genérica (sin sub_status, sin deps, sin prompt_override).
+  // El area producto sigue usando renderCard() que es mas rica.
+  function renderSimpleCard(task) {
+    const card = document.createElement('div');
+    card.className = 'k-card';
+    card.dataset.taskId = task.id;
+    card.innerHTML = `
+      <div class="k-card-header">
+        <span class="k-card-id">${escapeHtml(task.id || '')}</span>
+      </div>
+      <div class="k-card-title">${escapeHtml(task.title || '(sin titulo)')}</div>
+    `;
+    return card;
+  }
+
+  function enableAreaDragDrop(areaId, board) {
+    if (typeof Sortable === 'undefined') return;
+    const cols = board.querySelectorAll('.k-column');
+    cols.forEach(col => {
+      const body = col.querySelector('.k-column-body');
+      if (!body || body._sortable) return;
+      body._sortable = new Sortable(body, {
+        group: `kanban-${areaId}`,
+        animation: 160,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        dragClass: 'sortable-drag',
+        onAdd: (evt) => handleAreaDragMove(areaId, evt),
+      });
+    });
+  }
+
+  async function handleAreaDragMove(areaId, evt) {
+    const card = evt.item;
+    const taskId = card.dataset.taskId;
+    const fromCol = evt.from.closest('.k-column');
+    const toCol = evt.to.closest('.k-column');
+    const newStatus = toCol?.dataset.state;
+    const oldStatus = fromCol?.dataset.state;
+    if (!taskId || !newStatus || newStatus === oldStatus) return;
+
+    try {
+      const result = await api('/api/tasks/move', {
+        method: 'POST',
+        body: { id: taskId, new_status: newStatus, area: areaId },
+      });
+      // Refrescar el kanban del area (re-fetch para tener counts correctos)
+      const cfg = state.config?.areas?.[areaId] || {};
+      await renderAreaKanban(areaId, cfg);
+
+      if (result.frontmatter_synced === false) {
+        showToast(`⚠ ${taskId}: ${oldStatus} → ${newStatus} (tasks-${areaId}.json OK; no se encontro stories.md asociado — los tasks del area '${areaId}' no necesitan stories.md, esto es OK)`, 'warn');
+      } else {
+        showToast(`${taskId}: ${oldStatus} → ${newStatus}`, 'ok');
+      }
+    } catch (e) {
+      rollbackCard(card, evt.from, evt.oldIndex);
+      const data = e.data || {};
+      if (e.status === 409 && data.error === 'invalid_transition') {
+        showToast(`⚠ Transicion no permitida: ${data.from} → ${data.to}. Permitidas desde ${data.from}: ${(data.allowed_from_current||[]).join(', ') || '(ninguna)'}`, 'error');
+      } else if (e.status === 400 && data.error === 'invalid_state') {
+        showToast(`⚠ Estado invalido: ${data.got}`, 'error');
+      } else {
+        showToast(`Error moviendo: ${e.message}`, 'error');
+      }
     }
   }
 
@@ -2758,13 +2940,15 @@ Ejecuta <code>/pm sync</code> en Claude Code para crearlo y que aparezcan tareas
       });
     }
 
-    // V2.6: sub-tabs dentro de cada área (delegación porque hay varios sets)
-    el.aTabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        const area = tab.dataset.area;
-        const sub = tab.dataset.subtab;
-        if (area && sub) setSubTab(area, sub);
-      });
+    // V2.6: sub-tabs dentro de cada area. V3.5: cambiado a event delegation
+    // sobre document para que funcione con sub-tabs inyectadas dinamicamente
+    // (areas con states declarados en pm/config.json).
+    document.addEventListener('click', (e) => {
+      const tab = e.target.closest('.atab');
+      if (!tab) return;
+      const area = tab.dataset.area;
+      const sub = tab.dataset.subtab;
+      if (area && sub) setSubTab(area, sub);
     });
 
     // Refresh kanban

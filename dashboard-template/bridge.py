@@ -722,6 +722,21 @@ class DashboardHandler(BaseHTTPRequestHandler):
         body = text.encode("utf-8")
         self._send_static(status, "text/plain; charset=utf-8", body)
 
+    def _tasks_path_for_area(self, area):
+        """
+        V3.5: devuelve la ruta del archivo de tasks para un area dada.
+        - area=None o "producto": pm/tasks.json (backward compat para producto)
+        - area=<otro>: pm/tasks-<area>.json
+        Sanitiza el nombre del area para evitar path traversal.
+        """
+        if not area or area == "producto":
+            return os.path.join(self.project_root, "pm", "tasks.json")
+        # Sanitize: solo letras/numeros/guion bajo/guion (sin / ni ..)
+        if not re.match(r'^[a-zA-Z0-9_-]+$', area):
+            # Fallback al de producto si el area es invalida (no crashear)
+            return os.path.join(self.project_root, "pm", "tasks.json")
+        return os.path.join(self.project_root, "pm", f"tasks-{area}.json")
+
     def do_GET(self):
         parsed = urlparse(self.path)
         path = parsed.path
@@ -737,14 +752,25 @@ class DashboardHandler(BaseHTTPRequestHandler):
         # V2.3: tasks index (lectura del pm/tasks.json)
         # V2.0.1: enriquecemos con sub_status y next_action calculados en vivo
         # según existencia de artefactos (sin esperar a /pm sync).
+        # V3.5: soporta ?area=X para leer pm/tasks-<area>.json en lugar de pm/tasks.json.
+        #       Sin ?area o ?area=producto -> pm/tasks.json (backward compat producto).
         if path == "/api/tasks":
-            tasks_path = os.path.join(self.project_root, "pm", "tasks.json")
+            area = query.get("area", [None])[0]
+            tasks_path = self._tasks_path_for_area(area)
+            file_area = area or "producto"
             if not os.path.exists(tasks_path):
-                return self._send_json(200, {"schema_version": "1.0.0", "area": "producto", "tasks": [], "drift_warnings": [], "_missing": True})
+                return self._send_json(200, {"schema_version": "1.0.0", "area": file_area, "tasks": [], "drift_warnings": [], "_missing": True})
             try:
                 with open(tasks_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                data = enrich_tasks_with_sub_status(self.project_root, data)
+                # enrich_tasks_with_sub_status hoy es producto-specifico (busca artefactos
+                # en docs/producto/features/). Solo lo aplicamos a producto; otras areas
+                # devuelven los tasks tal cual.
+                if file_area == "producto":
+                    data = enrich_tasks_with_sub_status(self.project_root, data)
+                # Garantizar campo 'area' en la respuesta
+                if "area" not in data:
+                    data["area"] = file_area
                 return self._send_json(200, data)
             except (json.JSONDecodeError, OSError) as e:
                 return self._send_json(500, {"error": "tasks_unreadable", "detail": str(e)})
@@ -832,6 +858,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         parsed = urlparse(self.path)
         path = parsed.path
+        query = parse_qs(parsed.query)  # V3.5: necesario para soportar ?area=X en /api/tasks/move
 
         # ── POST /api/file ──────────────────────────────────────
         # Body JSON esperado: {"path": "<rel>", "content": "<utf-8>", "expected_mtime": <number|null>}
@@ -1249,9 +1276,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
             })
 
         # ── POST /api/tasks/move ────────────────────────────────
-        # Body JSON: {"id": "HU-XXX", "new_status": "<state>"}
+        # Body JSON: {"id": "HU-XXX", "new_status": "<state>", "area"?: "<area>"}
         # Valida la transición contra pm/config.json (si existe).
-        # Actualiza pm/tasks.json (atomic write) cambiando solo el status de esa tarea.
+        # V3.5: actualiza pm/tasks-<area>.json si area != "producto"; pm/tasks.json si es producto.
         if path == "/api/tasks/move":
             try:
                 length = int(self.headers.get("Content-Length", "0"))
@@ -1265,11 +1292,17 @@ class DashboardHandler(BaseHTTPRequestHandler):
             if not task_id or not new_status:
                 return self._send_json(400, {"error": "missing_fields", "required": ["id", "new_status"]})
 
-            # Cargar tasks.json
-            tasks_path = os.path.join(self.project_root, "pm", "tasks.json")
+            # V3.5: area del move. Puede venir en el body o en ?area=X. Default producto.
+            area = body.get("area") or query.get("area", [None])[0]
+            file_area = area or "producto"
+
+            # Cargar tasks.json (o tasks-<area>.json segun corresponda)
+            tasks_path = self._tasks_path_for_area(area)
             if not os.path.exists(tasks_path):
                 return self._send_json(404, {"error": "tasks_json_not_found",
-                                             "hint": "Ejecuta /pm sync para crearlo"})
+                                             "path": os.path.relpath(tasks_path, self.project_root),
+                                             "area": file_area,
+                                             "hint": f"Ejecuta /pm sync (o el deploy.sh del paquete responsable del area '{file_area}') para crearlo"})
             try:
                 with open(tasks_path, "r", encoding="utf-8") as f:
                     tasks_data = json.load(f)
@@ -1289,14 +1322,17 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 try:
                     with open(cfg_path, "r", encoding="utf-8") as f:
                         cfg = json.load(f)
-                    # V2.0: transitions/states viven en areas.producto.*. Fallback a global por compatibilidad.
-                    producto = cfg.get("areas", {}).get("producto", {})
-                    transitions = producto.get("transitions") or cfg.get("transitions", {})
-                    valid_states = (producto.get("states") or cfg.get("states", [])) + ["bloqueado"]
+                    # V3.5: transitions/states viven en areas.<file_area>.*, NO hardcoded a producto.
+                    # Newsletter (y futuros paquetes) tiene su propio pipeline editorial declarado
+                    # en su area de config. Fallback al global por compatibilidad muy antigua.
+                    area_cfg = cfg.get("areas", {}).get(file_area, {})
+                    transitions = area_cfg.get("transitions") or cfg.get("transitions", {})
+                    valid_states = (area_cfg.get("states") or cfg.get("states", [])) + ["bloqueado"]
                     if new_status not in valid_states:
                         return self._send_json(400, {"error": "invalid_state",
                                                      "got": new_status,
-                                                     "valid": valid_states})
+                                                     "valid": valid_states,
+                                                     "area": file_area})
                     allowed = transitions.get(current_status, [])
                     # Permitir mover desde bloqueado a cualquiera (caso especial)
                     if current_status != new_status and new_status not in allowed:
@@ -1305,7 +1341,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
                             "from": current_status,
                             "to": new_status,
                             "allowed_from_current": allowed,
-                            "hint": "La transición no está permitida en pm/config.json. Edita ese archivo si quieres permitirla.",
+                            "area": file_area,
+                            "hint": f"La transicion no esta permitida en pm/config.json > areas.{file_area}.transitions. Edita ese archivo si quieres permitirla.",
                         })
                 except (json.JSONDecodeError, OSError):
                     pass  # si config no se puede leer, permitir el cambio
