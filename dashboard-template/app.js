@@ -2477,12 +2477,21 @@ Ejecuta <code>/pm sync</code> en Claude Code para crearlo y que aparezcan tareas
 
   // ─────────── V2.6: Tree por área ───────────
 
-  // Mapping: qué carpetas filtra cada área
+  // Mapping: qué carpetas filtra cada área (hardcoded para las áreas core)
   const AREA_TREE_PATHS = {
     general: ['docs/general'],
     producto: ['docs/producto'],
     _system: ['pm', 'memory'],
   };
+
+  // V3.5: para áreas dinámicas (newsletter, marketing, ...) los paths vienen
+  // del config (pm/config.json > areas.<id>.paths). Esta función centraliza
+  // la resolución para no duplicar lógica.
+  function getPathsForArea(areaId) {
+    if (AREA_TREE_PATHS[areaId]) return AREA_TREE_PATHS[areaId];
+    const cfg = state.config?.areas?.[areaId];
+    return (cfg && cfg.paths) || [`docs/${areaId}`];
+  }
 
   function renderTreeForArea(areaId) {
     const container = document.getElementById('tree-' + areaId);
@@ -2492,7 +2501,7 @@ Ejecuta <code>/pm sync</code> en Claude Code para crearlo y que aparezcan tareas
       return;
     }
     container.innerHTML = '';
-    const wantedPaths = AREA_TREE_PATHS[areaId] || [];
+    const wantedPaths = getPathsForArea(areaId);
     // El árbol actual viene en state.tree.areas — buscamos los nodos que correspondan
     // a las paths configuradas (escaneamos todas las áreas + _system del bridge).
     const allChildren = [];
@@ -2705,10 +2714,17 @@ Ejecuta <code>/pm sync</code> en Claude Code para crearlo y que aparezcan tareas
               <button class="atab ${state.areaSubTab[areaId] === 'docs' ? 'active' : ''}" data-area="${escapeHtml(areaId)}" data-subtab="docs">Docs</button>
             </div>
             <div class="atab-content ${state.areaSubTab[areaId] === 'kanban' ? '' : 'hidden'}" data-area="${escapeHtml(areaId)}" data-subtab="kanban">
-              <div class="area-kanban-board" data-area="${escapeHtml(areaId)}"></div>
+              <div class="kanban-board area-kanban-board" data-area="${escapeHtml(areaId)}"></div>
             </div>
             <div class="atab-content ${state.areaSubTab[areaId] === 'docs' ? '' : 'hidden'}" data-area="${escapeHtml(areaId)}" data-subtab="docs">
-              <div class="dynamic-area-pane" data-area-id="${escapeHtml(areaId)}"></div>
+              <div class="docs-toolbar">
+                <button class="btn btn--primary" data-new-doc="${escapeHtml((area.paths && area.paths[0]) || 'docs/' + areaId)}" type="button">+ Nuevo</button>
+                <span class="docs-toolbar-hint">Crear archivo .md o carpeta dentro de <code>${escapeHtml((area.paths && area.paths[0]) || 'docs/' + areaId)}/</code></span>
+              </div>
+              <div class="area-docs-layout">
+                <div class="area-docs-tree" id="tree-${escapeHtml(areaId)}"></div>
+                <div class="area-docs-viewer" data-viewer-slot="${escapeHtml(areaId)}"></div>
+              </div>
             </div>
           `;
         } else {
@@ -2750,26 +2766,25 @@ Ejecuta <code>/pm sync</code> en Claude Code para crearlo y que aparezcan tareas
     }
   }
 
-  // Browser de docs (vista por defecto si no hay kanban / sub-tab docs si hay kanban).
+  // Browser de docs para areas dinamicas activas. Reusa renderTreeForArea() del
+  // mismo dashboard de producto/general/_system (mismo tree + viewer + mismo CSS).
+  // V3.5: para que esto funcione, el HTML del sub-tab docs incluye #tree-<areaId>
+  // y .area-docs-viewer[data-viewer-slot="<areaId>"] (igual estructura que producto).
   async function renderAreaDocsBrowser(areaId, areaCfg) {
-    const pane = document.querySelector(`.atab-content[data-area="${areaId}"][data-subtab="docs"] .dynamic-area-pane[data-area-id="${areaId}"]`)
-              || document.querySelector(`.dynamic-area-pane[data-area-id="${areaId}"]`);
-    if (!pane) return;
-    const firstPath = (areaCfg.paths && areaCfg.paths[0]) || `docs/${areaId}`;
-    pane.innerHTML = `<div class="loading">Cargando ${escapeHtml(firstPath)}...</div>`;
-    try {
-      const tree = await api('/api/tree');
-      const areaNode = (tree.areas || []).find(a => a.id === areaId);
-      if (!areaNode || !areaNode.children || areaNode.children.length === 0) {
-        pane.innerHTML = `
-          <h3>Área activa pero sin contenido todavia</h3>
-          <p style="color:var(--text2)">Crea archivos .md dentro de <code>${escapeHtml(firstPath)}</code> para que aparezcan aqui.</p>
-        `;
+    // Asegurar que state.tree esta cargado (init() ya lo carga, pero en caso de necesidad)
+    if (!state.tree) {
+      try {
+        state.tree = await api('/api/tree');
+      } catch (e) {
+        const container = document.getElementById('tree-' + areaId);
+        if (container) container.innerHTML = `<div class="error-message">Error: ${escapeHtml(e.message)}</div>`;
         return;
       }
-      pane.innerHTML = renderTreeListHTML(areaNode.children, firstPath);
-    } catch (e) {
-      pane.innerHTML = `<div class="error-message">Error cargando contenido de ${escapeHtml(firstPath)}: ${escapeHtml(e.message)}</div>`;
+    }
+    renderTreeForArea(areaId);
+    // Montar el shared viewer en el slot de esta area (mismo patron que producto)
+    if (typeof mountSharedViewerInto === 'function') {
+      mountSharedViewerInto(areaId);
     }
   }
 
