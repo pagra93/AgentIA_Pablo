@@ -46,21 +46,9 @@
             <span class="area-name">Producto</span>
             <span class="area-badge" id="badge-producto"></span>
           </button>
-          <button class="area-row area-row--inactive" data-area="marketing">
-            <span class="area-icon">░</span>
-            <span class="area-name">Marketing</span>
-            <span class="area-status">sin activar</span>
-          </button>
-          <button class="area-row area-row--inactive" data-area="rrhh">
-            <span class="area-icon">░</span>
-            <span class="area-name">RRHH</span>
-            <span class="area-status">sin activar</span>
-          </button>
-          <button class="area-row area-row--inactive" data-area="operaciones">
-            <span class="area-icon">░</span>
-            <span class="area-name">Operaciones</span>
-            <span class="area-status">sin activar</span>
-          </button>
+          <!-- Las áreas extra (marketing, rrhh, operaciones, newsletter, ...)
+               se inyectan dinámicamente desde pm/config.json > areas. -->
+          <div id="dynamic-areas-slot"></div>
         </div>
         <div class="area-nav-section">
           <div class="area-nav-title">Sistema</div>
@@ -249,19 +237,12 @@
         </div>
       </section>
 
-      <!-- ───── ÁREAS INACTIVAS ───── -->
-      <section class="area-view hidden" data-area-view="marketing">
-        <div class="area-header"><div><h1 class="area-title">Marketing</h1><p class="area-subtitle">Área preparada pero no activada.</p></div></div>
-        <div class="inactive-area-pane" data-area-id="marketing"></div>
-      </section>
-      <section class="area-view hidden" data-area-view="rrhh">
-        <div class="area-header"><div><h1 class="area-title">RRHH</h1><p class="area-subtitle">Área preparada pero no activada.</p></div></div>
-        <div class="inactive-area-pane" data-area-id="rrhh"></div>
-      </section>
-      <section class="area-view hidden" data-area-view="operaciones">
-        <div class="area-header"><div><h1 class="area-title">Operaciones</h1><p class="area-subtitle">Área preparada pero no activada.</p></div></div>
-        <div class="inactive-area-pane" data-area-id="operaciones"></div>
-      </section>
+      <!-- ───── ÁREAS DINÁMICAS ─────
+           Las áreas declaradas en pm/config.json > areas (excepto general/producto/_system)
+           se inyectan aquí dinámicamente por app.js > renderDynamicAreaViews().
+           - Si area.active === false: vista "preparada pero no activada"
+           - Si area.active === true: vista de docs con browser del primer path -->
+      <div id="dynamic-area-views-slot"></div>
 
       <!-- ───── PM SISTEMA ───── -->
       <section class="area-view hidden" data-area-view="_system">

@@ -19,7 +19,8 @@
     previewing: false,         // dentro del modo edición, ¿mostrando preview en vez de textarea?
     dirty: false,              // ¿el textarea tiene cambios sin guardar?
     // V2.6 — navegación por áreas
-    activeArea: 'general',     // 'general' | 'producto' | 'marketing' | 'rrhh' | 'operaciones' | '_system'
+    activeArea: 'general',     // 'general' | 'producto' | '_system' | <id dinamico desde pm/config.json>
+
     areaSubTab: {              // sub-tab activa por área (default por área)
       general: 'dashboard',
       producto: 'resumen',
@@ -124,8 +125,17 @@
       const id = t.id;
       if (byId.has(id)) {
         const existing = byId.get(id);
-        // Status: si el frontmatter no lo tenía, usar el del PM (inferido)
-        if (!existing.status) existing.status = t.status;
+        // Status: si el frontmatter no lo tenia, usar el del PM (inferido).
+        // V3.4 (fix bug drag-drop): si tasks.json tiene updated_at MAS RECIENTE
+        // que el frontmatter, gana tasks.json. Esto cubre el caso en que el move
+        // sincronizo tasks.json pero el frontmatter de stories.md no pudo
+        // actualizarse (story sin feature_path declarado, EPIC, etc.) y evita
+        // que la card "vuelva" visualmente a su columna original tras el drop.
+        if (!existing.status) {
+          existing.status = t.status;
+        } else if (t.status && t.updated_at && existing.updated_at && t.updated_at > existing.updated_at) {
+          existing.status = t.status;
+        }
         if (existing.criticality == null) existing.criticality = t.criticality;
         if (existing.agent_suggested == null) existing.agent_suggested = t.agent_suggested;
         if (!existing.depends_on?.length && t.depends_on?.length) existing.depends_on = t.depends_on;
@@ -664,10 +674,13 @@
 
   function showToast(msg, kind) {
     el.saveToast.textContent = msg;
-    el.saveToast.classList.remove('hidden', 'save-toast--error');
+    el.saveToast.classList.remove('hidden', 'save-toast--error', 'save-toast--warn');
     if (kind === 'error') el.saveToast.classList.add('save-toast--error');
+    else if (kind === 'warn') el.saveToast.classList.add('save-toast--warn');
     clearTimeout(showToast._t);
-    showToast._t = setTimeout(() => el.saveToast.classList.add('hidden'), 3500);
+    // Warnings se quedan mas tiempo para que el PM los pueda leer (lleva mas info)
+    const ms = kind === 'warn' ? 7000 : 3500;
+    showToast._t = setTimeout(() => el.saveToast.classList.add('hidden'), ms);
   }
 
   function renderBreadcrumb(path) {
@@ -694,15 +707,27 @@
 
   function setActiveArea(areaId) {
     state.activeArea = areaId;
-    // Sidebar: marcar fila activa
-    el.areaRows.forEach(r => r.classList.toggle('active', r.dataset.area === areaId));
-    // Main: mostrar solo la sección del área
-    el.areaViews.forEach(v => v.classList.toggle('hidden', v.dataset.areaView !== areaId));
+    // Sidebar: marcar fila activa (querySelectorAll vivo, incluye areas dinamicas)
+    document.querySelectorAll('.area-row').forEach(r => r.classList.toggle('active', r.dataset.area === areaId));
+    // Main: mostrar solo la sección del área (querySelectorAll vivo)
+    document.querySelectorAll('.area-view').forEach(v => v.classList.toggle('hidden', v.dataset.areaView !== areaId));
     el.errorState.classList.add('hidden');
 
-    // Renderizar pantallas inactivas si corresponde
-    if (['marketing', 'rrhh', 'operaciones'].includes(areaId)) {
+    // Areas inactivas: las que tienen active: false en pm/config.json > areas
+    // (Antes hardcoded como ['marketing', 'rrhh', 'operaciones']; ahora dinamico)
+    const areaCfg = state.config?.areas?.[areaId];
+    const isHardcoded = (areaId === 'general' || areaId === 'producto' || areaId === '_system');
+    if (!isHardcoded && areaCfg && areaCfg.active === false) {
       renderInactiveArea(areaId);
+      stopPolling();
+      hideSharedViewer();
+      return;
+    }
+
+    // Areas dinamicas ACTIVAS (newsletter, marketing si se activa, etc.):
+    // renderizar vista de docs simple (browser del primer path)
+    if (!isHardcoded && areaCfg && areaCfg.active === true) {
+      renderDynamicActiveArea(areaId, areaCfg);
       stopPolling();
       hideSharedViewer();
       return;
@@ -1443,6 +1468,8 @@
       state.tasksData = tasks;
       state.config = cfg;
       state.lastSyncMs = Date.now();
+      // Inyectar areas dinamicas (no hardcoded) en sidebar y main panel
+      renderDynamicAreas(cfg);
       renderKanban();
       renderKanbanMeta();
     } catch (e) {
@@ -1695,7 +1722,9 @@ Ejecuta <code>/pm sync</code> en Claude Code para crearlo y que aparezcan tareas
 
     // Optimistic UI: la tarjeta ya está en la nueva columna por SortableJS
     let body = {id: taskId, new_status: newStatus};
-    if (newStatus === 'bloqueado') {
+    // V3.4 fix: el estado bloqueado se llama "bloqueada" en config y en kanban (femenino).
+    // Antes aqui figuraba 'bloqueado' (masculino) lo cual nunca matcheaba y era dead code.
+    if (newStatus === 'bloqueada') {
       const reason = prompt(`Razón para bloquear ${taskId}:`, '');
       if (reason === null) {
         // canceló → rollback
@@ -1717,7 +1746,15 @@ Ejecuta <code>/pm sync</code> en Claude Code para crearlo y que aparezcan tareas
       // Re-render para que las tarjetas dentro de la columna queden bien (deps, badges)
       renderKanban();
 
-      showToast(`${taskId}: ${oldStatus} → ${newStatus}`, 'ok');
+      // V3.4: si el backend no pudo sincronizar el frontmatter de stories.md,
+      // avisar al usuario en lugar del toast verde de exito. Con el fix de
+      // getMergedTasks (compara updated_at), la card SE QUEDA en la nueva
+      // columna, pero conviene que el PM sepa que stories.md esta desfasado.
+      if (result.frontmatter_synced === false) {
+        showToast(`⚠ ${taskId}: ${oldStatus} → ${newStatus} (tasks.json OK; stories.md NO sincronizado — la story no se encontro en disco)`, 'warn');
+      } else {
+        showToast(`${taskId}: ${oldStatus} → ${newStatus}`, 'ok');
+      }
     } catch (e) {
       // Rollback + flash de error
       rollbackCard(card, evt.from, evt.oldIndex);
@@ -2476,8 +2513,12 @@ Ejecuta <code>/pm sync</code> en Claude Code para crearlo y que aparezcan tareas
 
     // Cards globales
     const totalStories = stories.length;
-    const activeAreas = ['producto'].length;
-    const inactiveAreas = ['marketing', 'rrhh', 'operaciones'].length;
+    // V3.4: contar areas activas/inactivas desde pm/config.json en lugar de hardcoded.
+    // Excluye 'general' (panel cross-area) y '_system' (interno del PM).
+    const allAreas = state.config?.areas || {};
+    const userAreas = Object.entries(allAreas).filter(([k]) => k !== 'general' && k !== '_system');
+    const activeAreas = userAreas.filter(([_, v]) => v.active === true).length;
+    const inactiveAreas = userAreas.filter(([_, v]) => v.active === false).length;
     const drift = (state.tasksData?.drift_warnings || []).length;
     el.generalCards.innerHTML = `
       <div class="r-card r-card--backlog"><div class="r-card-num">${totalStories}</div><div class="r-card-label">Stories totales</div></div>
@@ -2601,14 +2642,121 @@ Ejecuta <code>/pm sync</code> en Claude Code para crearlo y que aparezcan tareas
     `;
   }
 
+  // ─────────────────────────────────────────────────────────────────
+  // Areas dinamicas (no hardcoded): inyecta botones de sidebar y
+  // sections en main panel para cada area declarada en pm/config.json
+  // que no sea general/producto/_system. Idempotente: limpia y re-renderiza.
+  // ─────────────────────────────────────────────────────────────────
+  const HARDCODED_AREAS = new Set(['general', 'producto', '_system']);
+
+  function renderDynamicAreas(cfg) {
+    const areas = cfg?.areas || {};
+    const sidebarSlot = document.getElementById('dynamic-areas-slot');
+    const viewsSlot = document.getElementById('dynamic-area-views-slot');
+    if (!sidebarSlot || !viewsSlot) return;
+
+    // Limpiar lo anterior (re-render idempotente)
+    sidebarSlot.innerHTML = '';
+    viewsSlot.innerHTML = '';
+
+    // Orden: por la posicion en el config (Object.keys preserva orden en JS moderno)
+    for (const areaId of Object.keys(areas)) {
+      if (HARDCODED_AREAS.has(areaId)) continue;
+      const area = areas[areaId];
+      const label = area.label || areaId.charAt(0).toUpperCase() + areaId.slice(1);
+      const isActive = area.active === true;
+
+      // Boton sidebar
+      const btn = document.createElement('button');
+      btn.className = 'area-row' + (isActive ? '' : ' area-row--inactive');
+      btn.dataset.area = areaId;
+      btn.innerHTML = isActive
+        ? `<span class="area-icon">▶</span><span class="area-name">${escapeHtml(label)}</span>`
+        : `<span class="area-icon">░</span><span class="area-name">${escapeHtml(label)}</span><span class="area-status">sin activar</span>`;
+      sidebarSlot.appendChild(btn);
+
+      // Section view
+      const section = document.createElement('section');
+      section.className = 'area-view hidden';
+      section.dataset.areaView = areaId;
+      if (isActive) {
+        section.innerHTML = `
+          <div class="area-header">
+            <div>
+              <h1 class="area-title">${escapeHtml(label)}</h1>
+              <p class="area-subtitle">Área activa. Contenido en <code>${escapeHtml((area.paths && area.paths[0]) || 'docs/' + areaId)}</code>.</p>
+            </div>
+          </div>
+          <div class="dynamic-area-pane" data-area-id="${escapeHtml(areaId)}"></div>
+        `;
+      } else {
+        section.innerHTML = `
+          <div class="area-header"><div><h1 class="area-title">${escapeHtml(label)}</h1><p class="area-subtitle">Área preparada pero no activada.</p></div></div>
+          <div class="inactive-area-pane" data-area-id="${escapeHtml(areaId)}"></div>
+        `;
+      }
+      viewsSlot.appendChild(section);
+    }
+  }
+
+  // Renderiza una vista de docs simple para un area dinamica activa.
+  // Lee el primer path del area (ej. "docs/newsletter") y muestra un browser
+  // basico del arbol de archivos.
+  async function renderDynamicActiveArea(areaId, areaCfg) {
+    const pane = document.querySelector(`.dynamic-area-pane[data-area-id="${areaId}"]`);
+    if (!pane) return;
+    const firstPath = (areaCfg.paths && areaCfg.paths[0]) || `docs/${areaId}`;
+    pane.innerHTML = `<div class="loading">Cargando ${escapeHtml(firstPath)}...</div>`;
+    try {
+      const tree = await api('/api/tree');
+      // Buscar el subtree de este area en el arbol global
+      const areaNode = (tree.areas || []).find(a => a.id === areaId);
+      if (!areaNode || !areaNode.children || areaNode.children.length === 0) {
+        pane.innerHTML = `
+          <h3>Área activa pero sin contenido todavia</h3>
+          <p style="color:var(--text2)">Crea archivos .md dentro de <code>${escapeHtml(firstPath)}</code> para que aparezcan aqui.</p>
+          <p style="color:var(--text3);font-size:12px;margin-top:16px">Esta vista de docs es la generica del arquitecto. Si quieres una vista custom (con su propio kanban, estados, etc.), añade en pm/config.json &gt; areas.${escapeHtml(areaId)} un set de states/transitions y crea el agente age-spe-pm-${escapeHtml(areaId)} correspondiente.</p>
+        `;
+        return;
+      }
+      // Render basico tipo arbol
+      pane.innerHTML = renderTreeListHTML(areaNode.children, firstPath);
+    } catch (e) {
+      pane.innerHTML = `<div class="error-message">Error cargando contenido de ${escapeHtml(firstPath)}: ${escapeHtml(e.message)}</div>`;
+    }
+  }
+
+  function renderTreeListHTML(children, basePath, depth = 0) {
+    if (!children || children.length === 0) return '<div style="color:var(--text3)">(vacio)</div>';
+    let html = `<ul class="dynamic-tree" style="padding-left:${depth * 16}px;list-style:none">`;
+    for (const node of children) {
+      const isDir = (node.children && node.children.length >= 0) && node.type === 'dir';
+      const icon = isDir ? '📁' : '📄';
+      html += `<li class="dynamic-tree-row" style="padding:4px 0">
+        <span style="margin-right:6px">${icon}</span>
+        ${isDir
+          ? `<strong>${escapeHtml(node.name)}</strong>`
+          : `<a href="#" class="r-list-row" data-path="${escapeHtml(node.path)}" data-area-target="${escapeHtml(state.activeArea)}">${escapeHtml(node.name)}</a>`
+        }
+      </li>`;
+      if (isDir && node.children) html += renderTreeListHTML(node.children, basePath, depth + 1);
+    }
+    html += '</ul>';
+    return html;
+  }
+
   function wireV26Listeners() {
-    // V2.6: sidebar lateral — click en área
-    el.areaRows.forEach(row => {
-      row.addEventListener('click', () => {
+    // V2.6 (modificado): sidebar lateral — click en area. Event delegation para
+    // que funcione con areas hardcoded Y con las dinamicas inyectadas despues.
+    const sidebar = document.getElementById('sidebar') || document.getElementById('area-nav');
+    if (sidebar) {
+      sidebar.addEventListener('click', (e) => {
+        const row = e.target.closest('.area-row');
+        if (!row) return;
         const id = row.dataset.area;
         if (id) setActiveArea(id);
       });
-    });
+    }
 
     // V2.6: sub-tabs dentro de cada área (delegación porque hay varios sets)
     el.aTabs.forEach(tab => {

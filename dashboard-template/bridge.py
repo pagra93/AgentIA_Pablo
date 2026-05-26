@@ -1336,31 +1336,53 @@ class DashboardHandler(BaseHTTPRequestHandler):
             # V3.3 — sincronizar frontmatter YAML de la story en stories.md
             # Sin esto, getMergedTasks() en el frontend usa el status viejo del frontmatter
             # (que gana sobre tasks.json) y la card no se mueve visualmente.
+            # V3.4 (fix bug drag-drop) — si feature_path NO funciona (None, inexistente
+            # o story no esta en ese stories.md), buscar la story por ID en TODOS los
+            # stories.md del proyecto antes de rendirse. Cubre tareas del inbox sin
+            # feature_path, splits que renombraron el feature, drift en general.
             frontmatter_synced = False
-            feature_path = target.get("feature_path")
-            if feature_path and not task_id.startswith("EPIC-"):
-                stories_rel = feature_path.rstrip("/") + "/stories.md"
-                stories_abs = safe_join(self.project_root, stories_rel)
-                if stories_abs and os.path.exists(stories_abs):
-                    try:
-                        with open(stories_abs, "r", encoding="utf-8") as f:
-                            story_text = f.read()
-                        fm_update = {"status": new_status, "updated_at": _now_iso()}
-                        if new_status == "bloqueado":
-                            fm_update["blocked"] = True
-                        elif target.get("blocked") is False:
-                            fm_update["blocked"] = False
-                        new_text, found = update_story_frontmatter_in_text(
-                            story_text, task_id, fm_update
-                        )
-                        if found and new_text is not None and new_text != story_text:
-                            atomic_write(stories_abs, new_text)
-                            frontmatter_synced = True
-                    except (OSError, UnicodeDecodeError):
-                        # No bloquear el move si falla la sincronización del frontmatter.
-                        # El estado en tasks.json ya está actualizado; en el peor caso
-                        # el dashboard muestra desincronización hasta el próximo /pm sync.
-                        pass
+            fm_update = {"status": new_status, "updated_at": _now_iso()}
+            if new_status == "bloqueada":
+                fm_update["blocked"] = True
+            elif target.get("blocked") is False:
+                fm_update["blocked"] = False
+
+            def _try_sync_in(stories_abs):
+                """Devuelve True si encontro y actualizo la story en stories_abs."""
+                if not stories_abs or not os.path.exists(stories_abs):
+                    return False
+                try:
+                    with open(stories_abs, "r", encoding="utf-8") as f:
+                        story_text = f.read()
+                    new_text, found = update_story_frontmatter_in_text(
+                        story_text, task_id, fm_update
+                    )
+                    if found and new_text is not None and new_text != story_text:
+                        atomic_write(stories_abs, new_text)
+                        return True
+                except (OSError, UnicodeDecodeError):
+                    return False
+                return False
+
+            if not task_id.startswith("EPIC-"):
+                # Intento 1: ruta declarada en feature_path
+                feature_path = target.get("feature_path")
+                if feature_path:
+                    stories_rel = feature_path.rstrip("/") + "/stories.md"
+                    stories_abs = safe_join(self.project_root, stories_rel)
+                    frontmatter_synced = _try_sync_in(stories_abs)
+
+                # Intento 2: si fallo, buscar la story en cualquier stories.md del proyecto.
+                # Solo recorremos docs/ para acotar el scope.
+                if not frontmatter_synced:
+                    docs_root = safe_join(self.project_root, "docs")
+                    if docs_root and os.path.isdir(docs_root):
+                        for dirpath, _dirnames, filenames in os.walk(docs_root):
+                            if "stories.md" in filenames:
+                                candidate = os.path.join(dirpath, "stories.md")
+                                if _try_sync_in(candidate):
+                                    frontmatter_synced = True
+                                    break
 
             return self._send_json(200, {
                 "id": task_id,
