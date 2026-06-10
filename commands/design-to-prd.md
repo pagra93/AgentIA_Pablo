@@ -37,6 +37,22 @@ Abre Pencil, captura screenshots, lee componentes y layout de cada pantalla.
 3 pantallas de catalogo → Feature: "Product Catalog"
 Etc.
 
+### Paso 2.3: Lee el Functional Brief (si existe)
+
+Si existe `docs/producto/functional-brief.md`, **leelo COMPLETO antes de analizar las 6 capas**. Este archivo lo genera `/design-discovery` y contiene la lógica funcional que el PM aportó explícitamente: reglas de negocio, validaciones específicas, flujos condicionales por rol/estado, integraciones, edge cases conscientes, supuestos pendientes ⚠️.
+
+**El brief tiene precedencia sobre cualquier inferencia visual**:
+- Si el brief dice "el botón X solo es visible para rol admin", esa regla entra directamente en Notas técnicas → Lógica/Permisos.
+- Si el brief especifica una validación concreta, esa va a Criterios de aceptación (Given-When-Then) y a Notas técnicas.
+- Si el brief lista una integración decidida (ej: SendGrid para email), esa va a Notas técnicas → Integraciones.
+
+**Marcado de secciones** (V3.4):
+- Cuando una sección de la story (Historia de Usuario, Definición, Lógica en Notas técnicas, Validaciones, Edge Cases) tiene respaldo en el brief, marcarla **`[VALIDADO via functional-brief]`** en vez de `[DERIVADO]`.
+- Las secciones SIN cobertura del brief siguen marcadas `[DERIVADO]` como hasta ahora.
+- Los **supuestos pendientes ⚠️** del brief se reflejan en la story correspondiente como "Riesgos abiertos" en Notas técnicas, conservando la marca ⚠️ para que el PM (o `/analyze`) los resuelva antes de `/plan`.
+
+Si NO existe el brief: procede normal — el comportamiento es idéntico al actual (todo `[DERIVADO]`).
+
 ### Paso 2.5: Lee el Project Registry
 Si existe `docs/general/project-registry.md`, leelo ANTES de analizar las 6 capas. Esto te dice que DB, APIs, componentes y servicios ya existen (o estan planificados) en el proyecto:
 - Si una tabla ya existe (`planned` o `active`), referenciala en "Usa" en vez de rederivarla en Notas tecnicas
@@ -143,16 +159,25 @@ feature: notif-push
 
 ## Que Hacer Despues
 
+### Paso previo opcional — `/design-discovery`
+
+Si el dominio tiene mucha lógica de negocio que no aparece en el visual (permisos por rol, cálculos derivados, validaciones específicas, integraciones con reglas particulares), ejecuta **`/design-discovery` ANTES de `/design-to-prd`**. El agente `age-spe-design-discoverer` te entrevista una pregunta por turno sobre los puntos ciegos funcionales del diseño y genera `docs/producto/functional-brief.md`.
+
+Cuando ejecutes `/design-to-prd` después, el design-analyst detecta el brief en su Paso 2.3 y marca las secciones con respaldo del brief como `[VALIDADO via functional-brief]` en vez de `[DERIVADO]`.
+
+Si tu diseño es trivial o el dominio bien conocido, puedes saltarlo — `/design-to-prd` sigue funcionando exactamente como siempre.
+
 ### Fast Track (recomendado si el diseno es detallado y dominio conocido)
 
 ```
-/design-to-prd                   # Genera stories + PRDs desde disenos
+/design-discovery                # OPCIONAL: discovery funcional al PM antes del PRD
+/design-to-prd                   # Genera stories + PRDs desde disenos (lee brief si existe)
 /plan                            # Arquitectura y sprint plan (directo)
 /build                           # Implementar (dev coge UNA story, tiene TODO)
 /review                          # Verificar + documentar
 ```
 
-Las stories ya tienen todo lo necesario. Las secciones JTBD estan marcadas [DERIVADO].
+Las stories ya tienen todo lo necesario. Sin `/design-discovery`: secciones JTBD marcadas [DERIVADO]. Con `/design-discovery`: secciones cubiertas pasan a [VALIDADO via functional-brief].
 
 ### Full Pipeline (recomendado si hay incertidumbre o dominio nuevo)
 
@@ -191,7 +216,8 @@ docs/producto/features/user-authentication/
 - Cada story pasa 4 criterios: independiente, deployable, <=3 dias, end-to-end
 - El PRD NO prescribe solucion tecnica (los detalles tech estan en las stories)
 - Funciona con Pencil (MCP tools) o con screenshots/mockups que le pases
-- Las secciones JTBD se marcan [DERIVADO] — para enriquecerlas usar /analyze + /define
+- Las secciones JTBD se marcan [DERIVADO] cuando se infieren del diseño — para enriquecerlas usar `/design-discovery` (antes) o `/analyze + /define` (después)
+- Si existe `docs/producto/functional-brief.md` (de `/design-discovery`), las secciones cubiertas por el brief se marcan **[VALIDADO via functional-brief]**
 
 ---
 

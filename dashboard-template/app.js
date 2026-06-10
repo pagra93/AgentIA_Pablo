@@ -766,6 +766,7 @@
     if (areaId === 'producto' && subtab === 'funcionalidades') renderFuncionalidades();
     if (areaId === 'producto' && subtab === 'dossiers') renderDossiers();
     if (areaId === 'producto' && subtab === 'kanban') renderKanban();
+    if (areaId === 'producto' && subtab === 'arquitectura') renderArquitectura();
     if (areaId === 'producto' && subtab === 'docs') renderTreeForArea('producto');
     if (areaId === '_system' && subtab === 'estado') renderSystemEstado();
     if (areaId === '_system' && subtab === 'files') renderTreeForArea('_system');
@@ -806,6 +807,116 @@
 
   function hideSharedViewer() {
     el.sharedViewerHost.classList.add('hidden');
+  }
+
+  // ---- Arquitectura: render del architecture-map.json con mermaid ----
+  let _mermaidReady = false;
+  let _archRefreshWired = false;
+
+  function archSafeId(id) {
+    return String(id).replace(/[^a-zA-Z0-9]/g, '_');
+  }
+  function archEsc(t) {
+    return String(t == null ? '' : t).replace(/"/g, "'").replace(/\n/g, ' ');
+  }
+
+  function archGraph(nodes, edges) {
+    if (!nodes.length) return 'graph TD\n  empty["(mapa vacio)"]';
+    const lines = ['graph TD'];
+    nodes.forEach(n => {
+      const dep = n.status === 'deprecated' ? '  %% deprecated' : '';
+      lines.push(`  ${archSafeId(n.id)}["${archEsc(n.name)}\\n(${archEsc(n.kind)})"]${dep}`);
+    });
+    edges.forEach(e => {
+      lines.push(`  ${archSafeId(e.from)} -->|${archEsc(e.type)}| ${archSafeId(e.to)}`);
+    });
+    return lines.join('\n');
+  }
+
+  function archER(nodes, edges) {
+    const tables = nodes.filter(n => n.kind === 'table');
+    if (!tables.length) return null;
+    const lines = ['erDiagram'];
+    tables.forEach(t => {
+      const fields = (t.meta && t.meta.fields) || [];
+      lines.push(`  ${archSafeId(t.id)} {`);
+      (fields.length ? fields : ['id']).forEach(f => lines.push(`    string ${archSafeId(f)}`));
+      lines.push('  }');
+    });
+    const tableIds = new Set(tables.map(t => t.id));
+    edges.forEach(e => {
+      if (e.type === 'fk' && tableIds.has(e.from) && tableIds.has(e.to)) {
+        lines.push(`  ${archSafeId(e.from)} ||--o{ ${archSafeId(e.to)} : fk`);
+      }
+    });
+    return lines.join('\n');
+  }
+
+  function archSequences(flows) {
+    return (flows || []).map(flow => {
+      const lines = ['sequenceDiagram'];
+      let prev = 'Actor';
+      (flow.steps || []).forEach((step, i) => {
+        lines.push(`  ${prev}->>Paso${i + 1}: ${archEsc(step)}`);
+        prev = `Paso${i + 1}`;
+      });
+      return { title: flow.name || flow.id || 'Flujo', diagram: lines.join('\n') };
+    });
+  }
+
+  async function renderArquitectura() {
+    const host = document.getElementById('arch-view');
+    const meta = document.getElementById('arch-meta');
+    if (!host) return;
+
+    if (!_archRefreshWired) {
+      const btn = document.getElementById('btn-refresh-arch');
+      if (btn) btn.addEventListener('click', renderArquitectura);
+      _archRefreshWired = true;
+    }
+
+    host.innerHTML = '<p class="arch-empty">Cargando mapa…</p>';
+    let map;
+    try {
+      map = await api('/api/architecture');
+    } catch (e) {
+      host.innerHTML = `<p class="arch-empty">No se pudo leer el mapa: ${escapeHtml(String(e))}</p>`;
+      return;
+    }
+
+    const nodes = map.nodes || [];
+    const edges = map.edges || [];
+    if (meta) {
+      meta.textContent = map._missing
+        ? 'Aún no hay architecture-map.json. Se generará al construir features (/review) o con bootstrap.'
+        : `${nodes.length} nodos · ${edges.length} relaciones · generado: ${map.generated_at || '—'}`;
+    }
+    if (!nodes.length) {
+      host.innerHTML = '<p class="arch-empty">Mapa vacío. Se irá poblando a medida que construyas features (paso UPDATE en /review), o lánzalo retroactivamente con el modo BOOTSTRAP de ski-architecture-map.</p>';
+      return;
+    }
+
+    const er = archER(nodes, edges);
+    const seqs = archSequences(map.data_flows);
+    let html = '<div class="arch-section"><h3>Grafo de dependencias</h3>'
+      + `<pre class="mermaid">${archGraph(nodes, edges)}</pre></div>`;
+    html += '<div class="arch-section"><h3>Modelo de datos</h3>'
+      + (er ? `<pre class="mermaid">${er}</pre>` : '<p class="arch-empty">Sin tablas registradas.</p>') + '</div>';
+    html += '<div class="arch-section"><h3>Flujos de datos</h3>'
+      + (seqs.length ? seqs.map(s => `<p class="arch-flow-title">${escapeHtml(s.title)}</p><pre class="mermaid">${s.diagram}</pre>`).join('')
+                     : '<p class="arch-empty">Sin flujos registrados.</p>') + '</div>';
+    host.innerHTML = html;
+
+    if (typeof mermaid === 'undefined') {
+      host.insertAdjacentHTML('afterbegin', '<p class="arch-empty">mermaid no cargó (¿sin conexión al CDN?). El JSON sí está disponible.</p>');
+      return;
+    }
+    try {
+      if (!_mermaidReady) { mermaid.initialize({ startOnLoad: false, theme: 'dark' }); _mermaidReady = true; }
+      await mermaid.run({ querySelector: '#arch-view .mermaid' });
+    } catch (e) {
+      host.insertAdjacentHTML('afterbegin', `<p class="arch-empty">Error al renderizar diagramas: ${escapeHtml(String(e))}</p>`);
+    }
   }
 
   async function loadStories() {

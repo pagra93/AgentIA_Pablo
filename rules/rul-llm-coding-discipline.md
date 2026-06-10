@@ -191,6 +191,52 @@ Ejemplo:
 
 ---
 
+## Principios adicionales (mayo 2026)
+
+Las 4 reglas de arriba (Karpathy, dic 2025) cubren los fallos de *escribir* código. Estos 3 cubren fallos
+de *contexto y ejecución* que aparecieron con el trabajo multi-paso y multi-codebase. No reemplazan a las 4;
+las complementan.
+
+### 5. Leer antes de escribir
+
+**Antes de añadir código en un archivo, entiende lo que ya hay.**
+
+LLMs añaden código nuevo que choca con código existente 30 líneas más allá, porque no lo leyeron.
+
+- Antes de añadir, lee: los **exports** del archivo, el **caller inmediato** y las **utilidades compartidas** obvias.
+- Si ya existe una función que hace lo mismo, úsala — no escribas una segunda (colisión por orden de import).
+- Si no entiendes por qué algo está estructurado así, **pregunta antes de añadir**.
+- *"Looks orthogonal to me"* es la frase más peligrosa del codebase. Verifica que de verdad lo es.
+
+(Qué leer primero y con qué prioridad: ver `rul-lazy-loading`.)
+
+### 6. Exponer conflictos, no promediarlos
+
+**Si dos patrones del codebase se contradicen, no los mezcles.**
+
+El "código promedio" que satisface dos patrones opuestos es peor que cualquiera de los dos (p.ej. doble
+manejo de errores que los traga dos veces).
+
+- Elige **uno** (el más reciente / el más probado / el que tiene tests).
+- **Explica por qué** lo elegiste.
+- **Marca el otro** para limpieza en el reporte final (no lo arregles en este commit — ver §3).
+
+(Esto refleja, a nivel de código, lo que `config/core-manifest.yaml → conflict_strategy: prompt` hace a
+nivel de archivos en la propagación: no fusionar, decidir.)
+
+### 7. Checkpoint en tareas multi-paso
+
+**No continúes desde un estado que no puedes describir.**
+
+Un refactor de 6 pasos que se tuerce en el paso 4 y sigue al 5 y 6 sobre el estado roto cuesta más
+desenredar que rehacer.
+
+- Tras cada paso significativo: resume **qué se hizo, qué está verificado, qué falta**.
+- Si pierdes el hilo: **para y reformula** el estado antes de seguir.
+- Para persistir ese estado entre sesiones (no solo dentro de una): usa `ski-context-ledger`.
+
+---
+
 ## Scope
 
 ### Aplica a
@@ -222,11 +268,16 @@ Ejemplo:
 | Borrado de comentarios sin justificación | Surgical Changes | Medium |
 | Implementación sin criterio de éxito definido | Goal-Driven Execution | High |
 | Sycophancy (asentir cuando debería pushback) | Think Before Coding | Medium |
+| Mezclar patrones contradictorios (averaging) | Surface conflicts | High |
+| Añadir código sin leer callers/exports | Read before write | Medium |
+| Continuar multi-paso sin checkpoint | Checkpoint | Medium |
 
 ---
 
 ## Origen
 
-Estos principios se derivan de las observaciones de Andrej Karpathy sobre LLM coding (diciembre 2025) y la sistematización posterior de la comunidad en "Four Principles". Adaptados al sistema PM x10 con el caveat del Boy Scout Rule.
+Las 4 reglas core se derivan de las observaciones de Andrej Karpathy sobre LLM coding (diciembre 2025) y la sistematización posterior de la comunidad en "Four Principles". Adaptadas al sistema PM x10 con el caveat del Boy Scout Rule.
+
+Los **principios adicionales (5-7)** provienen del artículo "12-rule CLAUDE.md" (mayo 2026), que extiende las 4 de Karpathy con reglas para trabajo multi-paso y multi-codebase: Read before write (Rule 8), Surface conflicts (Rule 7) y Checkpoint (Rule 10). Las reglas 5 (modelo vs código) y 12 (fail loud) de ese artículo viven como reglas propias: `rul-model-vs-code` y `rul-fail-loud`.
 
 Ver `docs/general/wiki/sources/` si la fuente fue ingestada al wiki del proyecto.

@@ -4,13 +4,14 @@
 **Architect** — Designs technical architecture. Respects stack constraints.
 
 ## Permissions
-- read: Read CLAUDE.md, stories, existing architecture
+- read: Read CLAUDE.md, stories, existing architecture, architecture-map (`docs/general/architecture-map.json` vía `ski-architecture-map` READ)
 - create-architecture: Design components, data flow, interactions
 - create-adr: Generate Architecture Decision Records
 
 ## Boundaries
 ### Must
 - Read CLAUDE.md FIRST (stack is non-negotiable)
+- **Read the architecture map FIRST** (`docs/general/architecture-map.json`) vía `ski-architecture-map` verbo READ, antes de diseñar. Entiende qué nodos (componentes, servicios, tablas, APIs, integraciones) y relaciones ya existen. **Extiende, no dupliques**: si ya hay un servicio/tabla/API que cubre la necesidad, reúsalo; solo crea nodos nuevos para lo que de verdad no existe. Es más barato y fiable que leer varias carpetas de feature e inferir relaciones.
 - Simplest solution wins
 - Every ADR includes alternatives considered
 

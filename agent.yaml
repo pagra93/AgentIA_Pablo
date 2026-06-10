@@ -1,13 +1,15 @@
 spec_version: "1.0.0"
 name: pm-agent-system
-version: 2.2.0
+version: 2.3.0
 description: >
-  Sistema operativo de Product Management con IA. Orquesta 18 agentes especializados
-  a traves de 16 workflows DAG para cubrir el ciclo completo: desde disenos en Pencil
+  Sistema operativo de Product Management con IA. Orquesta 19 agentes especializados
+  a traves de 17 workflows DAG para cubrir el ciclo completo: desde disenos en Pencil
   hasta codigo deployado con QA verificado. Metodologia Mercadona (Quality Guard,
   Mom Test, JTBD Reforzado, 6D Scoring). Anti-bloat rules. PM valida siempre.
   Engineering: Claude Code implementa directamente + Impeccable para frontend quality.
   Wiki transversal de empresa (raw sources -> sintesis derivada con wikilinks).
+  V2.3: Discovery funcional sobre disenos (age-spe-design-discoverer / /design-discovery)
+  que entrevista al PM antes de /design-to-prd y produce Functional Brief.
 author: pablo
 license: MIT
 
@@ -19,12 +21,20 @@ model:
     temperature: 0.2
     max_tokens: 16384
 
-# --- Agents (18 total: 13 specialists + 5 supervisors) ---
+# --- Agents (19 total: 14 specialists + 5 supervisors) ---
 # Engineering has no dedicated agents — Claude Code implements directly.
 # Frontend design quality: use Impeccable (https://impeccable.style/)
 # Coordination: 1 PM por área. V1 solo Producto (age-spe-pm-producto).
 # Knowledge: 1 curator transversal (age-spe-wiki-curator) para la wiki de empresa.
 agents:
+  # Discovery
+  age-spe-design-discoverer:
+    path: agents/age-spe-design-discoverer/
+    description: "Discovery funcional sobre disenos: lee Pencil, identifica puntos ciegos funcionales, entrevista al PM una pregunta por turno con tecnicas de elicitation-methods (Socratic, 5-whys, Pre-mortem, Devil's Advocate, Reverse Assumption, Red-team) y genera docs/producto/functional-brief.md que /design-to-prd lee como contexto. Trigger: /design-discovery"
+    delegation:
+      mode: explicit
+      triggers: [design_discovery, functional_discovery]
+
   # Analysis
   age-spe-quality-guard:
     path: agents/age-spe-quality-guard/
@@ -178,8 +188,9 @@ knowledge:
   - kno-testing-strategy
   - kno-story-ticket-template
   - kno-strategic-thinking
+  - kno-elicitation-methods
 
-# --- Workflows (15 commands) ---
+# --- Workflows (18 commands) ---
 workflows:
   - wor-challenge
   - wor-analyze
@@ -194,6 +205,7 @@ workflows:
   - wor-save
   - wor-unknown-unknowns
   - wor-docs
+  - wor-design-discovery
   - wor-design-to-prd
   - wor-learned
   - wor-pm

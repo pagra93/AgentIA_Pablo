@@ -125,6 +125,16 @@ Updates `docs/producto/lessons.md`, `memory/MEMORY.md`, and `docs/general/PROJEC
 ## Step 4: Auto Documentation
 Use **ski-doc-updater** to update PROJECT_KNOWLEDGE.md, changelog, API docs.
 
+Then use **ski-architecture-map** (verbo UPDATE) to keep the architecture map current:
+- Upsert into `docs/general/architecture-map.json` the nodes/edges this feature introduced, taken from its
+  story "Notas técnicas" (6 capas: UI→page/component, DB→table, API→api, Lógica→service, Integraciones→
+  integration) and "Dependencias > Usa/Crea" (→ edges), with `provenance` (story/ADR, `by: agent`).
+- Incremental and idempotent (upsert by `id`, never rewrite; deprecate, don't delete).
+- Validate + re-render the HTML:
+  `python3 skills/ski-architecture-map/render-map.py validate docs/general/architecture-map.json`
+  then `... render docs/general/architecture-map.json docs/general/architecture-map.html`.
+- The dashboard sub-tab "Arquitectura" reads the JSON directly (no extra step).
+
 ## Step 5: Final Verification
 - [ ] Tests pass
 - [ ] Code review approved

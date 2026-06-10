@@ -11,6 +11,53 @@
 - group: Agrupar pantallas en features funcionales
 - write: Crear `docs/producto/features/[feature]/` con **2 archivos únicamente**: `stories.md` y `prd.md`
 
+## Step 0.7 — Detectar Functional Brief (V3.4)
+
+ANTES de analizar las 6 capas, verificar si existe `docs/producto/functional-brief.md`. Este archivo lo genera `/design-discovery` (agente `age-spe-design-discoverer`) entrevistando al PM una pregunta por turno sobre la lógica funcional que el diseño no muestra.
+
+```
+Si existe docs/producto/functional-brief.md:
+  1. Leerlo COMPLETO antes del análisis de 6 capas.
+  2. Cargar en memoria: reglas de negocio, validaciones, flujos condicionales,
+     integraciones decididas, edge cases conscientes, supuestos pendientes ⚠️,
+     decisiones delegadas al dev ⚠️.
+  3. Indexar por feature (cada sección del brief lleva slug).
+  4. Reportar en el output: "Functional brief detectado: N features cubiertas,
+     X reglas, Y validaciones, Z edge cases, ⚠️ W supuestos pendientes."
+  5. Al generar cada story, contrastar las 6 capas inferidas del diseño contra
+     el brief. Donde haya respaldo, **marcar la sección como `[VALIDADO via
+     functional-brief]`** en vez de `[DERIVADO]`.
+  6. Los **supuestos pendientes ⚠️** del brief se reflejan en la story
+     correspondiente como "Riesgos abiertos" en Notas técnicas, manteniendo la
+     marca ⚠️ para que el PM los resuelva antes de `/plan`.
+
+Si NO existe:
+  - Comportamiento idéntico al actual (V3.3): todas las secciones JTBD y derivadas
+    del diseño se marcan `[DERIVADO]`. Sin errores, sin warnings.
+```
+
+### Precedencia: brief > inferencia visual
+
+Cuando el brief y la inferencia visual del diseño se contradicen, **el brief gana**. Razón: el brief es captura explícita del PM, la inferencia es deducción del agente. Ejemplos:
+
+- Diseño muestra botón "Eliminar" sin confirmación → brief dice "siempre confirmar destructivo" → la story incluye modal de confirmación en Diseño y en Notas técnicas.
+- Diseño no muestra rol de usuario → brief dice "solo admin ve este panel" → la story añade regla de visibilidad en Notas técnicas → Lógica/Permisos.
+- Diseño muestra precio con 2 decimales → brief especifica redondeo bancario → la story documenta la regla en Notas técnicas → Cálculos.
+
+### Marcas en stories.md
+
+Tres marcas posibles ahora (V3.4):
+
+| Marca | Significado | Cuándo |
+|---|---|---|
+| `[DERIVADO]` | Inferido del diseño sin validación del PM | Sin functional brief, o sección no cubierta por brief |
+| `[VALIDADO via functional-brief]` | Capturado explícitamente del PM en `/design-discovery` | Brief cubre esta sección |
+| `[VALIDADO via research]` | Confirmado con research de usuario (post `/analyze + /define`) | Tras Full Pipeline |
+
+`[VALIDADO via functional-brief]` y `[VALIDADO via research]` pueden coexistir en distintas secciones de la misma story.
+
+---
+
 ## Step 0 — Detectar épicas pre-existentes (V3.2)
 
 ANTES de crear cualquier feature folder, leer `pm/tasks.json` y buscar épicas existentes con `feature: <slug>` que coincida con el feature que vas a crear:

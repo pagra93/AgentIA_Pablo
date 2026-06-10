@@ -9,12 +9,13 @@ Sistema operativo de Product Management con IA. Paquete first-class del arquitec
 Paquete: `pmx-product`
 Prefix: `pmx` (los agentes de PM x10 NO usan prefix consistente — son `age-spe-pm-producto`, `age-spe-story-builder`, `age-sup-auditor`, etc. — predates la convención del arquitecto)
 Dominio: `product-management`
-Versión: 2.2.0
+Versión: 2.3.0
 Estado: producción
 
-## Los 18 agentes
+## Los 19 agentes
 
-**Especialistas (13)**:
+**Especialistas (14)**:
+- `age-spe-design-discoverer` — Discovery funcional sobre diseños: entrevista al PM una pregunta por turno antes del PRD (Trigger: `/design-discovery`)
 - `age-spe-quality-guard` — Evalúa PRDs (Trigger: `/analyze`)
 - `age-spe-researcher` — Investiga gaps con Mom Test (Trigger: `/analyze`)
 - `age-spe-design-analyst` — Analiza diseños Pencil → stories verticales (Trigger: `/design-to-prd`)
@@ -36,10 +37,11 @@ Estado: producción
 - `age-sup-evaluator` — Puntúa fases en 4D, read-only (Trigger: `/review`)
 - `age-sup-optimizer` — Detecta patrones, propone mejoras, read-only (Trigger: `/review`)
 
-## Los 17 comandos
+## Los 18 comandos
 
 | Comando | Para qué |
 |---|---|
+| `/design-discovery` | **(NUEVO V2.3)** Entrevista funcional al PM sobre diseño, una pregunta por turno → genera `docs/producto/functional-brief.md` |
 | `/analyze` | Evaluar problema/PRD con Quality Guard |
 | `/define` | JTBDs → stories → quality coach |
 | `/story` | Story autónomo desde idea, 7 fases internas |
@@ -48,7 +50,7 @@ Estado: producción
 | `/review` | QA pipeline (test + code-review + audit + evaluate + optimize) |
 | `/hotfix` | Bug fix ligero con learning |
 | `/code-review` | Code review standalone |
-| `/design-to-prd` | Analizar diseños Pencil → stories verticales |
+| `/design-to-prd` | Analizar diseños Pencil → stories verticales (lee functional-brief si existe) |
 | `/save` | Commit + push a GitHub |
 | `/docs` | Generar/actualizar documentación |
 | `/learned` | Loguear lección aprendida |
@@ -98,8 +100,8 @@ pmx-product/
 ├── pm-agent-system-guia-de-uso.html  ← guía visual completa
 ├── .gitignore
 │
-├── agents/                    ← 18 agentes
-├── commands/                  ← 17 comandos
+├── agents/                    ← 19 agentes
+├── commands/                  ← 18 comandos
 ├── skills/, rules/, knowledge/  ← skills/rules/knowledge propios de PM x10
 ├── templates/                 ← templates de producto (PRD, story, dossier, etc.)
 ├── docs/                      ← documentación

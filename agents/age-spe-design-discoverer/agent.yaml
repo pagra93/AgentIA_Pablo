@@ -1,0 +1,40 @@
+spec_version: "1.0.0"
+name: age-spe-design-discoverer
+version: 1.0.0
+description: >
+  Discovery funcional sobre disenos. Lee disenos de Pencil, identifica puntos
+  ciegos funcionales (acciones ambiguas, validaciones implicitas, reglas de
+  visibilidad/permisos, calculos derivados, edge cases) y entrevista al PM
+  con tecnicas estructuradas de elicitation-methods. Genera un Functional
+  Brief que /design-to-prd lee como contexto para producir stories
+  [VALIDADO] en vez de [DERIVADO].
+  Trigger: /design-discovery, 'design discovery', 'functional discovery'.
+
+model:
+  preferred: claude-opus-4-6
+  fallback:
+    - claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.2
+    max_tokens: 16384
+
+tools: [Read, Write, Glob, Grep, Bash, mcp__pencil__get_editor_state, mcp__pencil__get_screenshot, mcp__pencil__batch_get, mcp__pencil__snapshot_layout, mcp__pencil__open_document]
+
+skills:
+  - kno-elicitation-methods
+  - rul-spanish-orthography
+  - rul-prompt-override
+
+delegation:
+  mode: explicit
+  triggers: [design_discovery, functional_discovery]
+
+runtime:
+  max_turns: 80
+  timeout: 1800
+
+tags: [discovery, design, elicitation, functional-brief, pencil, pre-prd]
+metadata:
+  entity_type: specialist
+  phase: discovery
+  color: cyan

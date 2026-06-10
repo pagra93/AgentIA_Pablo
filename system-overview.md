@@ -4,7 +4,7 @@
 
 **Paquete**: `pmx-product`
 **Dominio**: `product-management`
-**Versión**: 2.2.0
+**Versión**: 2.3.0
 
 ## Cómo arrancar
 
@@ -18,12 +18,13 @@
 /review                      ← QA pipeline completo
 ```
 
-## Agentes (18 total)
+## Agentes (19 total)
 
-### Especialistas (13)
+### Especialistas (14)
 
 | Agent | Path | Role |
 |---|---|---|
+| `age-spe-design-discoverer` | `agents/age-spe-design-discoverer/` | Discovery funcional sobre diseños: entrevista al PM antes de `/design-to-prd` y genera Functional Brief |
 | `age-spe-quality-guard` | `agents/age-spe-quality-guard/` | Evalúa calidad de PRDs y definiciones de problema |
 | `age-spe-researcher` | `agents/age-spe-researcher/` | Investiga gaps de conocimiento con Mom Test |
 | `age-spe-design-analyst` | `agents/age-spe-design-analyst/` | Analiza diseños y genera stories verticales completas |
@@ -48,10 +49,11 @@
 | `age-sup-evaluator` | `agents/age-sup-evaluator/` | Puntúa fases en 4 dimensiones |
 | `age-sup-optimizer` | `agents/age-sup-optimizer/` | Detecta patrones recurrentes, propone mejoras |
 
-## Comandos (17)
+## Comandos (18)
 
 | Comando | Path | Workflow |
 |---|---|---|
+| `/design-discovery` | `commands/design-discovery.md` | design-discoverer: entrevista funcional al PM sobre diseño, una pregunta por turno |
 | `/analyze` | `commands/analyze.md` | Quality Guard → researcher |
 | `/define` | `commands/define.md` | jtbd-architect → story-writer → quality-coach → story-splitter |
 | `/story` | `commands/story.md` | story-builder autónomo |
@@ -60,7 +62,7 @@
 | `/review` | `commands/review.md` | test-engineer → code-reviewer → auditor → evaluator → optimizer |
 | `/hotfix` | `commands/hotfix.md` | Bug fix ligero con learning |
 | `/code-review` | `commands/code-review.md` | Code review standalone |
-| `/design-to-prd` | `commands/design-to-prd.md` | design-analyst sobre diseños Pencil |
+| `/design-to-prd` | `commands/design-to-prd.md` | design-analyst sobre diseños Pencil (lee functional-brief.md si existe) |
 | `/save` | `commands/save.md` | Commit + push seguro |
 | `/docs` | `commands/docs.md` | doc-updater |
 | `/learned` | `commands/learned.md` | Log de lección aprendida |
@@ -106,6 +108,7 @@
 | `kno-testing-strategy` | `knowledge/kno-testing-strategy.md` |
 | `kno-story-ticket-template` | `knowledge/kno-story-ticket-template.md` |
 | `kno-strategic-thinking` | `knowledge/kno-strategic-thinking.md` |
+| `kno-elicitation-methods` | `knowledge/kno-elicitation-methods.md` |
 
 ## Carpetas especiales
 
@@ -134,7 +137,8 @@ Cuando trabajes en PM x10:
 
 ## Estado
 
-- **Versión**: 2.2.0 (estable, producción)
+- **Versión**: 2.3.0 (estable, producción)
 - **Localización**: `AgentArchitect/exports/pmx-product/` desde 2026-05-18
 - **Git remote**: `pagra93/AgentIA_Pablo` (historial completo preservado)
 - **Maduro / Beta / Stub**: maduro
+- **V2.3 (2026-05-28)**: añadido `age-spe-design-discoverer` + `/design-discovery` para discovery funcional sobre diseños antes de `/design-to-prd`. Genera `docs/producto/functional-brief.md` que el design-analyst usa para marcar secciones como `[VALIDADO via functional-brief]` en vez de `[DERIVADO]`.

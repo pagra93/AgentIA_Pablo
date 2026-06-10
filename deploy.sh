@@ -385,6 +385,20 @@ Inventario tecnico del proyecto. Una fila = un asset (funcion, endpoint, compone
 |-------------|---------|-------------|---------|-------|--------|
 " "docs/general/project-registry.md"
 
+# Mapa de arquitectura (stub vacio valido). Lo mantiene ski-architecture-map (UPDATE en /review).
+# Schema: kno-architecture-map-schema. La proyeccion HTML la genera render-map.py (PROJECT).
+ensure_file "$TARGET_PROJECT/docs/general/architecture-map.json" "{
+  \"schema_version\": \"1.0.0\",
+  \"project\": \"$PROJECT_NAME\",
+  \"generated_at\": null,
+  \"tech_stack\": {},
+  \"nodes\": [],
+  \"edges\": [],
+  \"data_flows\": [],
+  \"drift_warnings\": []
+}
+" "docs/general/architecture-map.json"
+
 # README de areas extras (marketing, rrhh, operaciones)
 for area in marketing rrhh operaciones; do
     AREA_LABEL=$(echo "$area" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')

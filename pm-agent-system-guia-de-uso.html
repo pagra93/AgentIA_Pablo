@@ -460,11 +460,12 @@
 <header class="site-header">
   <span class="brand-eyebrow">Guía operativa</span>
   <h1 class="brand-title">PM x10<span class="v">v3.0</span></h1>
-  <p class="brand-lead">Sistema de Product Management con IA. 18 agentes, 17 comandos, una idea: usar el mínimo necesario para cada tarea.</p>
+  <p class="brand-lead">Sistema de Product Management con IA. 19 agentes, 18 comandos, una idea: usar el mínimo necesario para cada tarea.</p>
   <nav class="quick-actions" aria-label="Comandos más usados">
     <span class="qa-label">Más usados</span>
     <a href="#hoy-idea" class="qa">/story</a>
     <a href="#hoy-pequeno" class="qa">/define</a>
+    <a href="#hoy-grande" class="qa">/design-discovery</a>
     <a href="#hoy-build" class="qa">/build</a>
     <a href="#hoy-review" class="qa">/review</a>
     <a href="#capturar-pm" class="qa">/pm</a>
@@ -564,10 +565,18 @@
     <div class="recipe">
       <div class="recipe-when">Tienes diseños en Pencil. Vas por features.</div>
       <div class="recipe-meta">Pipeline repartido en sesiones, una feature a la vez.</div>
+
+      <h4>Discovery funcional (opcional, recomendado si hay lógica de negocio compleja) <span class="pill pill-special">NUEVO V2.3</span></h4>
+      <pre class="recipe-flow"><span class="cmd">/design-discovery</span>  <span class="agent">design-discoverer</span> <span class="note">// te entrega TODAS las preguntas a la vez (batch),
+                              // numeradas y agrupadas por feature, sobre lo que el diseño
+                              // NO muestra (reglas, validaciones, permisos por rol, edge cases).
+                              // Respondes del tirón. Genera functional-brief.md.</span></pre>
+      <p class="note-inline">El brief enriquece el siguiente paso: <code>/design-to-prd</code> lo detecta y marca las secciones cubiertas como <code>[VALIDADO via functional-brief]</code> en vez de <code>[DERIVADO]</code>. Salta este paso si tu diseño es trivial o el dominio bien conocido.</p>
+
       <h4>Fast Track (diseño detallado, dominio conocido)</h4>
-      <pre class="recipe-flow"><span class="cmd">/design-to-prd</span> → <span class="cmd">/plan</span> → <span class="cmd">/build</span> → <span class="cmd">/save</span> → <span class="cmd">/review</span></pre>
+      <pre class="recipe-flow"><span class="cmd">/design-discovery</span> <span class="note">// opcional</span> → <span class="cmd">/design-to-prd</span> → <span class="cmd">/plan</span> → <span class="cmd">/build</span> → <span class="cmd">/save</span> → <span class="cmd">/review</span></pre>
       <h4>Full Pipeline (incertidumbre, dominio nuevo)</h4>
-      <pre class="recipe-flow"><span class="cmd">/design-to-prd</span> → <span class="cmd">/analyze</span> → <span class="cmd">/define</span> <span class="note">// enriquece, no duplica</span>
+      <pre class="recipe-flow"><span class="cmd">/design-discovery</span> <span class="note">// opcional</span> → <span class="cmd">/design-to-prd</span> → <span class="cmd">/analyze</span> → <span class="cmd">/define</span> <span class="note">// enriquece, no duplica</span>
               → <span class="cmd">/plan</span> → <span class="cmd">/build</span> → <span class="cmd">/save</span> → <span class="cmd">/review</span></pre>
       <ul class="recipe-examples">
         <li>"Módulo de facturación completo (10 pantallas)"</li>
@@ -746,7 +755,7 @@ docs/general/wiki/
       <h5>Columna "Definición" — 3 rutas alternativas</h5>
       <p>La columna <code>definicion</code> puede ser ejecutada por <strong>3 agentes distintos</strong> según el contexto. Pablo elige qué comando lanzar:</p>
       <ul>
-        <li><strong>Hay diseños en Pencil</strong> → <code>/design-to-prd</code> (design-analyst)</li>
+        <li><strong>Hay diseños en Pencil</strong> → <code>/design-discovery</code> (opcional, captura lógica funcional vía entrevista al PM) → <code>/design-to-prd</code> (design-analyst)</li>
         <li><strong>Existe research.md previo</strong> → <code>/define</code> (jtbd-architect + story-writer enriquece)</li>
         <li><strong>Idea autónoma sin diseños ni research</strong> → <code>/story</code> (story-builder)</li>
       </ul>
@@ -1085,7 +1094,7 @@ cd /ruta/proyecto && python3 dashboard/bridge.py
     <p><strong>Lo que viene a continuación</strong> (instalación inicial, actualizar sistema, actualizar 1 proyecto manualmente, migrar V2 → V3) es la versión <em>granular</em> de lo que hace <code>pmx10</code>. Útil para depurar o entender qué hace cada paso, pero para el día a día <code>pmx10 upgrade-all</code> basta.</p>
 
     <h3 id="operar-install">Instalación inicial</h3>
-    <p>Solo se hace una vez (o cuando actualizas el repo del sistema PM x10). Copia los 18 agentes, 17 commands, 7 skills, 8 rules, 6 knowledge bases, templates y dashboard-template a <code>~/.claude/</code>.</p>
+    <p>Solo se hace una vez (o cuando actualizas el repo del sistema PM x10). Copia los 19 agentes, 18 commands, 7 skills, 8 rules, 7 knowledge bases, templates y dashboard-template a <code>~/.claude/</code>.</p>
 
     <p><strong>Importante:</strong> ejecuta esto en una <strong>terminal</strong> (Warp, iTerm, Terminal.app), <strong>no</strong> dentro de Claude Code.</p>
 
@@ -1106,7 +1115,7 @@ cd /ruta/proyecto && python3 dashboard/bridge.py
 
     <pre class="diagram">bash "$HOME/Desktop/PABLO/Proyectos/AgentArchitect/exports/pmx-product/install.sh"</pre>
 
-    <p>El script recompila los 18 agentes (inlineando skills declaradas), copia commands, skills, rules, knowledge, templates y el dashboard-template. <strong>Idempotente</strong>: si todo dice <code>[identical]</code>, ya estaba al día.</p>
+    <p>El script recompila los 19 agentes (inlineando skills declaradas), copia commands, skills, rules, knowledge, templates y el dashboard-template. <strong>Idempotente</strong>: si todo dice <code>[identical]</code>, ya estaba al día.</p>
 
     <p class="note-inline">Esto NO modifica tus proyectos. Los proyectos solo cogen lo nuevo cuando abres Claude Code en ellos (commands/agentes leen de <code>~/.claude/</code>). Para el dashboard local de cada proyecto, ver siguiente sección.</p>
 
@@ -1334,10 +1343,10 @@ python3 dashboard/bridge.py
 <!-- ═══════════════════════════ REFERENCIA ═══════════════════════════ -->
 <article class="panel" id="tab-referencia" role="tabpanel" hidden>
   <aside class="subnav" aria-label="Secciones de Referencia">
-    <a href="#ref-commands">17 commands</a>
-    <a href="#ref-agentes">18 agentes</a>
+    <a href="#ref-commands">18 commands</a>
+    <a href="#ref-agentes">19 agentes</a>
     <a href="#ref-rules">Rules + Skills + Knowledge</a>
-    <a href="#ref-workflows">15 workflows</a>
+    <a href="#ref-workflows">16 workflows</a>
     <a href="#ref-carpetas">Carpetas V3</a>
   </aside>
   <section class="content">
@@ -1345,7 +1354,7 @@ python3 dashboard/bridge.py
     <h2 id="ref-top">Para buscar "¿qué hace X?"</h2>
     <p class="panel-lead">Sin storytelling. Solo tablas. Cuando necesitas encontrar un agente, command o regla específica.</p>
 
-    <h3 id="ref-commands">17 commands</h3>
+    <h3 id="ref-commands">18 commands</h3>
     <table>
       <thead><tr><th>Comando</th><th>Qué hace</th><th>Profundizar</th></tr></thead>
       <tbody>
@@ -1353,7 +1362,8 @@ python3 dashboard/bridge.py
         <tr><td><code>/analyze</code></td><td>Evalúa problema o PRD: Quality Guard + Researcher.</td><td><a href="#hoy-mediano">Hoy</a></td></tr>
         <tr><td><code>/define</code></td><td>JTBDs + stories con scoring 6D + split si &gt;3 días. Modos: create / enrich.</td><td><a href="#hoy-pequeno">Hoy</a></td></tr>
         <tr><td><code>/story</code></td><td>Story Builder autónomo (7 fases internas). De idea a story completa.</td><td><a href="#hoy-idea">Hoy</a></td></tr>
-        <tr><td><code>/design-to-prd</code></td><td>Pencil → análisis 6 capas → stories verticales + PRDs por feature.</td><td><a href="#hoy-grande">Hoy</a></td></tr>
+        <tr><td><code>/design-discovery</code> <span class="pill pill-special">NUEVO V2.3</span></td><td>Cuestionario funcional batch al PM sobre el diseño (todas las preguntas a la vez, numeradas, citando pantalla+elemento) → <code>functional-brief.md</code>. Paso opcional antes de <code>/design-to-prd</code>.</td><td><a href="#hoy-grande">Hoy</a></td></tr>
+        <tr><td><code>/design-to-prd</code></td><td>Pencil → análisis 6 capas → stories verticales + PRDs por feature. Lee <code>functional-brief.md</code> si existe.</td><td><a href="#hoy-grande">Hoy</a></td></tr>
         <tr><td><code>/plan</code></td><td>Arquitectura + sprint plan en <code>docs/producto/sprint.md</code>.</td><td><a href="#hoy-mediano">Hoy</a></td></tr>
         <tr><td><code>/build</code></td><td>Implementa stories. Sub-agente fresco por story (200k tokens c/u).</td><td><a href="#hoy-mediano">Hoy</a></td></tr>
         <tr><td><code>/save</code></td><td>Commit + push: valida branch, detecta secrets, sugiere tipo de commit.</td><td><a href="#hoy-rutina">Hoy</a></td></tr>
@@ -1369,15 +1379,16 @@ python3 dashboard/bridge.py
       </tbody>
     </table>
 
-    <h3 id="ref-agentes">18 agentes</h3>
+    <h3 id="ref-agentes">19 agentes</h3>
 
-    <h4>Specialists (13)</h4>
+    <h4>Specialists (14)</h4>
     <table>
       <thead><tr><th>Agente</th><th>Qué hace</th><th>Trigger</th></tr></thead>
       <tbody>
+        <tr><td><code>age-spe-design-discoverer</code> <span class="pill pill-special">NUEVO V2.3</span></td><td>Discovery funcional sobre diseños. Lee Pencil, identifica puntos ciegos funcionales en 6 categorías (acciones ambiguas, estados intermedios, validaciones, visibilidad/permisos, cálculos, edge cases) y entrega al PM un <strong>cuestionario batch completo</strong> — todas las preguntas a la vez, numeradas, agrupadas por feature, ordenadas por criticidad, con técnica de <code>kno-elicitation-methods</code> visible (Socratic, 5-whys, Pre-mortem, Devil's Advocate, Reverse Assumption, Red-team). Tras las respuestas, una única ronda corta de clarificaciones si hace falta. Genera <code>docs/producto/functional-brief.md</code>.</td><td><code>/design-discovery</code></td></tr>
         <tr><td><code>age-spe-quality-guard</code></td><td>Evalúa PRDs/problemas en 4 dimensiones. Detecta 5 antipatrones de contaminación.</td><td><code>/analyze</code></td></tr>
         <tr><td><code>age-spe-researcher</code></td><td>Investiga gaps con Mom Test methodology. Genera research brief.</td><td><code>/analyze</code></td></tr>
-        <tr><td><code>age-spe-design-analyst</code></td><td>Analiza diseños Pencil en 6 capas → stories verticales con formato ticket.</td><td><code>/design-to-prd</code></td></tr>
+        <tr><td><code>age-spe-design-analyst</code></td><td>Analiza diseños Pencil en 6 capas → stories verticales con formato ticket. Lee <code>functional-brief.md</code> si existe y marca secciones cubiertas como <code>[VALIDADO via functional-brief]</code>.</td><td><code>/design-to-prd</code></td></tr>
         <tr><td><code>age-spe-jtbd-architect</code></td><td>Genera Jobs-to-be-Done desde research. Wendel + Behavior Change.</td><td><code>/define</code></td></tr>
         <tr><td><code>age-spe-story-writer</code></td><td>Convierte JTBDs en stories deployables con scoring 6D.</td><td><code>/define</code></td></tr>
         <tr><td><code>age-spe-story-builder</code></td><td>Autónomo (7 fases). De idea a story con JTBD + Wendel + Behavior Change + design.</td><td><code>/story</code></td></tr>
@@ -1434,7 +1445,7 @@ python3 dashboard/bridge.py
       </tbody>
     </table>
 
-    <h4>6 Knowledge bases (cargadas bajo demanda)</h4>
+    <h4>7 Knowledge bases (cargadas bajo demanda)</h4>
     <table>
       <thead><tr><th>Knowledge</th><th>Contenido</th></tr></thead>
       <tbody>
@@ -1444,10 +1455,11 @@ python3 dashboard/bridge.py
         <tr><td><code>kno-testing-strategy</code></td><td>Testing Trophy: tipos de test, coverage, regresión, TDD.</td></tr>
         <tr><td><code>kno-story-ticket-template</code></td><td>Formato universal de story ticket (design-analyst, story-writer, story-builder).</td></tr>
         <tr><td><code>kno-strategic-thinking</code></td><td>Bezos, Munger, Jobs · forcing questions · anti-sycophancy.</td></tr>
+        <tr><td><code>kno-elicitation-methods</code> <span class="pill pill-special">NUEVO V2.3</span></td><td>Catálogo de técnicas de cuestionamiento: Socrático, Pre-mortem, Red-team, 5-whys, Inversion (Munger), Devil's Advocate, Reverse Assumption. Cargado por <code>design-discoverer</code>.</td></tr>
       </tbody>
     </table>
 
-    <h3 id="ref-workflows">15 workflows (DAG formal)</h3>
+    <h3 id="ref-workflows">16 workflows (DAG formal)</h3>
     <p>Cada slash command tiene un workflow YAML que define el orden de ejecución, dependencias y data flow. Excepción: <code>/pm</code> y <code>/wiki</code> invocan a su agente directamente sin YAML intermedio (más simple, mismo efecto).</p>
     <table>
       <thead><tr><th>Workflow</th><th>Pipeline</th></tr></thead>
@@ -1456,7 +1468,8 @@ python3 dashboard/bridge.py
         <tr><td><code>wor-analyze</code></td><td>gather_context → quality_guard → pm_decision → research → deliver</td></tr>
         <tr><td><code>wor-define</code></td><td>detect_existing → generate_jtbds → pm_approve → write_stories (enrich/create) → quality_review → split_large</td></tr>
         <tr><td><code>wor-story</code></td><td>story_build (7 fases) → pm_confirm → split_if_large</td></tr>
-        <tr><td><code>wor-design-to-prd</code></td><td>read_designs → analyze_6_layers → generate_stories → generate_prd → pm_review</td></tr>
+        <tr><td><code>wor-design-discovery</code> <span class="pill pill-special">NUEVO V2.3</span></td><td>read_designs (silent) → analyze_blind_spots (6 cats, internal) → prioritize → preview → generate_batch_questionnaire (all-at-once, numbered, per feature, with technique) → wait_for_pm_responses → clarification_round (only if needed) → summary → confirm → write_functional_brief → pm_sync</td></tr>
+        <tr><td><code>wor-design-to-prd</code></td><td>read_designs → read_functional_brief (if exists) → analyze_6_layers → generate_stories ([VALIDADO] where brief covers, [DERIVADO] otherwise) → generate_prd → pm_review</td></tr>
         <tr><td><code>wor-plan</code></td><td>design_architecture → pm_approve → sprint_planning → pm_approve</td></tr>
         <tr><td><code>wor-build</code></td><td>recover_state → read_sprint (metadata) → build_stories (sub-agente fresco) → frontend_quality → remind_review</td></tr>
         <tr><td><code>wor-save</code></td><td>validate_branch → check_changes → detect_secrets → stage → commit → sync_remote</td></tr>
@@ -1505,7 +1518,7 @@ python3 dashboard/bridge.py
 
 <footer class="site-footer">
   <span><strong>PM x10</strong> v3.0</span>
-  <span>18 agentes · 17 commands · 15 workflows · 7 skills · 8 rules · 6 knowledge</span>
+  <span>19 agentes · 18 commands · 16 workflows · 7 skills · 8 rules · 7 knowledge</span>
   <span>Mercadona Methodology + Wiki transversal + Coding Discipline</span>
 </footer>
 

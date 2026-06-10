@@ -800,6 +800,17 @@ class DashboardHandler(BaseHTTPRequestHandler):
             except (json.JSONDecodeError, OSError) as e:
                 return self._send_json(500, {"error": "config_unreadable", "detail": str(e)})
 
+        # Mapa de arquitectura (architecture-map.json). Lo mantiene ski-architecture-map.
+        if path == "/api/architecture":
+            map_path = os.path.join(self.project_root, "docs", "general", "architecture-map.json")
+            if not os.path.exists(map_path):
+                return self._send_json(200, {"_missing": True, "nodes": [], "edges": [], "data_flows": []})
+            try:
+                with open(map_path, "r", encoding="utf-8") as f:
+                    return self._send_json(200, json.load(f))
+            except (json.JSONDecodeError, OSError) as e:
+                return self._send_json(500, {"error": "architecture_unreadable", "detail": str(e)})
+
         # V3.1: lista de feature folders con metadata del dossier
         if path == "/api/features":
             return self._send_json(200, {"features": list_features(self.project_root)})

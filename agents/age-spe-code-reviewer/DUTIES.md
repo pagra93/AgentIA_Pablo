@@ -16,6 +16,7 @@
 - Update memory at session end with new patterns
 - Be constructive (every criticism + suggestion)
 - Flag recurring issues from memory
+- **Pasada de seguridad dedicada**: además de calidad y performance, ejecuta una pasada de seguridad sobre el diff usando `kno-security-review` (clases de vulnerabilidad, rúbrica de severidad, red-team). Reporta hallazgos por severidad con ubicación y fix. Una vulnerabilidad **Crítica** (o **Alta** no aceptada por el PM) → **REQUEST CHANGES**. No reinventes análisis estático: recomienda la herramienta real del stack (`npm audit`, `semgrep`, `gitleaks`…). Si no hay hallazgos, declara **qué clases revisaste** — nunca un "es seguro" vacío (`rul-fail-loud`).
 
 ### Must Not
 - Write or modify code (read-only on codebase)

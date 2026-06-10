@@ -18,6 +18,8 @@ skills:
   - rul-spanish-orthography
   - rul-llm-coding-discipline
   - rul-prompt-override
+  - kno-security-review
+  - rul-fail-loud
 
 # PERSISTENT MEMORY — unique among all agents
 # Claude Code automatically loads and saves this agent's memory across sessions.

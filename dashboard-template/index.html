@@ -122,6 +122,7 @@
           <button class="atab" data-area="producto" data-subtab="funcionalidades">Funcionalidades</button>
           <button class="atab" data-area="producto" data-subtab="dossiers">Dossiers</button>
           <button class="atab" data-area="producto" data-subtab="kanban">Kanban</button>
+          <button class="atab" data-area="producto" data-subtab="arquitectura">Arquitectura</button>
           <button class="atab" data-area="producto" data-subtab="docs">Docs</button>
         </div>
 
@@ -222,6 +223,15 @@
             <button id="btn-refresh-tasks" class="btn btn--ghost" type="button" title="Recargar">↻ Refrescar</button>
           </div>
           <div id="kanban-drift" class="kanban-drift hidden"></div>
+        </div>
+
+        <!-- Sub-tab: Arquitectura (mapa auto-mantenido por ski-architecture-map) -->
+        <div class="atab-content hidden" data-area="producto" data-subtab="arquitectura">
+          <div class="arch-toolbar">
+            <span class="arch-meta" id="arch-meta">Mapa de arquitectura del proyecto.</span>
+            <button id="btn-refresh-arch" class="btn btn--ghost" type="button" title="Recargar">↻ Refrescar</button>
+          </div>
+          <div id="arch-view" class="arch-view"></div>
         </div>
 
         <!-- Sub-tab: Docs -->
@@ -454,6 +464,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <script src="/app.js" defer></script>
 </body>
 </html>
