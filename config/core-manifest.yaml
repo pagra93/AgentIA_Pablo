@@ -25,6 +25,7 @@ to_packages:
     - skills/ski-context-ledger/
     - skills/ski-compression/
     - skills/ski-mini-discovery/
+    - skills/ski-architecture-map/
 
   # Rules genéricas
   rules:
@@ -35,6 +36,8 @@ to_packages:
     - rules/rul-prompt-override.md
     - rules/rul-scope-boundaries.md
     - rules/rul-lazy-loading.md
+    - rules/rul-model-vs-code.md
+    - rules/rul-fail-loud.md
 
   # Knowledge genéricos
   knowledge:
@@ -42,6 +45,8 @@ to_packages:
     - knowledge/kno-strategic-thinking.md
     - knowledge/kno-elicitation-methods.md
     - knowledge/kno-mcp-integration.md
+    - knowledge/kno-architecture-map-schema.md
+    - knowledge/kno-security-review.md
 
   # Comandos genéricos (los que están en templates/package-template/commands/)
   commands:

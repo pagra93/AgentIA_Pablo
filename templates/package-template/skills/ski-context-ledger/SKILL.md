@@ -97,6 +97,23 @@ específico del paquete. La coordinación queda a cargo del PM humano usando los
 (Anomalías, observaciones, ideas para refactor futuro.)
 ```
 
+## Índice (`INDEX.md`)
+
+Cada directorio `context-ledger/` mantiene un `INDEX.md` con **una línea por entrada**, en orden cronológico. Es la capa barata: escanear decenas de entradas cuesta unos pocos cientos de tokens, frente a abrir los archivos completos.
+
+Formato (tabla markdown):
+
+```markdown
+# Context Ledger — Índice
+
+| timestamp | agente | step | scope | outcome | archivo |
+|---|---|---|---|---|---|
+| 2026-05-15T10:15:00+02:00 | age-spe-arc-generator | create_package | newsletter-system | completed | 2026-05-15-101500-age-spe-arc-generator.md |
+| 2026-05-18T11:55:00+02:00 | age-spe-arc-generator | migration | pmx-product | completed | 2026-05-18-115500-arc-generator-migration.md |
+```
+
+El índice es derivable: si se pierde o desincroniza, se regenera con `skills/ski-context-ledger/ledger-index.sh` (ver abajo).
+
 ## API mínima
 
 Los agentes que escriben en el ledger usan el siguiente patrón:
@@ -106,20 +123,41 @@ Los agentes que escriben en el ledger usan el siguiente patrón:
 3. Componer frontmatter con campos requeridos (agent, timestamp, step, scope, input_summary, outcome, artifacts_touched)
 4. Componer cuerpo en secciones estándar: "Qué se hizo", "Decisiones tomadas", "Razonamiento", "Próximos pasos", "Notas"
 5. Escribir archivo con `Write` (siempre nuevo archivo, jamás modificar entradas anteriores)
+6. **Actualizar el índice**: hacer `Edit` (append) de una línea a `context-ledger/INDEX.md` con `timestamp | agente | step | scope | outcome | archivo`. Si `INDEX.md` no existe todavía, crearlo con la cabecera de tabla + la primera línea. Esto es append-only, igual que el resto del ledger.
 
-## Cómo se consulta
+## Cómo se consulta — recuperación en 3 capas
 
-Para reanudar trabajo en una sesión nueva:
+Para reanudar trabajo en una sesión nueva, no leas los archivos completos a ciegas. Procede por capas, de barato a caro:
+
+1. **Capa índice (barata)**: leer `context-ledger/INDEX.md`. Filtrar mentalmente por `scope`, `agente` o fecha para identificar qué entradas importan.
+2. **Capa timeline**: el índice ya está en orden cronológico; quédate con las N entradas relevantes (las últimas, o las del scope que vas a tocar) y anota sus nombres de archivo.
+3. **Capa detalle (cara)**: hacer `Read` solo de los archivos seleccionados en el paso 2.
+
+Atajos en shell:
 
 ```
-tail -n 50 context-ledger/$(ls -1 context-ledger/*.md | tail -1)
+# Capa índice: ver el índice completo
+cat context-ledger/INDEX.md
+
+# Capa detalle: leer una entrada concreta ya identificada
+cat context-ledger/<archivo-seleccionado>.md
 ```
 
-O en Claude Code, leer los 3-5 archivos más recientes (`ls -1t context-ledger/*.md | head -5`) para tener contexto rápido.
+Si el ledger no tiene `INDEX.md` (heredado de una versión anterior o desincronizado), regenerarlo primero con `skills/ski-context-ledger/ledger-index.sh` (ver "Regeneración del índice").
+
+## Regeneración del índice
+
+El índice se mantiene vivo con el paso 6 de la API (append al escribir). Si aun así se desincroniza, se hereda un ledger sin índice, o quieres reconstruirlo desde cero:
+
+```
+bash skills/ski-context-ledger/ledger-index.sh [ruta-al-context-ledger]   # default: ./context-ledger
+```
+
+El script escanea el frontmatter (`timestamp`, `agent`, `step`, `scope`, `outcome`) de cada `*.md` del directorio, los ordena por timestamp y reescribe `INDEX.md`. Es idempotente y fail-safe (no rompe si el directorio no existe).
 
 ## Reglas
 
-1. **Append-only**: nunca se edita ni borra una entrada. Si una entrada se reveló incorrecta, se añade una NUEVA entrada que la corrige (con frontmatter `corrects: <ruta-de-la-entrada-errónea>`).
+1. **Append-only**: nunca se edita ni borra una entrada. Si una entrada se reveló incorrecta, se añade una NUEVA entrada que la corrige (con frontmatter `corrects: <ruta-de-la-entrada-errónea>`). La entrada correctora también añade su línea al `INDEX.md` (las dos quedan listadas; el índice no se "rebobina").
 
 2. **Una entrada por paso significativo**, no por cada operación. Si el agente hizo 10 operaciones para crear un paquete, eso es UNA entrada (`step: create_package`).
 

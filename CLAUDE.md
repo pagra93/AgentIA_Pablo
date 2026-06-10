@@ -154,8 +154,10 @@ PM x10 (`Proyectos/Agente IA/`) sigue siendo el sistema vivo principal. NO está
 
 ## Lectura recomendada al arrancar sesión
 
-1. Este `CLAUDE.md` (siempre, primero)
-2. `MEMORY.md` si tiene contenido reciente relevante
-3. `changelog/propagations.md` últimas 5 entradas si vas a hacer propagaciones
+Un hook `SessionStart` (`.claude/settings.json` → `scripts/load-context.sh`) ya inyecta automáticamente la **capa barata** al arrancar: `memory/MEMORY.md`, el índice del context-ledger (`context-ledger/INDEX.md`) y las últimas propagaciones. No necesitas releer eso manualmente. La guía de abajo es para profundizar bajo demanda (lazy loading):
+
+1. Este `CLAUDE.md` (siempre, primero — lo auto-carga Claude Code como project instructions)
+2. El contexto ya inyectado por el hook (MEMORY.md + índice del ledger + propagaciones recientes)
+3. **Entradas completas del context-ledger**: el hook te dio el índice; abre con `Read` solo las entradas relevantes. Recuperación en 3 capas — ver `skills/ski-context-ledger/SKILL.md`
 4. `docs/architect/` si vas a hacer aggregación o auditoría
 5. **NO leer todo `exports/*/` por defecto** — entra solo cuando el comando lo requiera (lazy loading)
