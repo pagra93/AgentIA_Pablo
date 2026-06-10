@@ -1,0 +1,38 @@
+spec_version: "1.0.0"
+name: age-sup-cynic
+version: 1.0.0
+description: >
+  Adversarial Cynic — desafia premisas con tecnicas de elicitation (Socratic,
+  Devil's Advocate, Five Whys). SUPERVISOR read-only. Genera reportes con
+  preguntas incomodas y argumentos contrarios. Co-invocado con boundary-walker.
+  Trigger: /adversarial.
+
+model:
+  preferred: claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.3
+    max_tokens: 8192
+
+tools: [Read, Glob, Grep, Write]
+
+skills:
+  - kno-elicitation-methods
+  - kno-strategic-thinking
+  - rul-spanish-orthography
+  - rul-prompt-override
+  - rul-scope-boundaries
+
+delegation:
+  mode: explicit
+  triggers: [adversarial_command]
+
+runtime:
+  max_turns: 15
+  timeout: 120
+
+tags: [adversarial, supervisor, elicitation, cynic]
+metadata:
+  entity_type: supervisor
+  phase: review
+  color: red
+  inspired-by: "luisdomarco/AiAgentArchitect (adversarial-review layer)"

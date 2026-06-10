@@ -1,0 +1,25 @@
+# Workflow: Project Initializer
+# Triggered by: /new-project command
+
+name: wor-new-project
+description: "Initialize a new project with CLAUDE.md, docs, tasks, and qa structure."
+version: 1.0.0
+
+steps:
+  - id: interview
+    action: "Ask PM: project name, description, tech stack, platform, team context"
+    outputs: [project_name, description, tech_stack, platform, team]
+
+  - id: create_structure
+    action: "Create .claude/CLAUDE.md from template, docs/PROJECT_KNOWLEDGE.md, tasks/todo.md, tasks/lessons.md, qa-reports/"
+    depends_on: [interview]
+    inputs:
+      name: ${{ steps.interview.outputs.project_name }}
+      description: ${{ steps.interview.outputs.description }}
+      stack: ${{ steps.interview.outputs.tech_stack }}
+    outputs: [structure_created]
+
+  - id: confirm
+    action: "Tell PM: project initialized. List available commands."
+    depends_on: [create_structure]
+    outputs: [confirmed]

@@ -48,7 +48,7 @@ AgentArchitect/
 ├── templates/
 │   ├── package-template/     ← esqueleto de un paquete desplegable
 │   └── project-template/     ← esqueleto de un proyecto cliente (incluye dashboard multi-pestaña)
-├── exports/                  ← paquetes desplegables (sub-repos Git anidados)
+├── exports/                  ← paquetes desplegables (carpetas del monorepo; antes sub-repos Git anidados)
 ├── architect-console/        ← UI propia del arquitecto (separada del dashboard de proyecto)
 ├── memory/MEMORY.md          ← memoria del arquitecto
 ├── docs/general/             ← docs cross-paquete

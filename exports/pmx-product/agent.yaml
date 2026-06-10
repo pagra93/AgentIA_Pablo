@@ -1,0 +1,241 @@
+spec_version: "1.0.0"
+name: pm-agent-system
+version: 2.3.0
+description: >
+  Sistema operativo de Product Management con IA. Orquesta 19 agentes especializados
+  a traves de 17 workflows DAG para cubrir el ciclo completo: desde disenos en Pencil
+  hasta codigo deployado con QA verificado. Metodologia Mercadona (Quality Guard,
+  Mom Test, JTBD Reforzado, 6D Scoring). Anti-bloat rules. PM valida siempre.
+  Engineering: Claude Code implementa directamente + Impeccable para frontend quality.
+  Wiki transversal de empresa (raw sources -> sintesis derivada con wikilinks).
+  V2.3: Discovery funcional sobre disenos (age-spe-design-discoverer / /design-discovery)
+  que entrevista al PM antes de /design-to-prd y produce Functional Brief.
+author: pablo
+license: MIT
+
+model:
+  preferred: claude-opus-4-6
+  fallback:
+    - claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.2
+    max_tokens: 16384
+
+# --- Agents (19 total: 14 specialists + 5 supervisors) ---
+# Engineering has no dedicated agents — Claude Code implements directly.
+# Frontend design quality: use Impeccable (https://impeccable.style/)
+# Coordination: 1 PM por área. V1 solo Producto (age-spe-pm-producto).
+# Knowledge: 1 curator transversal (age-spe-wiki-curator) para la wiki de empresa.
+agents:
+  # Discovery
+  age-spe-design-discoverer:
+    path: agents/age-spe-design-discoverer/
+    description: "Discovery funcional sobre disenos: lee Pencil, identifica puntos ciegos funcionales, entrevista al PM una pregunta por turno con tecnicas de elicitation-methods (Socratic, 5-whys, Pre-mortem, Devil's Advocate, Reverse Assumption, Red-team) y genera docs/producto/functional-brief.md que /design-to-prd lee como contexto. Trigger: /design-discovery"
+    delegation:
+      mode: explicit
+      triggers: [design_discovery, functional_discovery]
+
+  # Analysis
+  age-spe-quality-guard:
+    path: agents/age-spe-quality-guard/
+    description: "Evalua calidad de PRDs y definiciones de problema. Trigger: /analyze"
+    delegation:
+      mode: explicit
+      triggers: [analyze_command]
+  age-spe-researcher:
+    path: agents/age-spe-researcher/
+    description: "Investiga gaps de conocimiento con Mom Test. Trigger: /analyze"
+    delegation:
+      mode: explicit
+      triggers: [research_needed]
+  age-spe-design-analyst:
+    path: agents/age-spe-design-analyst/
+    description: "Analiza disenos y genera stories verticales completas (6 capas → formato ticket universal). Trigger: /design-to-prd"
+    delegation:
+      mode: explicit
+      triggers: [design_to_prd, analyze_designs]
+  age-sup-strategic-challenger:
+    path: agents/age-sup-strategic-challenger/
+    description: "Sparring partner estrategico. Desafia premisas, debate, fuerza evidencia. Supervisor. Trigger: /challenge"
+    delegation:
+      mode: explicit
+      triggers: [challenge_command, debate_request]
+
+  # Definition
+  age-spe-jtbd-architect:
+    path: agents/age-spe-jtbd-architect/
+    description: "Transforma research en Jobs-to-be-Done. Trigger: /define"
+    delegation:
+      mode: explicit
+      triggers: [define_command]
+  age-spe-story-writer:
+    path: agents/age-spe-story-writer/
+    description: "Convierte JTBDs en user stories deployables. Trigger: /define"
+    delegation:
+      mode: explicit
+      triggers: [jtbd_complete]
+  age-sup-quality-coach:
+    path: agents/age-sup-quality-coach/
+    description: "Evalua calidad de stories sin modificar. Supervisor. Trigger: /define"
+    delegation:
+      mode: explicit
+      triggers: [stories_written]
+  age-spe-story-builder:
+    path: agents/age-spe-story-builder/
+    description: "Story Builder autonomo — 7 fases internas: JTBD+Wendel+BehaviorChange+6D scoring+design analysis 6 capas+flujo iterativo story↔diseño. Trigger: /story"
+    delegation:
+      mode: explicit
+      triggers: [story_command, build_story]
+  age-spe-story-splitter:
+    path: agents/age-spe-story-splitter/
+    description: "Descompone stories >3 dias en incrementos verticales. Trigger: /define, /story"
+    delegation:
+      mode: explicit
+      triggers: [story_too_large]
+
+  # Planning
+  age-spe-tech-architect:
+    path: agents/age-spe-tech-architect/
+    description: "Disena arquitectura tecnica desde stories validadas. Trigger: /plan"
+    delegation:
+      mode: explicit
+      triggers: [plan_command]
+  age-spe-sprint-planner:
+    path: agents/age-spe-sprint-planner/
+    description: "Prioriza stories y crea sprint plan. Trigger: /plan"
+    delegation:
+      mode: explicit
+      triggers: [architecture_ready]
+
+  # Engineering — No dedicated agents. Claude Code implements directly.
+  # For frontend quality: use Impeccable skills (/polish, /audit, /typeset, /arrange)
+  # See: https://impeccable.style/
+
+  # Testing
+  age-spe-test-engineer:
+    path: agents/age-spe-test-engineer/
+    description: "Validation loop: genera tests, ejecuta suite completo, verifica coverage, itera (max 3 ciclos). Testing Trophy. Trigger: /review"
+    delegation:
+      mode: explicit
+      triggers: [review_command]
+  age-spe-code-reviewer:
+    path: agents/age-spe-code-reviewer/
+    description: "Code review con memoria persistente. Trigger: /review, /code-review"
+    delegation:
+      mode: explicit
+      triggers: [tests_passed]
+
+  # QA
+  age-sup-auditor:
+    path: agents/age-sup-auditor/
+    description: "Verifica compliance con rules. Supervisor read-only. Trigger: /review"
+    delegation:
+      mode: auto
+      triggers: [code_review_complete]
+  age-sup-evaluator:
+    path: agents/age-sup-evaluator/
+    description: "Puntua fases completadas en 4 dimensiones. Supervisor. Trigger: /review"
+    delegation:
+      mode: auto
+      triggers: [audit_complete]
+  age-sup-optimizer:
+    path: agents/age-sup-optimizer/
+    description: "Detecta patrones recurrentes y propone mejoras. Supervisor. Trigger: /review"
+    delegation:
+      mode: auto
+      triggers: [evaluation_complete]
+
+  # Coordination — un PM por área. V1 solo Producto. Marketing/RRHH tendrán el suyo.
+  age-spe-pm-producto:
+    path: agents/age-spe-pm-producto/
+    description: "PM de Producto: índice + buzón de ideas. Procesa inbox.md, mantiene tasks.json, infiere estado por filesystem, detecta drift y dependencias resueltas. Trigger: /pm"
+    delegation:
+      mode: explicit
+      triggers: [pm_command]
+
+  # Knowledge — curator transversal a todas las áreas (Producto, Marketing, RRHH, Operaciones).
+  age-spe-wiki-curator:
+    path: agents/age-spe-wiki-curator/
+    description: "Wiki Curator: procesa raw sources (artículos, reuniones, notas, transcripciones), sintetiza entidades/conceptos/topics, mantiene índice/log/tags, propone promociones. Transversal. Trigger: /wiki"
+    delegation:
+      mode: explicit
+      triggers: [wiki_command]
+
+# --- Skills, Rules, Knowledge ---
+skills:
+  - ski-prd-builder
+  - ski-competitive-analysis
+  - ski-plan-mode
+  - ski-doc-updater
+  - ski-unknown-unknowns
+  - ski-project-docs
+  - ski-impeccable-guide
+
+rules:
+  - rul-definition-of-done
+  - rul-definition-of-ready
+  - rul-antipatterns
+  - rul-scoring-dimensional
+  - rul-naming-conventions
+  - rul-git-branch-management
+  - rul-spanish-orthography
+  - rul-llm-coding-discipline
+
+knowledge:
+  - kno-jtbd-framework
+  - kno-mom-test
+  - kno-story-splitting
+  - kno-testing-strategy
+  - kno-story-ticket-template
+  - kno-strategic-thinking
+  - kno-elicitation-methods
+
+# --- Workflows (18 commands) ---
+workflows:
+  - wor-challenge
+  - wor-analyze
+  - wor-define
+  - wor-story
+  - wor-plan
+  - wor-build
+  - wor-review
+  - wor-hotfix
+  - wor-code-review
+  - wor-new-project
+  - wor-save
+  - wor-unknown-unknowns
+  - wor-docs
+  - wor-design-discovery
+  - wor-design-to-prd
+  - wor-learned
+  - wor-pm
+  - wor-wiki
+
+# --- Runtime ---
+runtime:
+  max_turns: 100
+  timeout: 600
+
+# --- QA Layer (from PM Agent System) ---
+qa:
+  tier: full              # none | light | full
+  scoring:
+    completeness: 0.30
+    quality: 0.30
+    compliance: 0.25
+    efficiency: 0.15
+  auto_activate: true     # Run QA after workflow completion
+  report_path: qa/qa-report.md
+
+# --- Tags & Metadata ---
+tags:
+  - product-management
+  - engineering
+  - qa
+  - jtbd
+  - agile
+
+metadata:
+  entity_type: orchestrator
+  domain: product-management
+  philosophy: "Analysis Informs, Never Blocks"

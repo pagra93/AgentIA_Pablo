@@ -1,0 +1,40 @@
+# Workflow: Hotfix Pipeline (Lightweight)
+# Triggered by: /hotfix command
+
+name: wor-hotfix
+description: "Quick bug fix — lightweight analysis, fix, test, verify."
+version: 1.0.0
+
+inputs:
+  - name: bug_description
+    type: string
+    required: true
+
+steps:
+  - id: quick_guard
+    action: "Lightweight quality check — is the bug well-defined?"
+    agent: age-spe-quality-guard
+    inputs:
+      content: ${{ inputs.bug_description }}
+      mode: lightweight
+    outputs: [assessment]
+
+  - id: fix
+    action: "Route to appropriate engineer and fix the bug"
+    depends_on: [quick_guard]
+    outputs: [fix_applied]
+
+  - id: test
+    action: "Verify fix and check for regressions"
+    agent: age-spe-test-engineer
+    depends_on: [fix]
+    outputs: [passed]
+
+  - id: quick_audit
+    action: "Quick Definition of Done check"
+    agent: age-sup-auditor
+    depends_on: [test]
+    outputs: [compliant]
+
+error_handling:
+  on_step_failure: inform_pm

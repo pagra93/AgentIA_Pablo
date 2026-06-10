@@ -1,0 +1,91 @@
+# Workflow: Definition Pipeline
+# Triggered by: /define command
+# Pipeline: Detect Existing → JTBD Architect → Story Writer (enrich or create) → Quality Coach → Story Splitter
+
+name: wor-define
+description: "Transform research into JTBDs, stories, quality review, and splitting. Detects existing stories from /design-to-prd and enriches them."
+version: 2.0.0
+
+inputs:
+  - name: research_brief
+    type: string
+    required: true
+    description: "Research brief from /analyze or user-provided context"
+
+outputs:
+  - name: stories
+    type: string
+    description: "Sprint-ready user stories with dimensional scoring (new or enriched)"
+
+steps:
+  - id: detect_existing_stories
+    action: "Search docs/working-docs/[feature]/ for existing stories.md from /design-to-prd. Determine mode: enrich (stories exist) or create (no stories)."
+    outputs: [existing_stories, mode, feature_folders]
+
+  - id: generate_jtbds
+    action: "Transform research into structured Jobs-to-be-Done. In enrich mode, also receive existing stories to map JTBDs to identified user flows."
+    agent: age-spe-jtbd-architect
+    depends_on: [detect_existing_stories]
+    inputs:
+      research: ${{ inputs.research_brief }}
+      existing_stories: ${{ steps.detect_existing_stories.outputs.existing_stories }}
+      mode: ${{ steps.detect_existing_stories.outputs.mode }}
+    outputs: [jtbds, priority_order, jtbd_story_mapping]
+
+  - id: pm_approve_jtbds
+    action: "Present JTBDs to PM (with mapping to existing stories if enrich mode). Ask: Approve, modify, or add?"
+    depends_on: [generate_jtbds]
+    inputs:
+      jtbds: ${{ steps.generate_jtbds.outputs.jtbds }}
+      mapping: ${{ steps.generate_jtbds.outputs.jtbd_story_mapping }}
+    outputs: [approved_jtbds]
+
+  - id: write_stories
+    action: "Read docs/project-registry.md for existing assets. In CREATE mode: generate new stories from JTBDs with Dependencias del Proyecto (Usa/Crea). In ENRICH mode: upgrade [DERIVADO] sections with JTBD evidence, preserve Design and Notas tecnicas, merge Criterios, populate Dependencias del Proyecto."
+    agent: age-spe-story-writer
+    depends_on: [pm_approve_jtbds, detect_existing_stories]
+    inputs:
+      jtbds: ${{ steps.pm_approve_jtbds.outputs.approved_jtbds }}
+      existing_stories: ${{ steps.detect_existing_stories.outputs.existing_stories }}
+      mode: ${{ steps.detect_existing_stories.outputs.mode }}
+      mapping: ${{ steps.generate_jtbds.outputs.jtbd_story_mapping }}
+      project_registry: docs/project-registry.md
+    outputs: [stories, scores]
+
+  - id: quality_review
+    action: "Review stories for antipatterns and quality (SUPERVISOR — read-only)"
+    agent: age-sup-quality-coach
+    depends_on: [write_stories]
+    inputs:
+      stories: ${{ steps.write_stories.outputs.stories }}
+    outputs: [review, suggestions, flagged_stories]
+
+  - id: pm_review_suggestions
+    action: "Present Quality Coach suggestions. PM decides: accept, modify, or proceed as-is."
+    depends_on: [quality_review]
+    conditions:
+      - ${{ steps.quality_review.outputs.flagged_stories.length > 0 }}
+    inputs:
+      suggestions: ${{ steps.quality_review.outputs.suggestions }}
+    outputs: [decision]
+
+  - id: split_large_stories
+    action: "Decompose stories >3 days into vertical increments"
+    agent: age-spe-story-splitter
+    depends_on: [quality_review]
+    conditions:
+      - ${{ steps.write_stories.outputs.stories.any(s => s.size > 3) }}
+    inputs:
+      large_stories: ${{ steps.write_stories.outputs.stories.filter(s => s.size > 3) }}
+    outputs: [split_stories]
+
+  - id: deliver
+    action: "Save stories and JTBDs to docs/working-docs/[feature-name]/. Update docs/project-registry.md with assets from 'Dependencias del Proyecto > Crea' (status: planned). In enrich mode, show which sections were upgraded. Suggest /plan."
+    depends_on: [quality_review, split_large_stories]
+    inputs:
+      feature_folders: ${{ steps.detect_existing_stories.outputs.feature_folders }}
+      mode: ${{ steps.detect_existing_stories.outputs.mode }}
+    outputs: [stories]
+
+error_handling:
+  on_step_failure: inform_pm

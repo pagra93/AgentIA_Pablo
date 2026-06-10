@@ -1,0 +1,40 @@
+# Workflow: Log a Learning
+# Triggered by: /learned command
+# Quick: capture → classify → save → confirm
+
+name: wor-learned
+description: "Log a lesson learned at any moment. Saves to tasks/lessons.md and memory/MEMORY.md."
+version: 1.0.0
+
+inputs:
+  - name: learning
+    type: string
+    required: false
+    description: "What was learned. If empty, ask the user."
+
+steps:
+  - id: capture
+    action: "If no input, ask: What happened? Why? How resolved? What to do differently?"
+    outputs: [problem, cause, solution, lesson, category]
+
+  - id: classify
+    action: "Classify as: bug-resolution, edge-case, performance, architecture, tooling, process, or mistake"
+    depends_on: [capture]
+    inputs:
+      content: ${{ steps.capture.outputs }}
+    outputs: [category]
+
+  - id: save_lessons
+    action: "Append formatted entry to tasks/lessons.md with date, category, problem, cause, solution, lesson"
+    depends_on: [classify]
+    outputs: [saved_to_lessons]
+
+  - id: save_memory
+    action: "Update memory/MEMORY.md with a line in Recurring Issues or Project Patterns"
+    depends_on: [classify]
+    outputs: [saved_to_memory]
+
+  - id: confirm
+    action: "Confirm: learning saved. Agents will see it next session."
+    depends_on: [save_lessons, save_memory]
+    outputs: [confirmed]

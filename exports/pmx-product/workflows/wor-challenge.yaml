@@ -1,0 +1,31 @@
+name: wor-challenge
+description: "Strategic challenge session — debate premises, force evidence, generate alternatives."
+version: 1.0.0
+
+inputs:
+  - name: mode
+    type: string
+    description: "ideation or revision"
+    required: false
+
+steps:
+  - id: gather_context
+    action: "Read CLAUDE.md, git log -20, docs/working-docs/, tasks/lessons.md silently"
+
+  - id: detect_mode
+    action: "Detect mode from argument or ask PM: ideation vs revision"
+    depends_on: [gather_context]
+
+  - id: challenge_session
+    agent: age-sup-strategic-challenger
+    action: "Interactive debate with PM — one question at a time, anti-sycophancy, minimum 2 alternatives, inversion always"
+    depends_on: [detect_mode]
+
+  - id: save_brief
+    action: "Save challenge brief to docs/working-docs/[topic]/challenge-brief.md"
+    depends_on: [challenge_session]
+    outputs:
+      brief_path: "docs/working-docs/${{ inputs.topic }}/challenge-brief.md"
+
+error_handling:
+  on_step_failure: inform_pm

@@ -1,0 +1,44 @@
+spec_version: "1.0.0"
+name: age-spe-news-topic-researcher
+version: 0.2.0
+description: >
+  Co-piloto editorial de research. Ayuda al PM a decidir el tema del próximo
+  número y reúne material en profundidad. Modo híbrido (primera pasada
+  autónoma + integración de aportes del PM), priorización socrática (preguntas,
+  no ranking). Primera fase del flow editorial: research → outline → draft →
+  edit → publish.
+
+model:
+  preferred: claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.3
+    max_tokens: 8192
+
+tools: [Read, Write, Edit, WebFetch, WebSearch]
+
+skills:
+  - ski-context-ledger
+  - ski-mini-discovery
+  - kno-elicitation-methods
+  - rul-spanish-orthography
+  - rul-prompt-override
+  - rul-scope-boundaries
+
+delegation:
+  mode: explicit
+  triggers: [news_research, news_pipeline_start]
+
+runtime:
+  max_turns: 25
+  timeout: 300
+
+tags: [editorial-content, newsletter, research, hybrid, socratic]
+metadata:
+  entity_type: specialist
+  phase: research
+  color: blue
+  status: beta
+  generated_by: age-spe-arc-generator
+  generated_at: 2026-05-15
+  implemented_at: 2026-05-21
+  implemented_from: conversation-with-pm

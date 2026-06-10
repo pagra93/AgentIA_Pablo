@@ -1,0 +1,42 @@
+# QA Layer Configuration
+#
+# Controls how the QA cycle runs after /review.
+# Change tier to adjust QA depth per project needs.
+
+# QA Tier: none | light | full
+# - none: Skip QA entirely (prototyping, throwaway code)
+# - light: Auditor only (quick compliance check)
+# - full: Auditor → Evaluator → Optimizer (complete cycle)
+tier: full
+
+# Scoring weights for Evaluator (must sum to 1.0)
+scoring:
+  completeness: 0.30    # Was everything planned delivered?
+  quality: 0.30          # Is the output well-crafted?
+  compliance: 0.25       # Follows the rules?
+  efficiency: 0.15       # Done without waste?
+
+# Thresholds
+thresholds:
+  passing_score: 7.0     # Weighted average >= 7.0 is passing
+  flag_dimension_below: 5.0  # Flag any single dimension scoring below 5
+
+# Automation
+auto_activate: true      # Run QA after every /review (set false to run manually)
+append_to_report: true   # Append results to qa/qa-report.md
+
+# What agents are involved
+agents:
+  auditor: age-sup-auditor
+  evaluator: age-sup-evaluator
+  optimizer: age-sup-optimizer
+
+# Rules the Auditor checks against
+auditor_rules:
+  - rul-definition-of-done
+  - rul-scoring-dimensional
+
+# Where Optimizer writes lessons
+optimizer_outputs:
+  - tasks/lessons.md
+  - docs/PROJECT_KNOWLEDGE.md

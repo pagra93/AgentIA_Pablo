@@ -1,0 +1,55 @@
+# Workflow: Unknown Unknowns Risk Audit
+# Triggered by: /unknown-unknowns command (standalone)
+# Also invokable from wor-analyze and wor-plan
+
+name: wor-unknown-unknowns
+description: "Scan project for hidden risks, blind spots, and unknown unknowns across 8 dimensions."
+version: 1.0.0
+
+inputs:
+  - name: scope
+    type: string
+    default: "full project"
+    description: "What to audit — full project, specific feature, or architecture"
+
+steps:
+  - id: detect_mode
+    action: "Check if codebase exists. Mode A (code) scans 8-12 critical files. Mode B (planning) asks context questions."
+    skill: ski-unknown-unknowns
+    outputs: [mode, codebase_summary]
+
+  - id: gather_context
+    action: "Ask contextual questions the code can't answer: stage, business model, scale, team."
+    depends_on: [detect_mode]
+    outputs: [project_context]
+
+  - id: choose_dimensions
+    action: "Present 8 dimensions. User picks which to audit. AI-specific auto-enabled if LLMs detected."
+    depends_on: [gather_context]
+    outputs: [selected_dimensions]
+
+  - id: analyze
+    action: "Run multi-dimensional analysis. Surface findings in 3 tiers: Critical, Important, Worth Knowing."
+    skill: ski-unknown-unknowns
+    depends_on: [choose_dimensions]
+    inputs:
+      context: ${{ steps.gather_context.outputs.project_context }}
+      dimensions: ${{ steps.choose_dimensions.outputs.selected_dimensions }}
+      codebase: ${{ steps.detect_mode.outputs.codebase_summary }}
+    outputs: [findings_critical, findings_important, findings_worth_knowing]
+
+  - id: action_plan
+    action: "Generate top 5 prioritized actions from all findings."
+    depends_on: [analyze]
+    inputs:
+      critical: ${{ steps.analyze.outputs.findings_critical }}
+      important: ${{ steps.analyze.outputs.findings_important }}
+    outputs: [top_5_actions]
+
+  - id: deliver
+    action: "Present findings by tier + action plan. Save to docs/working_docs/risk-audit/ if docs/ exists."
+    depends_on: [action_plan]
+    outputs: [report]
+
+error_handling:
+  on_step_failure: inform_pm

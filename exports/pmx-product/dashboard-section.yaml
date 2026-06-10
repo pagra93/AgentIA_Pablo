@@ -1,0 +1,72 @@
+# Dashboard Section — PM x10 (pmx-product)
+#
+# Define la pestaña "Producto" que este paquete aporta al dashboard multi-paquete
+# del arquitecto cuando se despliega en un proyecto cliente.
+#
+# Cuando se ejecuta deploy.sh, este archivo se copia a:
+#   <proyecto-cliente>/dashboard/sections/pmx-product-section.yaml
+#
+# El bridge.py del dashboard multi-paquete lo lee y renderiza la pestaña Producto.
+#
+# NOTA: PM x10 también tiene su PROPIO dashboard original (en dashboard-template/)
+# que se copia a proyectos clientes vía /new-project. Esa experiencia sigue
+# funcionando intacta. Este dashboard-section.yaml es para el modelo multi-paquete
+# del arquitecto, NO reemplaza el dashboard original.
+
+tab_id: "pm"
+tab_label: "Producto"
+tab_icon: ""  # opcional: emoji o icono Unicode
+tab_order: 10  # 10 = primera columna por defecto (PM suele ser el principal)
+
+# Carpetas que el dashboard escanea para esta pestaña.
+# Rutas relativas a la raíz del proyecto cliente.
+scan_dirs:
+  - "docs/producto/"
+
+# Secciones renderizadas dentro de la pestaña "Producto".
+sections:
+  - id: inbox
+    label: "Inbox"
+    type: list
+    source: "docs/producto/inbox.md"
+    description: "Buzón de ideas, problemas y peticiones pendientes de procesar"
+
+  - id: sprint
+    label: "Sprint actual"
+    type: kanban
+    source: "docs/producto/sprint.md"
+    description: "Stories del sprint actual"
+    states:
+      - id: backlog
+        label: "Backlog"
+      - id: en_progreso
+        label: "En progreso"
+      - id: en_revision
+        label: "En revisión"
+      - id: hecho
+        label: "Hecho"
+
+  - id: features
+    label: "Features"
+    type: tree
+    source: "docs/producto/features/"
+    description: "Árbol de features (cada carpeta es una feature con sus stories, JTBDs, PRD, arquitectura)"
+
+  - id: lessons
+    label: "Lecciones"
+    type: list
+    source: "docs/producto/lessons.md"
+    description: "Aprendizajes del trabajo en producto"
+
+# Metadatos para auditoría y propagaciones.
+# El propagator NO toca este archivo en proyectos clientes (es config local).
+metadata:
+  package: "pmx-product"
+  prefix: "pmx"
+  domain: "product-management"
+  generated_at: "2026-05-18"
+  notes: |
+    PM x10 es paquete legacy (predates el package-template canónico del arquitecto).
+    Sus agentes NO usan el prefix consistente age-spe-<prefix>-* (son age-spe-quality-guard,
+    age-spe-story-builder, age-spe-pm-producto, etc.). Esto es intencional y queda
+    documentado como divergencia legítima respecto a la convención canónica.

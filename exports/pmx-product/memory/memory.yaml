@@ -1,0 +1,47 @@
+# Memory Configuration
+# Defines how the memory system works in this project.
+#
+# HOW TO USE IN CLAUDE CODE:
+# 1. Agents read memory/MEMORY.md at session start (via hooks or explicit instruction)
+# 2. Code Reviewer has `memory: project` — Claude Code manages its memory automatically
+# 3. Other agents read MEMORY.md, tasks/lessons.md, docs/PROJECT_KNOWLEDGE.md manually
+# 4. Optimizer writes to tasks/lessons.md and MEMORY.md after /review cycles
+# 5. Doc Updater writes to docs/PROJECT_KNOWLEDGE.md after feature completion
+
+layers:
+  - name: working
+    path: MEMORY.md
+    max_lines: 200           # Trim to 200 lines max. Move old entries to archive.
+    format: markdown
+    who_reads: all_agents     # Every agent should read this at session start
+    who_writes:
+      - age-spe-code-reviewer  # Writes patterns after reviews
+      - age-sup-optimizer       # Writes lessons after QA cycles
+
+  - name: archive
+    path: archive/
+    format: yaml              # archive/2026-03.yaml, archive/2026-04.yaml, etc.
+    rotation: monthly         # New file each month
+    retention_period: 1y      # Delete archives older than 1 year
+
+# When memory gets updated
+update_triggers:
+  - on_session_end            # Code Reviewer saves patterns
+  - on_explicit_save          # PM says "remember this"
+  - on_review_complete        # Optimizer saves lessons after /review
+
+# Shared memory files (not in memory/ but act as memory)
+shared_memory:
+  - path: tasks/lessons.md
+    who_writes: age-sup-optimizer
+    who_reads: all_agents
+    purpose: "Patterns to follow and mistakes to avoid"
+
+  - path: docs/PROJECT_KNOWLEDGE.md
+    who_writes: ski-doc-updater
+    who_reads: all_agents
+    purpose: "Living index of project state, decisions, and how things work"
+
+archive_policy:
+  max_entries: 500
+  compress_after: 90d

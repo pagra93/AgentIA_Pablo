@@ -1,0 +1,7 @@
+{
+  "schema_version": "1.0.0",
+  "next_hu": 1,
+  "next_epic": 1,
+  "updated_at": null,
+  "_doc": "Counters de IDs libres para asignar a nuevas stories/épicas. Lo mantiene el PM en cada /pm sync. Los agentes generadores (story-writer, story-builder, design-analyst) leen SOLO este archivo (50 tokens) en lugar del pm/tasks.json completo (~9KB). Si se borra, el PM lo regenera escaneando los .md."
+}

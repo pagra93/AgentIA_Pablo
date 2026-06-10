@@ -1,0 +1,238 @@
+#!/usr/bin/env bash
+# pmx10 — wrapper de operaciones del sistema PM x10
+#
+# Generado por install.sh — NO editar manualmente, se sobrescribe en cada install.
+# Para personalizar, edita scripts/pmx10.template en el repo y vuelve a instalar.
+
+set -euo pipefail
+
+SYSTEM_REPO="{{SYSTEM_REPO}}"
+SCRIPTS_DIR="$SYSTEM_REPO/scripts"
+PROJECTS_LIST="$HOME/.claude/pm-projects.txt"
+
+GREEN=$'\033[0;32m'
+YELLOW=$'\033[1;33m'
+CYAN=$'\033[0;36m'
+RED=$'\033[0;31m'
+NC=$'\033[0m'
+
+# Sanity check: que el repo siga existiendo
+if [ ! -d "$SYSTEM_REPO" ]; then
+    echo -e "${RED}Error:${NC} repo del sistema no encontrado en $SYSTEM_REPO"
+    echo "Reinstala con: bash <ruta-real-del-repo>/install.sh"
+    exit 1
+fi
+
+cmd="${1:-help}"
+
+# Helper: validar argumento de proyecto
+require_project_path() {
+    if [ -z "${2:-}" ]; then
+        echo "Uso: pmx10 $1 <ruta-proyecto>"
+        exit 1
+    fi
+    if [ ! -d "$2" ]; then
+        echo -e "${RED}Error:${NC} la ruta no existe o no es directorio: $2"
+        exit 1
+    fi
+}
+
+case "$cmd" in
+
+  install|i)
+    bash "$SYSTEM_REPO/install.sh"
+    ;;
+
+  upgrade|u)
+    require_project_path "upgrade" "${2:-}"
+    PROJECT_PATH="$2"
+
+    echo -e "${CYAN}═══════════════════════════════════════════════${NC}"
+    echo -e "${CYAN}  pmx10 upgrade: $(basename "$PROJECT_PATH")${NC}"
+    echo -e "${CYAN}═══════════════════════════════════════════════${NC}"
+    echo ""
+
+    echo -e "${CYAN}[1/3] Actualizando sistema global (~/.claude/)...${NC}"
+    # Desactivamos pipefail localmente: `yes y | bash` cierra el pipe al terminar y
+    # `yes` recibe SIGPIPE (exit 141), lo que con pipefail haría fallar el pipeline
+    # aunque install.sh haya terminado bien.
+    set +o pipefail
+    yes y | bash "$SYSTEM_REPO/install.sh" > /tmp/pmx10-install.log 2>&1
+    INSTALL_RC=${PIPESTATUS[1]}
+    set -o pipefail
+    if [ "$INSTALL_RC" -ne 0 ]; then
+        echo -e "${RED}✗ install.sh falló (exit $INSTALL_RC). Últimas líneas del log:${NC}"
+        tail -20 /tmp/pmx10-install.log
+        echo ""
+        echo "Log completo: /tmp/pmx10-install.log"
+        exit 1
+    fi
+    echo -e "  ${GREEN}✓${NC} sistema global al día"
+    echo ""
+
+    echo -e "${CYAN}[2/3] Sincronizando dashboard del proyecto...${NC}"
+    bash "$SCRIPTS_DIR/update-dashboards.sh" --apply "$PROJECT_PATH" 2>&1 | grep -E "updated|ok|skip|Encontrados|Actualizado" || true
+    echo ""
+
+    echo -e "${CYAN}[3/3] Regenerando esqueletos de _dossier.md...${NC}"
+    bash "$SCRIPTS_DIR/regenerate-dossiers.sh" "$PROJECT_PATH" --apply 2>&1 | grep -E "created|skip|Subtotal|Done" || true
+    echo ""
+
+    echo -e "${GREEN}═══════════════════════════════════════════════${NC}"
+    echo -e "${GREEN}  ✓ Proyecto actualizado${NC}"
+    echo -e "${GREEN}═══════════════════════════════════════════════${NC}"
+    echo ""
+    echo "Pasos manuales pendientes en Claude Code del proyecto:"
+    echo "  1. /new-project        ← añade carpetas/templates nuevos si los hay"
+    echo "  2. /pm dossier all     ← rellena los esqueletos de dossier con info real"
+    echo ""
+    echo "Si el bridge.py estaba corriendo, reinícialo:"
+    echo "  pkill -f \"python3.*dashboard/bridge.py\""
+    echo "  cd \"$PROJECT_PATH\""
+    echo "  python3 dashboard/bridge.py"
+    echo "  (+ Cmd+Shift+R en navegador)"
+    ;;
+
+  upgrade-all|ua)
+    if [ ! -f "$PROJECTS_LIST" ]; then
+        echo -e "${RED}No existe $PROJECTS_LIST.${NC}"
+        echo ""
+        echo "Crea el archivo (uno por línea) o usa 'pmx10 add <ruta>' para registrarlos:"
+        echo "  pmx10 add \"/ruta/a/proyecto1\""
+        echo "  pmx10 add \"/ruta/a/proyecto2\""
+        exit 1
+    fi
+    count=0
+    while IFS= read -r line; do
+        # Skip comentarios y líneas vacías
+        [ -z "$line" ] && continue
+        case "$line" in \#*) continue ;; esac
+        path="${line/#\~/$HOME}"
+        if [ ! -d "$path" ]; then
+            echo -e "${YELLOW}[skip]${NC} $path no existe"
+            continue
+        fi
+        echo -e "${CYAN}═══ $(basename "$path") ═══${NC}"
+        "$0" upgrade "$path"
+        echo ""
+        count=$((count + 1))
+    done < "$PROJECTS_LIST"
+    echo -e "${GREEN}✓ $count proyecto(s) procesado(s).${NC}"
+    ;;
+
+  dossiers|d)
+    require_project_path "dossiers" "${2:-}"
+    bash "$SCRIPTS_DIR/regenerate-dossiers.sh" "$2" --apply
+    echo ""
+    echo "Siguiente paso: abre Claude Code en el proyecto y ejecuta:"
+    echo "  /pm dossier all     ← rellena los esqueletos con info real"
+    ;;
+
+  dashboards|dash)
+    require_project_path "dashboards" "${2:-}"
+    bash "$SCRIPTS_DIR/update-dashboards.sh" --apply "$2"
+    ;;
+
+  list|ls)
+    echo -e "${CYAN}Proyectos PM x10 registrados:${NC}"
+    if [ -f "$PROJECTS_LIST" ]; then
+        nl -ba -w2 -s'. ' "$PROJECTS_LIST" | sed 's/^/  /'
+    else
+        echo "  (vacío — usa 'pmx10 add <ruta>' para registrar)"
+    fi
+    ;;
+
+  add|a)
+    require_project_path "add" "${2:-}"
+    mkdir -p "$HOME/.claude"
+    # Normalizar ruta absoluta
+    ABS_PATH="$(cd "$2" && pwd)"
+    if [ -f "$PROJECTS_LIST" ] && grep -qFx "$ABS_PATH" "$PROJECTS_LIST"; then
+        echo -e "${YELLOW}Ya estaba registrado:${NC} $ABS_PATH"
+    else
+        echo "$ABS_PATH" >> "$PROJECTS_LIST"
+        echo -e "${GREEN}✓ Añadido:${NC} $ABS_PATH"
+        echo "  → $PROJECTS_LIST"
+    fi
+    ;;
+
+  remove|rm)
+    require_project_path "remove" "${2:-}"
+    if [ ! -f "$PROJECTS_LIST" ]; then
+        echo "No hay proyectos registrados."
+        exit 0
+    fi
+    ABS_PATH="$(cd "$2" 2>/dev/null && pwd || echo "$2")"
+    if grep -qFx "$ABS_PATH" "$PROJECTS_LIST"; then
+        grep -vFx "$ABS_PATH" "$PROJECTS_LIST" > "$PROJECTS_LIST.tmp" && mv "$PROJECTS_LIST.tmp" "$PROJECTS_LIST"
+        echo -e "${GREEN}✓ Eliminado:${NC} $ABS_PATH"
+    else
+        echo -e "${YELLOW}No estaba registrado:${NC} $ABS_PATH"
+    fi
+    ;;
+
+  version|v)
+    echo -n "Repo: $SYSTEM_REPO"
+    if [ -d "$SYSTEM_REPO/.git" ]; then
+        COMMIT=$(git -C "$SYSTEM_REPO" log -1 --oneline 2>/dev/null)
+        echo " · $COMMIT"
+    else
+        echo ""
+    fi
+    BRIDGE_VERSION=$(grep -E '^VERSION = ' "$SYSTEM_REPO/dashboard-template/bridge.py" 2>/dev/null | head -1 || echo "")
+    [ -n "$BRIDGE_VERSION" ] && echo "Dashboard: $BRIDGE_VERSION"
+    ;;
+
+  help|h|--help|-h)
+    cat <<EOF
+${CYAN}pmx10${NC} — wrapper de operaciones del sistema PM x10
+
+${CYAN}USO:${NC}
+  pmx10 <comando> [argumentos]
+
+${CYAN}COMANDOS PRINCIPALES:${NC}
+  install                    Actualiza el sistema global (~/.claude/) desde el repo
+  upgrade <ruta>             Actualiza UN proyecto completo: install + dashboard + dossiers
+  upgrade-all                Actualiza TODOS los proyectos registrados (ver 'list')
+
+${CYAN}COMANDOS GRANULARES:${NC}
+  dashboards <ruta>          Solo sincroniza el dashboard de un proyecto
+  dossiers <ruta>            Solo regenera esqueletos de _dossier.md
+
+${CYAN}LISTA DE PROYECTOS:${NC}
+  list                       Muestra los proyectos registrados
+  add <ruta>                 Añade un proyecto a la lista
+  remove <ruta>              Quita un proyecto de la lista
+
+${CYAN}OTROS:${NC}
+  version                    Versión del repo y del bridge
+  help                       Esta ayuda
+
+${CYAN}EJEMPLOS:${NC}
+  # Registrar Cuerva una vez:
+  pmx10 add "/Users/pablogranados/Desktop/PABLO/Trabajos/Cuerva/Cuerva Smart Industry"
+
+  # Actualizar Cuerva (ejecuta los 3 pasos en orden):
+  pmx10 upgrade "/Users/pablogranados/Desktop/PABLO/Trabajos/Cuerva/Cuerva Smart Industry"
+
+  # Después de actualizar el repo del sistema, sincronizar todos los proyectos registrados:
+  pmx10 upgrade-all
+
+${CYAN}INSTALACIÓN COMO ALIAS:${NC}
+  Para escribir 'pmx10' en lugar de 'bash ~/.claude/pmx10', añade a tu ~/.zshrc:
+    alias pmx10='bash \$HOME/.claude/pmx10'
+
+  Luego: source ~/.zshrc
+
+${CYAN}REPO:${NC}
+  $SYSTEM_REPO
+
+EOF
+    ;;
+
+  *)
+    echo -e "${RED}Comando desconocido:${NC} $cmd"
+    echo "Ejecuta 'pmx10 help' para ver opciones."
+    exit 1
+    ;;
+esac

@@ -15,7 +15,5 @@ _reference/
 __pycache__/
 *.pyc
 
-# Exports (cada paquete es su propio repo Git anidado)
-exports/*/
-!exports/README.md
-!exports/.gitkeep
+# Exports: los paquetes viven dentro del monorepo como carpetas normales
+# (antes eran sub-repos Git anidados; absorbidos al monorepo el 2026-06-10).

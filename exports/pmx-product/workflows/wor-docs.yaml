@@ -1,0 +1,107 @@
+# Workflow: Project Documentation Generator
+# Triggered by: /docs command
+# Modes: init, feature, architecture, api, refresh
+
+name: wor-docs
+description: "Generate or update complete project documentation in docs/project-docs/."
+version: 1.0.0
+
+inputs:
+  - name: mode
+    type: string
+    required: true
+    description: "init | [feature-name] | architecture | api | refresh"
+
+steps:
+  - id: detect_mode
+    action: "Parse input to determine mode: init, feature, architecture, api, or refresh"
+    inputs:
+      mode: ${{ inputs.mode }}
+    outputs: [mode, target]
+
+  # --- INIT MODE ---
+  - id: init_interview
+    action: "Ask: project name, description, problem solved, target audience, mission/vision, tech stack"
+    conditions:
+      - ${{ steps.detect_mode.outputs.mode == 'init' }}
+    depends_on: [detect_mode]
+    outputs: [project_info]
+
+  - id: init_generate
+    action: "Create docs/project-docs/ structure with all sections from interview answers"
+    skill: ski-project-docs
+    depends_on: [init_interview]
+    inputs:
+      info: ${{ steps.init_interview.outputs.project_info }}
+    outputs: [structure_created]
+
+  # --- FEATURE MODE ---
+  - id: feature_read
+    action: "Read implementation: code files, tests, story from tasks/todo.md, acceptance criteria"
+    conditions:
+      - ${{ steps.detect_mode.outputs.mode == 'feature' }}
+    depends_on: [detect_mode]
+    inputs:
+      feature: ${{ steps.detect_mode.outputs.target }}
+    outputs: [implementation_context]
+
+  - id: feature_generate
+    action: "Generate docs/project-docs/features/[name].md with: what it does, how it works, how to use, config, limitations"
+    skill: ski-project-docs
+    depends_on: [feature_read]
+    inputs:
+      context: ${{ steps.feature_read.outputs.implementation_context }}
+      feature: ${{ steps.detect_mode.outputs.target }}
+    outputs: [feature_doc, index_updated, changelog_updated]
+
+  # --- ARCHITECTURE MODE ---
+  - id: arch_read
+    action: "Read CLAUDE.md, ADRs, current architecture docs, data model"
+    conditions:
+      - ${{ steps.detect_mode.outputs.mode == 'architecture' }}
+    depends_on: [detect_mode]
+    outputs: [arch_context]
+
+  - id: arch_generate
+    action: "Update architecture/overview.md, data-model.md, tech-stack.md, link ADRs"
+    skill: ski-project-docs
+    depends_on: [arch_read]
+    inputs:
+      context: ${{ steps.arch_read.outputs.arch_context }}
+    outputs: [arch_docs_updated]
+
+  # --- API MODE ---
+  - id: api_scan
+    action: "Scan route files, controllers, endpoints. Extract request/response schemas."
+    conditions:
+      - ${{ steps.detect_mode.outputs.mode == 'api' }}
+    depends_on: [detect_mode]
+    outputs: [api_context]
+
+  - id: api_generate
+    action: "Generate api/ docs grouped by resource with examples"
+    skill: ski-project-docs
+    depends_on: [api_scan]
+    inputs:
+      context: ${{ steps.api_scan.outputs.api_context }}
+    outputs: [api_docs_updated]
+
+  # --- REFRESH MODE ---
+  - id: refresh_scan
+    action: "Re-scan entire project. Compare with existing docs. Identify stale sections."
+    conditions:
+      - ${{ steps.detect_mode.outputs.mode == 'refresh' }}
+    depends_on: [detect_mode]
+    outputs: [stale_sections, current_state]
+
+  - id: refresh_update
+    action: "Update all stale sections. Flag anything that needs human review."
+    skill: ski-project-docs
+    depends_on: [refresh_scan]
+    inputs:
+      stale: ${{ steps.refresh_scan.outputs.stale_sections }}
+      state: ${{ steps.refresh_scan.outputs.current_state }}
+    outputs: [updated_sections, flagged_sections]
+
+error_handling:
+  on_step_failure: inform_pm

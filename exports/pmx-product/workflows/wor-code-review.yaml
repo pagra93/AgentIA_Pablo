@@ -1,0 +1,33 @@
+# Workflow: Validation Only Pipeline
+# Triggered by: /code-review command
+
+name: wor-code-review
+description: "Code review, tests, audit, evaluation — no building."
+version: 1.0.0
+
+steps:
+  - id: code_review
+    action: "Review recent changes for quality, security, best practices"
+    agent: age-spe-code-reviewer
+    outputs: [verdict, issues]
+
+  - id: test
+    action: "Run tests, verify coverage"
+    agent: age-spe-test-engineer
+    outputs: [results, coverage]
+    # Can run in parallel with code_review (no dependency)
+
+  - id: audit
+    action: "Check against Definition of Done"
+    agent: age-sup-auditor
+    depends_on: [code_review, test]
+    outputs: [compliance]
+
+  - id: evaluate
+    action: "Score on 4 dimensions"
+    agent: age-sup-evaluator
+    depends_on: [audit]
+    outputs: [scorecard]
+
+error_handling:
+  on_step_failure: inform_pm

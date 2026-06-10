@@ -1,0 +1,36 @@
+spec_version: "1.0.0"
+name: age-spe-news-editor-in-chief
+version: 0.1.0
+description: >
+  TODO: Revisa, corrige, valida tono y coherencia, da OK final pre-publicación
+  Stub generado por el arquitecto. Pendiente de implementación.
+
+model:
+  preferred: claude-sonnet-4-5-20250929
+  constraints:
+    temperature: 0.3
+    max_tokens: 8192
+
+tools: [Read, Write, Edit]
+
+skills:
+  # TODO: añadir skills relevantes al rol
+  - rul-spanish-orthography
+  - rul-prompt-override
+
+delegation:
+  mode: explicit
+  triggers: [news_pipeline]  # TODO: ajustar trigger
+
+runtime:
+  max_turns: 15
+  timeout: 120
+
+tags: [editorial-content, newsletter, stub, todo]
+metadata:
+  entity_type: specialist
+  phase: editorial
+  color: gray
+  status: stub
+  generated_by: age-spe-arc-generator
+  generated_at: 2026-05-15
