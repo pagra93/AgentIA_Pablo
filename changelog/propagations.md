@@ -7,6 +7,35 @@ Entradas en orden cronológico inverso (más reciente arriba).
 
 ---
 
+## 2026-06-10T09:22:07Z — pmx — Comando /auto (orquestador gobernado del pipeline)
+
+**Tipo**: comando nuevo de pmx (NO transversal, NO se propaga — orquesta el pipeline de producto)
+**Iniciado por**: PM (quería autonomía "lanzo y se hace solo"; acordado: autonomía gobernada con gates)
+
+**Cambio**:
+
+- `exports/pmx-product/commands/auto.md` — **NUEVO**. Recorre el pipeline completo de punta a punta solo,
+  parando en **3 gates** humanos:
+  - **Paso 0**: detección de entrada (diseño Pencil → design-discovery+design-to-prd; problema → analyze+define; idea → story; ya hay stories → planning) + reanudación desde el estado actual.
+  - **Paso 1** research/definición → **GATE 1 (Scope)**.
+  - **Paso 2** planning (tech-architect lee architecture-map) → **GATE 2 (Arquitectura)**.
+  - **Paso 3** build (sub-agente/story, commit atómico; para si `bloqueada`).
+  - **Paso 4** review (test + code-review con seguridad + audit + evaluate + optimize + UPDATE del mapa) → **GATE 3 (Done/Merge)**.
+- `exports/pmx-product/CLAUDE.md` — añadido `/auto` a la tabla (18→19 comandos).
+
+**Gobernanza embebida**: `rul-fail-loud` en cada transición, mueve el kanban y aparca en el gate, respeta
+`prompt_override`, **push siempre manual** (`/save`). Control de coste interactivo = los gates; tope duro real
+= modo headless (`claude -p "/auto X" --max-budget-usd N --max-turns M`).
+
+**Verificado**: 11/11 comandos, 18/18 agentes y 7/7 estados referenciados existen; 3 gates presentes.
+
+**Decisión consciente**: NO fire-and-forget total (choca con la gobernanza); NO Agent Teams experimental
+(el encadenamiento gobernado de comandos cubre el objetivo, estable). Futuro: modo `express` con menos gates.
+
+**Outcome**: ✓ completed (sin probar en ejecución real sobre una feature todavía)
+
+---
+
 ## 2026-06-10T07:00:52Z — propagator — Capa de seguridad: kno-security-review + code-reviewer
 
 **Tipo**: knowledge nuevo (genérico propagable) + enriquecimiento del code-reviewer (pmx)

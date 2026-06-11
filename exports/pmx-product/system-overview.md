@@ -37,7 +37,7 @@
 | `age-spe-test-engineer` | `agents/age-spe-test-engineer/` | Validation loop: tests, coverage, iteración |
 | `age-spe-code-reviewer` | `agents/age-spe-code-reviewer/` | Code review con memoria persistente |
 | `age-spe-pm-producto` | `agents/age-spe-pm-producto/` | PM de Producto: índice + buzón + dossiers |
-| `age-spe-wiki-curator` | `agents/age-spe-wiki-curator/` | Wiki transversal de empresa |
+| `age-spe-wiki-curator` | `agents/age-spe-wiki-curator/` | **Cerebro de la empresa**: ingesta todo el conocimiento sin silos y responde con `/wiki buscar` |
 
 ### Supervisores (5) — READ-ONLY
 

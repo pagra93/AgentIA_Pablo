@@ -460,10 +460,11 @@
 <header class="site-header">
   <span class="brand-eyebrow">Guía operativa</span>
   <h1 class="brand-title">PM x10<span class="v">v3.0</span></h1>
-  <p class="brand-lead">Sistema de Product Management con IA. 19 agentes, 18 comandos, una idea: usar el mínimo necesario para cada tarea.</p>
+  <p class="brand-lead">Sistema de Product Management con IA. 19 agentes, 19 comandos, una idea: usar el mínimo necesario para cada tarea.</p>
   <nav class="quick-actions" aria-label="Comandos más usados">
     <span class="qa-label">Más usados</span>
     <a href="#hoy-idea" class="qa">/story</a>
+    <a href="#hoy-auto" class="qa">/auto</a>
     <a href="#hoy-pequeno" class="qa">/define</a>
     <a href="#hoy-grande" class="qa">/design-discovery</a>
     <a href="#hoy-build" class="qa">/build</a>
@@ -558,6 +559,22 @@
         <li>"Sistema de notificaciones push para nuevos pedidos"</li>
         <li>"Dashboard de métricas de ventas por producto"</li>
         <li>"Flujo de recuperación de password completo"</li>
+      </ul>
+    </div>
+
+    <h3 id="hoy-auto">Que se haga solo (gobernado) <span class="pill pill-special">NUEVO</span></h3>
+    <div class="recipe">
+      <div class="recipe-when">Quieres lanzar una cosa y que recorra el pipeline sola, parando solo donde tú debes decidir.</div>
+      <div class="recipe-meta">1 comando · pipeline completo · 3 paradas de aprobación (scope, arquitectura, done).</div>
+      <pre class="recipe-flow"><span class="cmd">/auto</span> &lt;feature | HU | idea&gt;
+  detecta entrada + estado → research/definición → <span class="note">⛔ GATE 1: Scope</span>
+  → <span class="cmd">/plan</span> <span class="agent">tech-architect</span> + <span class="agent">sprint-planner</span> → <span class="note">⛔ GATE 2: Arquitectura</span>
+  → <span class="cmd">/build</span> sub-agente por story (commit atómico) <span class="note">// para si se bloquea</span>
+  → <span class="cmd">/review</span> tests + seguridad + audit + evaluate + optimize → <span class="note">⛔ GATE 3: Done</span></pre>
+      <p class="note-inline">Entre gates trabaja solo; en los 3 puntos que <em>componen</em> (scope, arquitectura, merge) para y apruebas tú. <strong>El push nunca es automático</strong> (sigue siendo <code>/save</code>). Para tope de gasto real, lánzalo en headless: <code>claude -p "/auto X" --max-budget-usd N</code>.</p>
+      <ul class="recipe-examples">
+        <li>"/auto sistema de notificaciones push para nuevos pedidos"</li>
+        <li>"/auto HU-042"</li>
       </ul>
     </div>
 

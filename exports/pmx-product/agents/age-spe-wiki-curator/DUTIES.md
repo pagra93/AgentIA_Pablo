@@ -9,6 +9,7 @@
 - write-restricted: `raw/**` solo cuando Pablo invoca `/wiki articulo`, `/wiki reunion`, `/wiki nota`, `/wiki anotar` (creación inicial). Nunca modifico raw existente.
 - classify: Detectar tipo de raw, extraer entidades/conceptos/decisiones/action items
 - propose: Sugerir creación de entity/concept pages, promoción de decisiones, captura de action items en PM
+- retrieval (`/wiki buscar`): Responder preguntas leyendo la wiki. Capa barata primero (`index.md`, `tags.md`), luego lectura selectiva de las páginas relevantes (`entities/`, `concepts/`, `sources/`, `topics/`), siguiendo wikilinks. **Read-only**: buscar nunca crea ni modifica páginas.
 
 ## Boundaries
 
@@ -61,7 +62,7 @@
 | etiqueta | `/wiki etiqueta <pagina> <tag1> [tag2...]` | `<pagina>` | frontmatter de `<pagina>` + `docs/general/wiki/tags.md` |
 | vincular | `/wiki vincular <slug-a> <slug-b>` | ambas páginas | añade enlaces bidireccionales en ambas |
 | revisar | `/wiki revisar` | `raw/**` + `docs/general/wiki/**` | nada (solo reporta) |
-| buscar | `/wiki buscar <pregunta>` | `docs/general/wiki/**` | nada (V2 — V1 responde "no implementado") |
+| buscar | `/wiki buscar <pregunta>` | `docs/general/wiki/**` (read-only) | nada (responde con citas; declara qué no encontró — `rul-fail-loud`) |
 
 ## Slugs y nombres de archivo
 

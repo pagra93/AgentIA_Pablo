@@ -1,12 +1,21 @@
 ---
-description: "Wiki de empresa: ingestar artículos/reuniones/notas, sintetizar entidades/conceptos, mantener índice/log/tags. Modos: ingestar, anotar, articulo, reunion, nota, etiqueta, vincular, revisar, buscar. Ejecuta age-spe-wiki-curator."
+description: "Cerebro de la empresa: ingesta todo el conocimiento (reuniones, decisiones, notas, artículos, transcripciones), lo clasifica sin silos, y responde preguntas con citas (/wiki buscar). Modos: ingestar, anotar, articulo, reunion, nota, etiqueta, vincular, revisar, buscar. Ejecuta age-spe-wiki-curator."
 ---
 
-# /wiki — Wiki de empresa
+# /wiki — Cerebro de la Empresa
+
+**Esta wiki es el CEREBRO DE LA EMPRESA.** Aquí va TODO el conocimiento de la organización: reuniones,
+decisiones, proyectos, aprendizajes, clientes, personas, notas, artículos, transcripciones. El objetivo es
+**acabar con los silos** — que lo que pasa en una reunión o lo que sabe una persona no se quede en su cabeza,
+sino que entre aquí, quede clasificado, y la IA pueda acceder a todo para que penséis mejor con el contexto completo.
 
 Curator transversal del conocimiento de empresa. Procesa raw sources (artículos, reuniones, notas, transcripciones), extrae entidades/conceptos, mantiene una wiki sintética con wikilinks `[[...]]`.
 
-**Es transversal a todas las áreas** (Producto, Marketing, RRHH, Operaciones). A diferencia del PM (uno por área), la wiki es global. Los conocimientos de Marketing y los de Producto comparten entity pages, concept pages y tags.
+**Es transversal a todas las áreas** (Producto, Marketing, RRHH, Operaciones). A diferencia del PM (uno por área), la wiki es global — un único cerebro. Los conocimientos de Marketing y los de Producto comparten entity pages, concept pages y tags.
+
+**Para preguntarle al cerebro**: `/wiki buscar <tu pregunta>` — la IA busca en todo el cerebro y responde con
+citas. Para **alimentarlo** (hazlo a menudo): `/wiki reunion` + `/wiki ingestar`, `/wiki anotar`, `/wiki articulo`.
+Cuanto más le metes, mejor piensa contigo. El valor crece con cada ingesta.
 
 ## Sintaxis
 
@@ -19,7 +28,7 @@ Curator transversal del conocimiento de empresa. Procesa raw sources (artículos
 /wiki etiqueta <pagina> <tag1>... → añade tags a una página
 /wiki vincular <slug-a> <slug-b>  → enlaza dos páginas wiki
 /wiki revisar                     → health check (orphans, broken links, duplicados)
-/wiki buscar <pregunta>           → búsqueda sintetizada (V2)
+/wiki buscar <pregunta>           → preguntar a la IA de la empresa (responde con citas)
 ```
 
 ## Modos
@@ -91,9 +100,27 @@ Health check completo. Reporta:
 
 NO arregla nada. Solo reporta. Pablo decide.
 
-### `/wiki buscar <pregunta>` (V2)
+### `/wiki buscar <pregunta>`
 
-Reservado para V2. En V1 responde: "Aún no implementado. Lee manualmente `docs/general/wiki/index.md`."
+**Preguntar a la IA de la empresa.** Busca en toda la wiki (el cerebro de empresa) y responde la pregunta en
+lenguaje natural, con citas. Recuperación por índice + lectura selectiva (sin embeddings ni vector DB —
+coherente con el sistema markdown+git).
+
+Procedimiento del `age-spe-wiki-curator`:
+
+1. **Capa barata primero** (`rul-lazy-loading`): leer `docs/general/wiki/index.md` y `tags.md` para orientarse
+   sobre qué páginas existen y por qué tema/tipo. NO leer todo el vault de golpe.
+2. **Seleccionar candidatas**: a partir del índice/tags, identificar las páginas relevantes a la pregunta en
+   `entities/`, `concepts/`, `sources/`, `topics/`.
+3. **Leer solo esas** páginas seleccionadas (capa cara).
+4. **Responder en lenguaje natural** sintetizando lo encontrado, **citando** cada afirmación con su página o
+   fuente: `[[concepts/...]]`, `[[entities/...]]`, `[[sources/...]]`. Sigue los wikilinks si hace falta para
+   completar el contexto.
+5. **`rul-fail-loud`**: si la wiki **no** contiene la información, **dilo explícitamente** ("no encontré nada
+   sobre X en la wiki") — NUNCA inventes. Distingue lo que está respaldado por fuentes de lo que es inferencia.
+   Si la cobertura es parcial, declara qué falta y sugiere qué ingestar (`/wiki ingestar ...`).
+
+Es **read-only**: `buscar` nunca crea ni modifica páginas. Solo lee y responde.
 
 ## Pipeline
 

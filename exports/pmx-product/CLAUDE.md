@@ -37,10 +37,11 @@ Estado: producción
 - `age-sup-evaluator` — Puntúa fases en 4D, read-only (Trigger: `/review`)
 - `age-sup-optimizer` — Detecta patrones, propone mejoras, read-only (Trigger: `/review`)
 
-## Los 18 comandos
+## Los 19 comandos
 
 | Comando | Para qué |
 |---|---|
+| `/auto` | **(NUEVO)** Orquestador gobernado: recorre research/def → plan → build → review solo, parando en 3 gates (scope, arquitectura, done). Push manual |
 | `/design-discovery` | **(NUEVO V2.3)** Entrevista funcional al PM sobre diseño, una pregunta por turno → genera `docs/producto/functional-brief.md` |
 | `/analyze` | Evaluar problema/PRD con Quality Guard |
 | `/define` | JTBDs → stories → quality coach |
