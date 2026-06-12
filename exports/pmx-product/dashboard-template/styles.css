@@ -1,35 +1,86 @@
 /* PM x10 Dashboard — V2.1 styles
    Paleta consistente con pm-agent-system-guia-de-uso.html */
 
+/* ── Tema OSCURO (default) — Linear/Vercel, acento violeta ── */
 :root {
-  --bg: #0b0b14;
-  --bg2: #15151f;
-  --bg3: #1d1d2a;
-  --border: #2a2a3a;
-  --text: #e8e8f0;
-  --text2: #a8a8b8;
-  --text3: #6a6a7a;
+  --bg: #0a0a0f;
+  --bg2: #101016;     /* panel */
+  --bg3: #15151d;     /* panel elevado / hover */
+  --border: rgba(255,255,255,.07);
+  --line2: rgba(255,255,255,.04);
+  --text: #f3f3f7;
+  --text2: #a2a2b2;
+  --text3: #6b6b7c;
 
-  --cyan: #5fc7e6;
-  --blue: #5b9bd5;
-  --purple: #c47bd6;
-  --pink: #e676b3;
-  --red: #e87878;
-  --orange: #e8a878;
+  --cyan: #7c6cff;    /* ACENTO principal (violeta) — usado por estados activos, brand, btn primary */
+  --blue: #5b8cff;
+  --purple: #c98fdc;
+  --pink: #e98cc0;
+  --red: #ec8585;
+  --orange: #f0b13b;
   --yellow: #e8d878;
-  --green: #78c878;
+  --green: #56d6a0;
   --green2: #5bc4a0;
-  --white: #d8d8e0;
+  --white: #f3f3f7;
 
   --mono: 'DM Mono', 'SF Mono', Menlo, Monaco, Consolas, monospace;
-  --sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
 
-  --sidebar-w: 300px;
-  --topbar-h: 52px;
+  --radius: 16px;
+  --shadow: 0 1px 0 rgba(255,255,255,.03) inset, 0 8px 30px rgba(0,0,0,.28);
+  --sidebar-w: 250px;
+  --topbar-h: 56px;
   --footer-h: 28px;
 }
 
+/* ── Tema CLARO — minimalista tipo SaaS ── */
+html.light {
+  --bg: #f6f7f9;
+  --bg2: #ffffff;
+  --bg3: #f0f0f4;
+  --border: rgba(0,0,0,.08);
+  --line2: rgba(0,0,0,.04);
+  --text: #16161d;
+  --text2: #5a5b6a;
+  --text3: #8a8b9a;
+
+  --cyan: #6a5cf0;
+  --blue: #3b76c4;
+  --purple: #9a52c0;
+  --pink: #c44d92;
+  --red: #d05656;
+  --orange: #c5803a;
+  --green: #2f9d7e;
+  --white: #16161d;
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(20,20,40,.06);
+}
+
 * { box-sizing: border-box; }
+
+/* Glow ambiental de fondo (Linear-style) */
+body::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(620px 320px at 16% -8%, rgba(124,108,255,.14), transparent 70%),
+    radial-gradient(520px 300px at 92% 0%, rgba(91,140,255,.09), transparent 70%);
+}
+html.light body::before { opacity: .5; }
+#app { position: relative; z-index: 1; }
+
+/* ── Toggle de tema ── */
+.theme-toggle {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.theme-toggle:hover { background: var(--bg3); color: var(--text); border-color: var(--text3); }
 
 html, body {
   margin: 0;
@@ -2587,3 +2638,141 @@ html, body {
 .arch-section .mermaid { background: transparent; }
 .arch-flow-title { color: var(--text2); font-weight: 600; margin: 0.75rem 0 0.25rem; }
 .arch-empty { color: var(--text3); font-style: italic; }
+
+/* ═══════════════════════════════════════════════════════════════
+   OVERHAUL v3 — lenguaje visual Linear/Vercel (acento violeta)
+   Capa de override sobre los componentes existentes (sin tocar app.js)
+   ═══════════════════════════════════════════════════════════════ */
+
+body { letter-spacing: -0.005em; }
+
+/* Topbar */
+#topbar {
+  height: var(--topbar-h);
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 80%, transparent);
+  backdrop-filter: blur(10px);
+  padding: 0 22px;
+}
+.brand-mark { color: var(--cyan); }
+.brand-text { font-weight: 700; letter-spacing: -0.01em; }
+.brand-version {
+  color: var(--text3); font-size: 11px; font-weight: 500;
+  border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; background: transparent;
+}
+.conn-status { font-size: 12px; }
+
+/* Sidebar */
+#sidebar {
+  width: var(--sidebar-w);
+  border-right: 1px solid var(--border);
+  background: rgba(255,255,255,.012);
+  padding: 14px 12px;
+}
+html.light #sidebar { background: rgba(0,0,0,.012); }
+.area-nav-title {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .08em;
+  font-weight: 600; color: var(--text3); padding: 6px 12px 4px; margin: 0;
+}
+.area-row {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 12px; margin: 1px 0; border-radius: 11px;
+  color: var(--text2); font-size: 13.5px; font-weight: 500;
+  background: transparent; border: none; transition: background .15s, color .15s;
+}
+.area-row:hover { background: var(--line2); color: var(--text); }
+.area-row.active {
+  background: linear-gradient(90deg, color-mix(in oklab, var(--cyan) 18%, transparent), color-mix(in oklab, var(--cyan) 4%, transparent));
+  color: var(--text); border: none; box-shadow: none;
+}
+.area-row.active .area-icon { color: var(--cyan); }
+.area-icon { width: 18px; text-align: center; color: var(--text3); font-size: 15px; }
+.area-badge {
+  margin-left: auto; font-size: 11px; color: var(--text2);
+  border: 1px solid var(--border); border-radius: 999px; padding: 1px 9px; background: transparent;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cabeceras de área */
+.area-title { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.area-subtitle { color: var(--text2); font-size: 14px; }
+#main-panel { padding: 26px 34px; }
+
+/* Sub-tabs como pills */
+.area-subtabs { gap: 4px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+.atab {
+  padding: 8px 14px; font-size: 13px; font-weight: 500; color: var(--text2);
+  border: none; border-bottom: 2px solid transparent; background: transparent; border-radius: 8px 8px 0 0;
+}
+.atab:hover { color: var(--text); background: var(--line2); }
+.atab.active { color: var(--cyan); border-bottom-color: var(--cyan); background: transparent; }
+
+/* Botones */
+.btn {
+  border-radius: 10px; border: 1px solid var(--border); background: var(--bg3);
+  color: var(--text); font-weight: 500; font-size: 13px; padding: 7px 13px;
+  transition: background .15s, border-color .15s, transform .05s;
+}
+.btn:hover { background: var(--border); border-color: var(--text3); }
+.btn--primary {
+  background: var(--cyan); border-color: var(--cyan); color: #fff;
+  box-shadow: 0 6px 18px color-mix(in oklab, var(--cyan) 35%, transparent);
+}
+.btn--primary:hover { background: color-mix(in oklab, var(--cyan) 88%, #fff); border-color: transparent; }
+.btn--ghost { background: transparent; }
+
+/* Cards genéricas (resumen producto, bloques) */
+.r-card, .resumen-block, .dossier-pane, .dossier-viewer, .viewer, .kanban-legend, .arch-section {
+  background: linear-gradient(180deg, var(--bg2), var(--bg3)) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow);
+}
+.r-card { border-left: 1px solid var(--border) !important; padding: 18px !important; }
+.r-card-num { font-size: 30px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.r-card-label { color: var(--text2); font-size: 13px; }
+.r-card--backlog .r-card-num { color: var(--blue); }
+.r-card--curso .r-card-num { color: var(--orange); }
+.r-card--hecho .r-card-num { color: var(--green); }
+.r-card--bloqueado .r-card-num { color: var(--red); }
+
+/* Listas / filas */
+.r-list-row:hover, .tree-row:hover { background: var(--line2); }
+.r-list-row { border-radius: 10px; }
+
+/* Tabla de funcionalidades */
+.func-table thead th {
+  background: transparent; color: var(--text3); font-size: 11px; text-transform: uppercase;
+  letter-spacing: .05em; font-weight: 600; border-bottom: 1px solid var(--border);
+}
+.func-table tbody tr { border-bottom: 1px solid var(--line2); }
+.func-table tbody tr:hover { background: var(--line2); }
+
+/* Code inline con acento */
+code, .mono { color: var(--cyan); font-family: var(--mono); font-size: .9em; }
+
+/* Scrollbars finos */
+*::-webkit-scrollbar { width: 9px; height: 9px; }
+*::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+*::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* Toggle de tema (refinado) */
+.theme-toggle { border-radius: 9px; }
+
+/* Documentos unificados (Cerebro) — cabecera por área */
+.alldocs-area-title {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .07em; font-weight: 700;
+  color: var(--cyan); padding: 14px 6px 6px; margin-top: 6px;
+  border-top: 1px solid var(--line2);
+}
+.alldocs-area-title:first-child { border-top: none; margin-top: 0; }
+
+/* Inputs/selects de modales (consistencia) */
+.modal-form select, .modal-form input[type="text"], .modal-form textarea {
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 10px;
+  color: var(--text); padding: 9px 11px; font-family: var(--sans); font-size: 13.5px; width: 100%;
+}
+.modal-form select:focus, .modal-form input:focus, .modal-form textarea:focus {
+  outline: none; border-color: var(--cyan);
+}

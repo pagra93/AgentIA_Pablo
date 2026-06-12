@@ -19,9 +19,10 @@
     previewing: false,         // dentro del modo edición, ¿mostrando preview en vez de textarea?
     dirty: false,              // ¿el textarea tiene cambios sin guardar?
     // V2.6 — navegación por áreas
-    activeArea: 'general',     // 'general' | 'producto' | '_system' | <id dinamico desde pm/config.json>
+    activeArea: 'inicio',      // 'inicio' | 'cerebro' | 'general' | 'producto' | '_system' | <id dinamico>
 
     areaSubTab: {              // sub-tab activa por área (default por área)
+      cerebro: 'wiki',
       general: 'dashboard',
       producto: 'resumen',
       _system: 'estado',
@@ -713,6 +714,14 @@
     document.querySelectorAll('.area-view').forEach(v => v.classList.toggle('hidden', v.dataset.areaView !== areaId));
     el.errorState.classList.add('hidden');
 
+    // Áreas transversales del "panel de startup"
+    if (areaId === 'inicio') { renderOverview(); stopPolling(); hideSharedViewer(); return; }
+    if (areaId === 'cerebro') {
+      stopPolling();
+      setSubTab('cerebro', state.areaSubTab['cerebro'] || 'wiki');  // setSubTab gestiona el viewer (docs vs no-docs)
+      return;
+    }
+
     // Areas inactivas: las que tienen active: false en pm/config.json > areas
     // (Antes hardcoded como ['marketing', 'rrhh', 'operaciones']; ahora dinamico)
     const areaCfg = state.config?.areas?.[areaId];
@@ -770,6 +779,9 @@
     if (areaId === 'producto' && subtab === 'docs') renderTreeForArea('producto');
     if (areaId === '_system' && subtab === 'estado') renderSystemEstado();
     if (areaId === '_system' && subtab === 'files') renderTreeForArea('_system');
+    if (areaId === 'cerebro' && subtab === 'wiki') renderWiki();
+    if (areaId === 'cerebro' && subtab === 'reuniones') renderMeetings();
+    if (areaId === 'cerebro' && subtab === 'docs') renderAllDocs();
 
     // V3.5: areas dinamicas activas con states declarados (kanban genérico)
     const areaCfg = state.config?.areas?.[areaId];
@@ -918,6 +930,196 @@
       host.insertAdjacentHTML('afterbegin', `<p class="arch-empty">Error al renderizar diagramas: ${escapeHtml(String(e))}</p>`);
     }
   }
+
+  // ───────────────── Panel de startup: Inicio / Cerebro / Reuniones ─────────────────
+
+  const CARD = 'background:linear-gradient(180deg,var(--bg2),var(--bg3));border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow)';
+  function ovPill(text, color) {
+    return `<span style="display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:999px;padding:3px 10px;font-size:11.5px;color:${color||'var(--text2)'}">${text}</span>`;
+  }
+  function statCard(icon, color, value, label, rightHtml) {
+    return `<div style="${CARD};padding:18px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div style="width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:18px;color:${color};background:color-mix(in oklab, ${color} 12%, transparent);border:1px solid var(--border)">${icon}</div>
+        ${rightHtml || ''}
+      </div>
+      <div style="font-size:32px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:14px">${escapeHtml(String(value))}</div>
+      <div style="color:var(--text2);font-size:13px;margin-top:2px">${escapeHtml(label)}</div>
+    </div>`;
+  }
+  function ovDonut(pct, top, bot) {
+    const c = 2 * Math.PI * 50, off = c * (1 - Math.max(0, Math.min(100, pct)) / 100);
+    return `<svg width="118" height="118" viewBox="0 0 118 118">
+      <circle cx="59" cy="59" r="50" fill="none" stroke="var(--border)" stroke-width="12"/>
+      <circle cx="59" cy="59" r="50" fill="none" stroke="var(--cyan)" stroke-width="12" stroke-linecap="round"
+        stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 59 59)"/>
+      <text x="59" y="55" text-anchor="middle" fill="var(--text)" font-size="24" font-weight="800">${top}</text>
+      <text x="59" y="74" text-anchor="middle" fill="var(--text3)" font-size="11">${bot}</text>
+    </svg>`;
+  }
+  const OV_STATUS_COLOR = {
+    sin_priorizar:'var(--text3)', priorizada:'var(--text3)', research:'var(--green)',
+    definicion:'var(--blue)', en_definicion:'var(--orange)', planning:'var(--purple)',
+    build:'var(--cyan)', review:'var(--pink)', hecho:'var(--green)', bloqueada:'var(--red)', cancelada:'var(--text3)',
+  };
+  function ovStatusColor(s) { return OV_STATUS_COLOR[s] || 'var(--blue)'; }
+
+  function chip(text, cls) {
+    return `<span class="inline-block rounded-full border border-brd ${cls || 'text-muted'} px-2.5 py-0.5 text-xs">${escapeHtml(text)}</span>`;
+  }
+
+  let _overviewWired = false;
+  async function renderOverview() {
+    const host = document.getElementById('overview-view');
+    if (!host) return;
+    if (!_overviewWired) {
+      const b = document.getElementById('btn-refresh-overview');
+      if (b) b.addEventListener('click', renderOverview);
+      _overviewWired = true;
+    }
+    host.innerHTML = '<p class="text-muted">Cargando…</p>';
+    let d;
+    try { d = await api('/api/overview'); }
+    catch (e) { host.innerHTML = `<p class="text-danger">No se pudo cargar el resumen: ${escapeHtml(String(e))}</p>`; return; }
+
+    const t = d.tasks || {}, f = d.features || {}, w = d.wiki || {}, m = d.meetings || {};
+    const brainTotal = (w.entities||0)+(w.concepts||0)+(w.sources||0)+(w.topics||0);
+    const statusOrder = Object.entries(t.by_status || {}).sort((a,b)=>b[1]-a[1]);
+    const totalT = t.total || statusOrder.reduce((s,[,n])=>s+n,0) || 0;
+    const pctDossier = f.total ? Math.round((f.with_dossier||0)/f.total*100) : 0;
+    const LBL = { definicion:'Definición', en_definicion:'En definición', sin_priorizar:'Sin priorizar', priorizada:'Priorizada' };
+    const lbl = s => LBL[s] || (s.charAt(0).toUpperCase()+s.slice(1).replace(/_/g,' '));
+    const grid = 'display:grid;gap:16px;margin-bottom:18px';
+
+    // Stat cards
+    let html = `<div style="${grid};grid-template-columns:repeat(4,minmax(0,1fr))">`;
+    html += statCard('◷','var(--cyan)', totalT, 'Tareas activas',
+      ovPill(t.blocked ? `${t.blocked} bloqueadas` : '0 bloqueadas', t.blocked ? 'var(--red)' : 'var(--green)'));
+    html += statCard('▦','var(--blue)', f.total||0, 'Funcionalidades', ovPill(`${pctDossier}% dossier`, 'var(--blue)'));
+    html += statCard('🗣','var(--purple)', m.total||0, 'Reuniones', '');
+    html += statCard('🧠','var(--green)', brainTotal, 'Cerebro · entidades+conceptos', ovPill(brainTotal? 'activo':'vacío', 'var(--text3)'));
+    html += '</div>';
+
+    // Estado de tareas (barra segmentada) + donut de features
+    html += `<div style="${grid};grid-template-columns:1.6fr 1fr">`;
+    html += `<div style="${CARD};padding:20px 22px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--text3)">Estado de las tareas</div>
+        ${ovPill(`${totalT} total`)}</div>`;
+    if (statusOrder.length) {
+      html += '<div style="height:12px;border-radius:999px;display:flex;gap:3px;margin-bottom:18px">'
+        + statusOrder.map(([s,n]) => `<span style="flex:${n};background:${ovStatusColor(s)};border-radius:999px;display:block"></span>`).join('') + '</div>';
+      html += '<div style="display:flex;gap:26px;flex-wrap:wrap">' + statusOrder.map(([s,n]) =>
+        `<div><div style="display:flex;align-items:center;gap:7px"><i style="width:9px;height:9px;border-radius:3px;background:${ovStatusColor(s)};display:block"></i><span style="color:var(--text2);font-size:13px">${escapeHtml(lbl(s))}</span></div><div style="font-size:22px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums">${n}</div></div>`).join('') + '</div>';
+    } else { html += '<p style="color:var(--text2);font-size:13px">Sin tareas todavía.</p>'; }
+    html += '</div>';
+
+    html += `<div style="${CARD};padding:20px 22px;display:flex;flex-direction:column">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--text3);margin-bottom:8px">Progreso de features</div>
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:20px">
+        ${ovDonut(pctDossier, pctDossier+'%', (f.with_dossier||0)+' / '+(f.total||0))}
+        <div style="font-size:13px;color:var(--text2);line-height:1.7"><div><b style="color:var(--text)">${f.with_dossier||0}</b> con dossier</div><div><b style="color:var(--text)">${(f.total||0)-(f.with_dossier||0)}</b> pendientes</div></div>
+      </div></div></div>`;
+
+    // Reuniones recientes + áreas
+    html += `<div style="display:grid;gap:16px;grid-template-columns:1.6fr 1fr">`;
+    html += `<div style="${CARD};padding:20px 22px"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--text3);margin-bottom:14px">Reuniones recientes</div>`;
+    html += (m.recent && m.recent.length)
+      ? m.recent.map(r => `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line2)"><span style="font-size:14px">${escapeHtml(r.title||r.slug)}</span><span style="color:var(--text3);font-size:12px">${escapeHtml((r.date||'').slice(0,10))} · ${r.decisions||0} dec · ${r.action_items||0} tareas</span></div>`).join('')
+      : '<div style="text-align:center;padding:22px 0;color:var(--text3)"><div style="font-size:30px;opacity:.5">🗣</div><div style="color:var(--text);font-weight:600;margin-top:8px">Sin reuniones todavía</div><div style="font-size:13px;margin-top:4px">Captúralas con <code>/wiki reunion</code>.</div></div>';
+    html += '</div>';
+    html += `<div style="${CARD};padding:20px 22px"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--text3);margin-bottom:14px">Áreas activas</div><div style="display:flex;flex-direction:column;gap:10px">`
+      + (d.areas||[]).map(a => `<div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:14px">${escapeHtml(a.label)}</span></div>`).join('') + '</div></div></div>';
+
+    host.innerHTML = html;
+  }
+
+  async function renderWiki() {
+    const host = document.getElementById('wiki-view');
+    if (!host) return;
+    host.innerHTML = '<p class="text-muted">Cargando el cerebro…</p>';
+    let d;
+    try { d = await api('/api/wiki'); }
+    catch (e) { host.innerHTML = `<p class="text-danger">No se pudo cargar el cerebro: ${escapeHtml(String(e))}</p>`; return; }
+
+    if (d._missing) {
+      host.innerHTML = '<div class="rounded-xl border border-brd bg-surface p-8 text-center"><p class="text-text font-medium mb-1">El cerebro está vacío.</p><p class="text-muted text-sm">Aliméntalo desde Claude Code: <code>/wiki reunion</code>, <code>/wiki ingestar</code>, <code>/wiki anotar</code>. Cada cosa que metas queda aquí clasificada y sin silos.</p></div>';
+      return;
+    }
+    const c = d.counts || {};
+    let html = '<div class="flex flex-wrap items-center gap-2 mb-5 text-sm text-muted">'
+      + chip(`${c.entities||0} entidades`,'text-ok') + chip(`${c.concepts||0} conceptos`,'text-info')
+      + chip(`${c.sources||0} fuentes`,'text-special') + chip(`${c.topics||0} temas`,'text-warn') + '</div>';
+
+    if (d.tags && d.tags.length) {
+      html += '<div class="mb-6"><div class="text-faint text-xs uppercase tracking-wide mb-2">Tags</div><div class="flex flex-wrap gap-2">'
+        + d.tags.slice(0,30).map(tg => `<span class="rounded-full bg-surface2 border border-brd px-2.5 py-0.5 text-xs text-muted">${escapeHtml(tg.name)} <b class="text-text">${tg.count}</b></span>`).join('') + '</div></div>';
+    }
+
+    const section = (title, items, meta) => {
+      let s = `<div class="rounded-xl border border-brd bg-surface p-5"><div class="text-faint text-xs uppercase tracking-wide mb-3">${escapeHtml(title)} <span class="text-text">${items.length}</span></div>`;
+      s += items.length
+        ? items.map(it => `<div class="py-2 border-b border-brd last:border-0">
+            <div class="text-text text-sm font-medium">${escapeHtml(it.title)}</div>
+            <div class="text-faint text-xs mt-0.5">${meta(it)}${(it.tags||[]).length? ' · ' + it.tags.map(escapeHtml).join(', ') : ''}</div></div>`).join('')
+        : '<p class="text-muted text-sm">—</p>';
+      return s + '</div>';
+    };
+    html += '<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">';
+    html += section('Entidades', d.entities, it => escapeHtml(it.category||'entidad') + ` · ${it.links||0} enlaces`);
+    html += section('Conceptos', d.concepts, it => escapeHtml(it.status||'concepto') + ` · ${it.links||0} enlaces`);
+    html += section('Fuentes', d.sources, it => escapeHtml(it.source_type||'fuente') + (it.date? ' · '+escapeHtml(String(it.date).slice(0,10)) : ''));
+    html += section('Temas', d.topics, () => 'tema');
+    html += '</div>';
+    host.innerHTML = html;
+  }
+
+  async function renderMeetings() {
+    const host = document.getElementById('meetings-view');
+    if (!host) return;
+    host.innerHTML = '<p class="text-muted">Cargando reuniones…</p>';
+    let d;
+    try { d = await api('/api/meetings'); }
+    catch (e) { host.innerHTML = `<p class="text-danger">No se pudieron cargar las reuniones: ${escapeHtml(String(e))}</p>`; return; }
+
+    if (d._missing || !d.meetings || !d.meetings.length) {
+      host.innerHTML = '<div class="rounded-xl border border-brd bg-surface p-8 text-center"><p class="text-text font-medium mb-1">Sin reuniones todavía.</p><p class="text-muted text-sm">Captura una con <code>/wiki reunion "Título"</code> y luego <code>/wiki ingestar</code>. Aparecerán aquí con sus decisiones y tareas.</p></div>';
+      return;
+    }
+    host.innerHTML = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">' + d.meetings.map(m => `
+      <div class="rounded-xl border border-brd bg-surface p-5">
+        <div class="flex items-start justify-between gap-3">
+          <div class="text-text font-medium">${escapeHtml(m.title || m.slug)}</div>
+          ${m.ingested ? '<span class="text-ok text-xs">✓ en el cerebro</span>' : '<span class="text-warn text-xs">sin ingerir</span>'}
+        </div>
+        <div class="text-faint text-xs mt-1">${escapeHtml((m.date||'').slice(0,10))}${(m.attendees||[]).length? ' · ' + m.attendees.map(escapeHtml).join(', ') : ''}</div>
+        <div class="flex flex-wrap gap-2 mt-3">
+          ${chip(`${m.decisions||0} decisiones`, 'text-info')}
+          ${chip(`${m.action_items||0} tareas`, 'text-accent')}
+          ${(m.related_features||[]).map(f => chip('→ '+f, 'text-special')).join('')}
+        </div>
+      </div>`).join('') + '</div>';
+  }
+
+  // ───────────────── Tema claro/oscuro ─────────────────
+  function applyTheme(theme) {
+    const root = document.documentElement;
+    root.classList.toggle('dark', theme === 'dark');
+    root.classList.toggle('light', theme === 'light');
+    try { localStorage.setItem('pmx-theme', theme); } catch (e) {}
+  }
+  function initTheme() {
+    let theme;
+    try { theme = localStorage.getItem('pmx-theme'); } catch (e) {}
+    if (!theme) theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+    applyTheme(theme);
+    const btn = document.getElementById('theme-toggle');
+    if (btn) btn.addEventListener('click', () => {
+      const now = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+      applyTheme(now);
+    });
+  }
+  initTheme();
 
   async function loadStories() {
     try {
@@ -2632,6 +2834,75 @@ Ejecuta <code>/pm sync</code> en Claude Code para crearlo y que aparezcan tareas
     }
   }
 
+  // Documentos unificados: TODAS las áreas en un explorador (sin silos) — para el Cerebro
+  function renderAllDocs() {
+    const container = document.getElementById('tree-cerebro');
+    if (!container) return;
+    if (!state.tree) { container.innerHTML = '<div class="loading">Cargando…</div>'; return; }
+    container.innerHTML = '';
+    let any = false;
+    for (const a of (state.tree.areas || [])) {
+      const kids = a.children || [];
+      if (!kids.length) continue;
+      any = true;
+      const header = document.createElement('div');
+      header.className = 'alldocs-area-title';
+      header.textContent = a.label || a.id;
+      container.appendChild(header);
+      for (const node of kids) container.appendChild(renderNode(node, 0));
+    }
+    if (!any) container.innerHTML = '<div class="loading">Sin documentos todavía.</div>';
+  }
+
+  // ── Captura al cerebro: escribe en raw/ (luego /wiki ingestar lo categoriza con IA) ──
+  function slugify(s) {
+    return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'nota';
+  }
+  function openCaptureModal() {
+    const m = document.getElementById('capture-modal'); if (!m) return;
+    const f = m.querySelector('form'); f.reset();
+    m.classList.remove('hidden');
+    setTimeout(() => f.elements.title && f.elements.title.focus(), 50);
+  }
+  function closeCaptureModal() {
+    const m = document.getElementById('capture-modal'); if (m) m.classList.add('hidden');
+  }
+  async function submitCapture(e) {
+    e.preventDefault();
+    const f = e.target, fd = new FormData(f);
+    const tipo = fd.get('tipo') || 'notas';
+    const title = (fd.get('title') || '').trim();
+    const content = (fd.get('content') || '').trim();
+    const tags = (fd.get('tags') || '').split(',').map(s => s.trim()).filter(Boolean);
+    if (!title || !content) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const path = `raw/${tipo}/${today}-${slugify(title)}.md`;
+    const typeMap = { notas: 'note', articulos: 'article', transcripciones: 'transcript' };
+    const fm = ['---', `type: ${typeMap[tipo] || 'note'}`, `date: ${today}`,
+      `tags: [${tags.join(', ')}]`, 'ingested: false', '---', '', `# ${title}`, '', content, ''].join('\n');
+    const btn = f.querySelector('button[type="submit"]'); btn.disabled = true;
+    try {
+      await api('/api/file', { method: 'POST', body: { path, content: fm } });
+      closeCaptureModal();
+      showToast(`🧠 Guardado en ${path}. Ejecuta /wiki ingestar ${path} en Claude para categorizarlo en el cerebro.`, 'ok');
+      await loadTree();
+      if (state.activeArea === 'cerebro') renderAllDocs();
+    } catch (err) {
+      showToast(`Error al guardar: ${err.message || err}`, 'error');
+    } finally { btn.disabled = false; }
+  }
+  function wireCaptureListeners() {
+    const btn = document.getElementById('btn-add-brain');
+    if (btn) btn.addEventListener('click', openCaptureModal);
+    const m = document.getElementById('capture-modal');
+    if (m) {
+      m.querySelectorAll('[data-close-capture]').forEach(el => el.addEventListener('click', closeCaptureModal));
+      const f = m.querySelector('form'); if (f) f.addEventListener('submit', submitCapture);
+    }
+  }
+  wireCaptureListeners();
+
   // ─────────── V2.6: General Dashboard ───────────
 
   function renderGeneralDashboard() {
@@ -3578,8 +3849,10 @@ Ejecuta <code>/pm sync</code> en Claude Code para crearlo y que aparezcan tareas
     const ok = await checkHealth();
     if (!ok) return;
     await loadTree();
-    // V2.6: arrancar en General por defecto (también dispara loadTasksAndConfig + loadStories)
-    setActiveArea('general');
+    // Cargar config (inyecta áreas dinámicas en el sidebar) aunque arranquemos en Inicio
+    await loadTasksAndConfig();
+    // Arrancar en el panel de Inicio (resumen de startup)
+    setActiveArea(state.activeArea);
   }
 
   init();

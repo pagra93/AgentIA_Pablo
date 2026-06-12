@@ -6,7 +6,24 @@
   <title>Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind Play CDN (zero-build). Colores mapeados a las variables CSS → paleta compartida con styles.css (claro/oscuro) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      corePlugins: { preflight: false },  // NO reset global: convive con styles.css sin pisar los componentes existentes
+      theme: { extend: {
+        colors: {
+          bg: 'var(--bg)', surface: 'var(--bg2)', surface2: 'var(--bg3)',
+          brd: 'var(--border)', text: 'var(--text)', muted: 'var(--text2)', faint: 'var(--text3)',
+          accent: 'var(--cyan)', ok: 'var(--green)', warn: 'var(--orange)', danger: 'var(--red)',
+          info: 'var(--blue)', special: 'var(--purple)',
+        },
+        fontFamily: { sans: ['DM Sans','system-ui','sans-serif'], mono: ['DM Mono','ui-monospace','monospace'] },
+      } },
+    };
+  </script>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -22,6 +39,9 @@
     </div>
     <div class="topbar-right">
       <span id="project-name" class="project-name">—</span>
+      <button id="theme-toggle" class="theme-toggle" type="button" title="Cambiar tema claro/oscuro" aria-label="Cambiar tema">
+        <span class="theme-toggle-icon">◐</span>
+      </button>
       <span id="connection-status" class="conn-status conn-status--unknown" title="Estado del bridge">
         <span class="conn-dot"></span>
         <span class="conn-label">comprobando…</span>
@@ -36,8 +56,18 @@
     <aside id="sidebar">
       <nav id="area-nav" class="area-nav">
         <div class="area-nav-section">
+          <button class="area-row active" data-area="inicio">
+            <span class="area-icon">◆</span>
+            <span class="area-name">Inicio</span>
+          </button>
+          <button class="area-row" data-area="cerebro">
+            <span class="area-icon">🧠</span>
+            <span class="area-name">Cerebro</span>
+          </button>
+        </div>
+        <div class="area-nav-section">
           <div class="area-nav-title">Áreas</div>
-          <button class="area-row active" data-area="general">
+          <button class="area-row" data-area="general">
             <span class="area-icon">🏠</span>
             <span class="area-name">General</span>
           </button>
@@ -62,6 +92,50 @@
 
     <!-- Main panel: cambia según área activa -->
     <main id="main-panel">
+
+      <!-- ───── ÁREA: Inicio (panel de startup) ───── -->
+      <section class="area-view" data-area-view="inicio">
+        <div class="area-header">
+          <div>
+            <h1 class="area-title">Inicio</h1>
+            <p class="area-subtitle">Resumen de toda la empresa de un vistazo.</p>
+          </div>
+          <button id="btn-refresh-overview" class="btn btn--ghost" type="button">↻ Refrescar</button>
+        </div>
+        <div id="overview-view" class="overview-view"></div>
+      </section>
+
+      <!-- ───── ÁREA: Cerebro (wiki + reuniones) ───── -->
+      <section class="area-view" data-area-view="cerebro">
+        <div class="area-header">
+          <div>
+            <h1 class="area-title">Cerebro</h1>
+            <p class="area-subtitle">El conocimiento de la empresa, sin silos. Todo clasificado y enlazado.</p>
+          </div>
+        </div>
+        <div class="area-subtabs">
+          <button class="atab active" data-area="cerebro" data-subtab="wiki">Wiki</button>
+          <button class="atab" data-area="cerebro" data-subtab="reuniones">Reuniones</button>
+          <button class="atab" data-area="cerebro" data-subtab="docs">Documentos</button>
+        </div>
+        <div class="atab-content" data-area="cerebro" data-subtab="wiki">
+          <div id="wiki-view" class="wiki-view"></div>
+        </div>
+        <div class="atab-content hidden" data-area="cerebro" data-subtab="reuniones">
+          <div id="meetings-view" class="meetings-view"></div>
+        </div>
+        <div class="atab-content hidden" data-area="cerebro" data-subtab="docs">
+          <div class="docs-toolbar" style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+            <button id="btn-add-brain" class="btn btn--primary" type="button">+ Añadir al cerebro</button>
+            <button class="btn" data-new-doc="docs/general" type="button">+ Nuevo doc</button>
+            <span class="area-subtitle" style="margin:0">Todo el conocimiento de la empresa, sin silos. "Añadir al cerebro" captura para que la IA lo categorice con <code>/wiki ingestar</code>.</span>
+          </div>
+          <div class="area-docs-layout">
+            <div class="area-docs-tree" id="tree-cerebro"></div>
+            <div class="area-docs-viewer" data-viewer-slot="cerebro"></div>
+          </div>
+        </div>
+      </section>
 
       <!-- ───── ÁREA: General ───── -->
       <section class="area-view" data-area-view="general">
@@ -400,6 +474,43 @@
       <div class="modal-actions">
         <button type="button" class="btn btn--ghost" data-close-modal>Cancelar</button>
         <button type="submit" class="btn btn--primary">Crear</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal "+ Añadir al cerebro" (captura → raw/ → /wiki ingestar categoriza) -->
+<div id="capture-modal" class="modal hidden" role="dialog">
+  <div class="modal-backdrop" data-close-capture></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">+ Añadir al cerebro</h2>
+      <button class="modal-close" data-close-capture type="button">×</button>
+    </div>
+    <form id="capture-form" class="modal-form">
+      <label class="modal-field">
+        <span class="modal-label">Tipo</span>
+        <select name="tipo" class="modal-input">
+          <option value="notas">Nota</option>
+          <option value="articulos">Artículo</option>
+          <option value="transcripciones">Transcripción</option>
+        </select>
+      </label>
+      <label class="modal-field">
+        <span class="modal-label">Título</span>
+        <input type="text" name="title" required placeholder="ej: Reunión con proveedor X / Idea de pricing" autocomplete="off">
+      </label>
+      <label class="modal-field">
+        <span class="modal-label">Tags <span style="color:var(--text3);font-weight:400">(opcional, separadas por comas)</span></span>
+        <input type="text" name="tags" placeholder="ej: producto, pricing, proveedores" autocomplete="off">
+      </label>
+      <label class="modal-field">
+        <span class="modal-label">Contenido</span>
+        <textarea name="content" rows="9" required placeholder="Pega o escribe aquí. Transcripción, notas, el artículo... lo que sea. La IA lo clasificará al ejecutar /wiki ingestar."></textarea>
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn btn--ghost" data-close-capture>Cancelar</button>
+        <button type="submit" class="btn btn--primary">Guardar en el cerebro</button>
       </div>
     </form>
   </div>

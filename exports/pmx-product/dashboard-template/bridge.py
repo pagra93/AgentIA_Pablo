@@ -692,6 +692,173 @@ def enrich_tasks_with_sub_status(project_root, tasks_data):
     return tasks_data
 
 
+# ─────────────────────────────────────────────────────────────────
+# Cerebro/Wiki, Reuniones y Overview (panel de startup)
+# ─────────────────────────────────────────────────────────────────
+
+def _md_title(text, fallback):
+    """Primer encabezado markdown `# ...`, o fallback."""
+    m = re.search(r'^#\s+(.+)$', text, re.MULTILINE)
+    return m.group(1).strip() if m else fallback
+
+
+def _read_md_meta(abs_path):
+    """Lee un .md: frontmatter (parse_yaml_block), título, y conteos de wikilinks."""
+    try:
+        with open(abs_path, "r", encoding="utf-8") as f:
+            text = f.read()
+    except (OSError, UnicodeDecodeError):
+        return None
+    fm = {}
+    fm_match = re.match(r'^---\s*\n(.*?)\n---\s*\n', text, re.DOTALL)
+    if fm_match:
+        fm = parse_yaml_block(fm_match.group(1))
+    slug = os.path.splitext(os.path.basename(abs_path))[0]
+    return {
+        "slug": slug,
+        "title": _md_title(text, slug),
+        "frontmatter": fm,
+        "wikilinks": len(re.findall(r'\[\[', text)),
+        "_text": text,
+    }
+
+
+def _wiki_dir(project_root):
+    return os.path.join(project_root, "docs", "general", "wiki")
+
+
+def build_wiki(project_root):
+    """Cerebro categorizado: entidades, conceptos, fuentes, temas + tags."""
+    wdir = _wiki_dir(project_root)
+    if not os.path.isdir(wdir):
+        return {"_missing": True, "entities": [], "concepts": [], "sources": [],
+                "topics": [], "tags": [], "counts": {"entities": 0, "concepts": 0, "sources": 0, "topics": 0}}
+
+    def collect(subdir):
+        d = os.path.join(wdir, subdir)
+        items = []
+        if not os.path.isdir(d):
+            return items
+        for name in sorted(os.listdir(d)):
+            if not name.endswith(".md") or name in ("README.md", "index.md"):
+                continue
+            meta = _read_md_meta(os.path.join(d, name))
+            if not meta:
+                continue
+            fm = meta["frontmatter"]
+            items.append({
+                "slug": meta["slug"],
+                "title": meta["title"],
+                "path": "docs/general/wiki/%s/%s" % (subdir, name),
+                "category": fm.get("category"),
+                "source_type": fm.get("source_type"),
+                "date": fm.get("date"),
+                "tags": fm.get("tags") if isinstance(fm.get("tags"), list) else (
+                    [fm["tags"]] if fm.get("tags") else []),
+                "status": fm.get("status"),
+                "links": meta["wikilinks"],
+            })
+        return items
+
+    entities = collect("entities")
+    concepts = collect("concepts")
+    sources = collect("sources")
+    topics = collect("topics")
+
+    # Índice de tags agregado desde el frontmatter de todas las páginas
+    tag_count = {}
+    for group in (entities, concepts, sources, topics):
+        for it in group:
+            for tg in it.get("tags") or []:
+                tag_count[tg] = tag_count.get(tg, 0) + 1
+    tags = sorted(({"name": k, "count": v} for k, v in tag_count.items()),
+                  key=lambda x: -x["count"])
+
+    return {
+        "entities": entities, "concepts": concepts, "sources": sources, "topics": topics,
+        "tags": tags,
+        "counts": {"entities": len(entities), "concepts": len(concepts),
+                   "sources": len(sources), "topics": len(topics)},
+    }
+
+
+def build_meetings(project_root):
+    """Lista de reuniones desde raw/reuniones/, con decisiones/action items contados."""
+    rdir = os.path.join(project_root, "raw", "reuniones")
+    if not os.path.isdir(rdir):
+        return {"_missing": True, "meetings": [], "total": 0}
+    meetings = []
+    for name in sorted(os.listdir(rdir), reverse=True):
+        if not name.endswith(".md"):
+            continue
+        meta = _read_md_meta(os.path.join(rdir, name))
+        if not meta:
+            continue
+        fm = meta["frontmatter"]
+        text = meta["_text"]
+        decisions = len(re.findall(r'(?im)^\s*(?:-\s*)?DECISI[ÓO]N\s*:', text))
+        actions = len(re.findall(r'(?m)^\s*-\s*\[\s?\]', text))
+        att = fm.get("attendees")
+        att = att if isinstance(att, list) else ([att] if att else [])
+        rel = fm.get("related_features")
+        rel = rel if isinstance(rel, list) else ([rel] if rel else [])
+        meetings.append({
+            "slug": meta["slug"],
+            "title": meta["title"],
+            "path": "raw/reuniones/%s" % name,
+            "date": fm.get("date"),
+            "attendees": att,
+            "tags": fm.get("tags") if isinstance(fm.get("tags"), list) else [],
+            "related_features": rel,
+            "ingested": bool(fm.get("ingested")),
+            "decisions": decisions,
+            "action_items": actions,
+        })
+    return {"meetings": meetings, "total": len(meetings)}
+
+
+def build_overview(project_root):
+    """Panel de startup: agrega tareas, features, cerebro, reuniones."""
+    # Tareas por estado (pm/tasks.json)
+    by_status, blocked = {}, 0
+    tpath = os.path.join(project_root, "pm", "tasks.json")
+    if os.path.exists(tpath):
+        try:
+            with open(tpath, "r", encoding="utf-8") as f:
+                td = json.load(f)
+            for t in td.get("tasks", []):
+                st = t.get("status") or "sin_estado"
+                by_status[st] = by_status.get(st, 0) + 1
+                if t.get("blocked"):
+                    blocked += 1
+        except (json.JSONDecodeError, OSError):
+            pass
+    total_tasks = sum(by_status.values())
+
+    # Features
+    feats = list_features(project_root)
+    with_dossier = sum(1 for f in feats if f.get("has_dossier"))
+
+    # Cerebro
+    wiki = build_wiki(project_root)
+    # Reuniones
+    meetings = build_meetings(project_root)
+
+    # Áreas activas
+    areas = load_areas(project_root)
+    area_list = [{"id": aid, "label": info.get("label", aid)}
+                 for aid, info in areas.items() if info.get("active")]
+
+    return {
+        "tasks": {"total": total_tasks, "by_status": by_status, "blocked": blocked},
+        "features": {"total": len(feats), "with_dossier": with_dossier},
+        "wiki": wiki.get("counts", {}),
+        "meetings": {"total": meetings.get("total", 0),
+                     "recent": meetings.get("meetings", [])[:5]},
+        "areas": area_list,
+    }
+
+
 class DashboardHandler(BaseHTTPRequestHandler):
     project_root = None
     static_root = None  # carpeta donde están index.html, styles.css, app.js
@@ -846,6 +1013,16 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 "size": os.path.getsize(abs_path),
                 "read_only": is_read_only(requested),
             })
+
+        # ── Panel de startup: overview, cerebro/wiki, reuniones ──
+        if path == "/api/overview":
+            return self._send_json(200, build_overview(self.project_root))
+
+        if path == "/api/wiki":
+            return self._send_json(200, build_wiki(self.project_root))
+
+        if path == "/api/meetings":
+            return self._send_json(200, build_meetings(self.project_root))
 
         # ── Static ──────────────────────────────────────────────
         if path == "/" or path == "/index.html":
